@@ -1,0 +1,58 @@
+#!/bin/sh
+
+##################
+# created 2017-12-27
+# by Thomas Frohwein (thfr)
+#################
+# Script to get FNA-based games
+# ready to run on OpenBSD
+##################
+# Requirements:
+#
+# - SDL2 library that identifies as 'Linux' rather than 'OpenBSD'
+#   (needs to be compiled this way; patch to recognize OpenBSD in
+#   progress upstream)
+# - mono (package in ports marked as BROKEN, but compiles on amd64
+#   if /usr/ports is mounted with wxallowed)
+##################
+# Usage:
+#
+# fnaify <.exe binary>
+#
+# call it from the folder where the .exe file is located
+##########
+
+####
+# 1. replace all occurences of 'linux' in .config files (dllmap) with 'linux,freebsd,openbsd,netbsd'
+#    (this won't be needed after patched fna rolled out)
+#    - will try to use sed or awk
+#    - maybe unified config for all use cases can be created
+
+####
+# 2. remove linux libraries in lib and lib64 folders
+
+####
+# 3. drop openbsd library package in lib and lib64 folders with names changed to linux equivalents
+#
+#    the library package contains
+#			->	libSDL2-2.0.so.0
+#			->	libSDL2_mixer-2.0.so.0
+#			->	libmono-2.0.so.1
+#			->	libogg.so.0
+#			->	libopenal.so.1
+#			->	libmojoshader.so... (not available in OpenBSD packages)
+#			->	libtheora.so.0
+#			->	libtheoradec.so.1
+#			->	libtheoraplay.so
+#			->	libvorbis.so.0
+#			->	libvorbisfile.so.3
+
+###
+# 4. copy wrapper script template into current folder
+#    - calls mono
+
+###
+# 5. enter correct name of .exe into wrapper script
+
+###
+# 6. rename wrapper script based on .exe name and set executable bit
