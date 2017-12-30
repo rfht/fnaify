@@ -17,10 +17,30 @@
 ##################
 # Usage:
 #
+# FIXME: should $1 be .exe or name of the linux wrapper script?
+#        (name of exe should be retrievable otherwise, e.g. `ls *.exe`)
 # fnaify <.exe binary>
 #
 # call it from the folder where the .exe file is located
 ##########
+
+# check if file in $1 exists, if not throw error
+if [ ! -e "$1" ]
+then
+	print "file not found"
+	exit 1
+fi
+
+# variable definitions
+# FIXME: replace $1 with gamefile everywhere after definition
+
+fullfnaifypath=`pwd`/$0
+fnaifyfile=`basename fullfnaifypath`
+fnaifydir=`dirname fullfnaifypath`
+
+fullgamepath=`pwd`/$1
+gamefile=`basename fullgamepath`
+gamedir=`dirname fullgamepath`
 
 ####
 # 1. replace all occurences of 'linux' in .config files (dllmap) with 'linux,freebsd,openbsd,netbsd'
@@ -28,8 +48,35 @@
 #    - will try to use sed or awk
 #    - maybe unified config for all use cases can be created
 
+# create backup .linux files of the original .config files
+for file in `ls *.config`
+do
+	cp -p $file $file.linux
+done
+
+# now sed replace all terms
+for file in `ls *.config`
+	# to be filled in here
+do
+	# someone may be able to provide a more compact solution for this section
+	# FIXME: make this section independent from installed library version
+	# ? find and add minimum versions of libraries?
+	sed -i 's/os="linux"/os="openbsd"/g' $file
+	sed -i 's/target="libSDL2-2.0.so.0"/target="libSDL2.so.0.3"/g' $file
+	sed -i 's/target="libSDL2_image-2.0.so.0"/target="libSDL2_image.so.0.0"/g' $file
+	sed -i 's/target="libSDL2_mixer-2.0.so.0"/target="libSDL2_mixer.so.0.0"/g' $file
+	sed -i 's/target="libSDL2_ttf-2.0.so.0"/target="libSDL2_ttf.so.0.0"/g' $file
+	sed -i 's/target="libopenal.so.1"/target="libopenal.so.3.0"/g' $file
+	sed -i 's/target="libvorbisfile.so.3"/target="libvorbisfile.so.6.0"/g' $file
+	# libmojoshader.so should be the same name between linux and openbsd at this point
+	# FIXME: libtheoraplay.so -> unclear what to replace it with
+	# FIXME: libtheorafile.so -> unclear what to replace it with
+	sed -i 's/dll="libfreetype.so.6"/dll="libfreetype.so.28.2"/g' $file
+done
+
 ####
 # 2. remove linux libraries in lib and lib64 folders
+#    -- UNLESS this script will just use system libraries
 
 ####
 # 3. drop openbsd library package in lib and lib64 folders with names changed to linux equivalents
@@ -43,16 +90,27 @@
 #			->	libmojoshader.so... (not available in OpenBSD packages)
 #			->	libtheora.so.0
 #			->	libtheoradec.so.1
-#			->	libtheoraplay.so
+#			->	libtheoraplay.so (no libtheoraplay in OpenBSD - is this integrated in libtheora or libtheoradec?)
 #			->	libvorbis.so.0
 #			->	libvorbisfile.so.3
+#			->	libMonoPosixHelper.so
+#			->	libXNAFileDialog.so (from github)
+#	-- UNLESS this script will just use system libraries
 
 ###
-# 4. copy wrapper script template into current folder
-#    - calls mono
+# 4. copy wrapper script template into the game folder
+
+
+# FIXME: .obsd is temporary workaround. Ideally original bash script should be moved to
+#         backup (.linux) file and the wrapper script should be renamed to replace the
+#         original script's name
+cp `dirname "$0"`/wrapper.template ./$1.obsd
 
 ###
 # 5. enter correct name of .exe into wrapper script
+
+# FIXME: complete sed command with name of the executable
+#sed -i 's/<WINDOWS_EXECUTABLE>/
 
 ###
 # 6. rename wrapper script based on .exe name and set executable bit
