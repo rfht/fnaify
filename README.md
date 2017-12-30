@@ -1,3 +1,5 @@
+**NOTE: This is only a draft at the moment**
+
 fnaify
 ======
 
