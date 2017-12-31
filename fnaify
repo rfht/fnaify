@@ -28,6 +28,8 @@ then
 	exit 1
 fi
 
+# FIXME: check that $1 is shell script, e.g. with 'file' command
+
 # variable definitions
 fullfnaifypath="$0"
 fnaifyfile="`basename $fullfnaifypath`"
