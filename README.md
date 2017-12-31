@@ -19,4 +19,4 @@ Requirements:
 
 Usage:
 
-fnaify <launch script>
+fnaify \<launch script\>
