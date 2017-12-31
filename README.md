@@ -16,6 +16,7 @@ Requirements:
   progress upstream)
 - mono (package in ports marked as BROKEN, but compiles on amd64
   if /usr/ports is mounted with wxallowed)
+- game-specific libraries, like theoraplay, mojoshader, ...
 
 Usage:
 
