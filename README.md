@@ -1,4 +1,4 @@
-**NOTE: This is only a draft at the moment**
+NOTE: beta version. Likely still with bugs in many use cases
 
 fnaify
 ======
@@ -19,6 +19,4 @@ Requirements:
 
 Usage:
 
-fnaify <.exe binary>
-
-call it from the folder where the .exe file is located
+fnaify <launch script>
