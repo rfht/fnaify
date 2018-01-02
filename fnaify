@@ -32,14 +32,14 @@ fi
 
 # variable definitions
 fullfnaifypath="$0"
-fnaifyfile="`basename $fullfnaifypath`"
-fnaifydir="`dirname $fullfnaifypath`"
+fnaifyfile="`basename \"$fullfnaifypath\"`"
+fnaifydir="`dirname \"$fullfnaifypath\"`"
 fullscriptpath="`pwd`/$1"
-scriptfile="`basename $fullscriptpath`"
-gamedir="`dirname $fullscriptpath`"
+scriptfile="`basename \"$fullscriptpath\"`"
+gamedir="`dirname \"$fullscriptpath\"`"
 # FIXME: add test that there is only one .exe file, otherwise error out
-fullexepath="`ls $gamedir/*.exe`"	# should be only one .exe file from my observation; if not will likely bug out
-exefile="`basename $fullexepath`"
+exefile="`ls \"$gamedir\" | grep \"\.exe$\"`"
+fullexepath="$gamedir/$exefile"
 
 ####
 # 1. replace all occurences of 'linux' in .config files (dllmap) with 'openbsd'
@@ -109,7 +109,7 @@ if [ ! -e "$fullscriptpath.linux" ]
 then
 	cp -p "$fullscriptpath" "$fullscriptpath.linux"
 fi
-cp "$fnaifydir/wrapper.template" $fullscriptpath
+cp "$fnaifydir/wrapper.template" "$fullscriptpath"
 # FIXME: "$exefile" is not replaced by variable, will try without ""
 sed -i "s/<WINDOWS_EXECUTABLE>/\"$exefile\"/g" "$fullscriptpath"
 chmod +x "$fullscriptpath"
