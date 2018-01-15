@@ -20,15 +20,26 @@
 # fnaify <launch script>
 #
 ##########
+# TODO:
+# - [[ ... ]] vs. [ ... ]
+#########
 
-# check if file in $1 exists, if not throw error
-if [ ! -e "$1" ]
+if [[ ! -e "$1" ]]
 then
 	print "file not found"
 	exit 1
 fi
+print "found file $1"
 
-# FIXME: check that $1 is shell script, e.g. with 'file' command
+print "found file type: `file -b $1`"
+#[ "`file $1`" = "Bourne-Again shell script text executable" ]
+#print $?
+if [[ "`file -b $1`" != "Bourne-Again shell script text executable" ]]
+then
+	print "file type doesn't fit (expected type 'Bourne-Again shell script text executable')"
+	exit 1
+fi
+print "file type is appropriate"
 
 # variable definitions
 fullfnaifypath="$0"
@@ -41,9 +52,76 @@ gamedir="`dirname \"$fullscriptpath\"`"
 exefile="`ls \"$gamedir\" | grep \"\.exe$\"`"
 fullexepath="$gamedir/$exefile"
 
+for cfile in "`ls \"$gamedir\" | grep \"\.config$\"`"
+do
+	configfilesarray[${#configfiles[*]} + 1]=$cfile
+done
+
+#needlibarray[*] is the array that will hold the names of needed libraries
+#foundlibarray[*] is the array of the libraries that were found to match
+#                 needlibarray
+
 ####
-# 1. replace all occurences of 'linux' in .config files (dllmap) with 'openbsd'
-#    (this won't be needed after patched fna rolled out)
+# identify required libraries
+####
+# - this is likely imperfect and may identify too many or too few libraries
+# - at the moment will check 2 sources: lib64 and .config files
+####
+
+# get library names from lib64 folder
+if [[ ! -e "$gamedir/lib64" ]]
+then
+	print "couldn't find library directory $gamedir/lib64"
+else
+	print ""
+	print "entering library directory $gamedir/lib64"
+	print ""
+	# FIXME: not sure if this for statement can deal with whitespace in
+	#        filenames
+	for file in $(ls $gamedir/lib64)
+	do
+		if [[ "$(file -b $gamedir/lib64/$file)" != "ELF 64-bit LSB shared object, x86-64, version 1" ]]
+		then
+			print "\tfile $file: not a valid library file type"
+		else
+			print "\t$file: looks like a Linux shared library"
+			needlibarray[${#needlibarray[*]} + 1]=$file
+		fi
+	done
+	print ""
+	print "done with library directory $gamedir/lib64"
+fi
+print ""
+
+# get library names from .config files
+print "obtaining library names from .config files"
+print ""
+
+# check that configfilesarray isn't empty
+if [[ ${#configfilesarray[*]} < 1 ]]
+then
+	print "no .config files found"
+else
+	cfile=""	# empty the variable because it has been used before
+	for cfile in ${configfilesarray[*]}
+	do
+		print "\t$cfile"
+	done
+	print ""
+	print "done with identifying libraries in .config files"
+fi
+print ""
+
+print "Length of needlibarray: ${#needlibarray[*]}"
+print "needlibarray:"
+print ${needlibarray[*]}
+print ""
+print "test completed"
+exit 0
+
+####
+# replace all occurences of 'linux' in .config files (dllmap) with 'openbsd'
+#    (this won't be needed after fna 18.01+ rolled out)
 
 # create backup .linux files of the original .config files
 for file in `ls *.config`
