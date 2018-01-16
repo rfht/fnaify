@@ -1,4 +1,4 @@
-NOTE: beta version. Likely still with bugs in many use cases
+NOTE: beta version
 
 fnaify
 ======
@@ -6,10 +6,10 @@ fnaify
 created 2017-12-27
 by Thomas Frohwein (thfr)
 
-Script to get FNA-based games
-ready to run on OpenBSD
+Script to get FNA-based games ready to run on OpenBSD
 
 Requirements:
+-------------
 
 - SDL_GetPlatform to recognize OS. OpenBSD's SDL2 upgrade to 2.0.7
   achieves this by returning "Linux" until FNA patches to recognize
@@ -23,5 +23,13 @@ Requirements:
   some of them can't be found.
 
 Usage:
+------
 
-fnaify \<launch script\>
+`fnaify \<launch script\>`
+
+Status:
+-------
+
+The following games have been reported to work with this script:
+
+* Escape Goat
