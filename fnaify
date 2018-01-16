@@ -101,8 +101,18 @@ do
 	configfilesarray[${#configfiles[*]} + 1]=$cfile
 done
 
-# wrongdllarray: array of dll names that need to be removed from the game folder
-wrongdllarray[1]="System.dll"
+# monodllarray: array of dll names that need to be removed from the game folder
+monodllarray[1]="System.dll"
+monodllarray[2]="Mono.Posix.dll"
+monodllarray[3]="Mono.Security.dll"
+monodllarray[4]="System.Configuration.dll"
+monodllarray[5]="System.Core.dll"
+monodllarray[6]="System.Data.dll"
+monodllarray[7]="System.Xml.dll"
+monodllarray[8]="System.Security.dll"
+monodllarray[9]="System.Runtime.Serialization.dll"
+monodllarray[10]="mscorlib.dll"
+monodllarray[11]="System.Drawing.dll"
 
 #needlibarray[*] is the array that will hold the names of needed libraries
 #foundlibarray[*] is the array of the libraries that were found to match
@@ -289,20 +299,21 @@ done
 print "Config files adjusted."
 
 # Move interfering .dll files out of the way
-print "Moving interfering dll files into linux-dll subfolder"
+print -n "Moving interfering dll files into linux-dll subfolder... "
 i=1
-while [[ i -le ${#wrongdllarray[*]} ]]
+while [[ i -le ${#monodllarray[*]} ]]
 do
-	if [[ -e "$gamedir/${wrongdllarray[i]}" ]]
+	if [[ -e "$gamedir/${monodllarray[i]}" ]]
 	then
 		if [[ ! -e "$gamedir/linux-dll" ]]
 		then
 			mkdir "$gamedir/linux-dll"
 		fi
-		mv "$gamedir/${wrongdllarray[i]}" mkdir "$gamedir/linux-dll"
+		mv "$gamedir/${monodllarray[i]}" mkdir "$gamedir/linux-dll"
 	fi
 	let i=i+1
 done
+print " done."
 
 ###
 # copy wrapper script template into the game folder, set correct .exe in script, and set to executable
