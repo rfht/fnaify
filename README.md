@@ -11,12 +11,16 @@ ready to run on OpenBSD
 
 Requirements:
 
-- SDL2 library that identifies as 'Linux' rather than 'OpenBSD'
-  (needs to be compiled this way; patch to recognize OpenBSD in
-  progress upstream)
+- SDL_GetPlatform to recognize OS. OpenBSD's SDL2 upgrade to 2.0.7
+  achieves this by returning "Linux" until FNA patches to recognize
+  *BSD platforms have been rolled out.
+  You can check with [sdl2plat](https://github.com/thfrwn/sdl2plat)
+  which platform is returned by SDL_GetPlatform.
 - mono (package in ports marked as BROKEN, but compiles on amd64
   if /usr/ports is mounted with wxallowed)
-- game-specific libraries, like theoraplay, mojoshader, ...
+- game-specific libraries, like theoraplay, mojoshader, ... fnaify
+  should abort and tell you which libraries need to be installed if
+  some of them can't be found.
 
 Usage:
 
