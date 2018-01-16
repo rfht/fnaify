@@ -299,17 +299,17 @@ done
 print "Config files adjusted."
 
 # Move interfering .dll files out of the way
-print -n "Moving interfering dll files into linux-dll subfolder... "
+print -n "Moving some bundled dll files into linux-dlls subfolder... "
 i=1
 while [[ i -le ${#monodllarray[*]} ]]
 do
 	if [[ -e "$gamedir/${monodllarray[i]}" ]]
 	then
-		if [[ ! -e "$gamedir/linux-dll" ]]
+		if [[ ! -e "$gamedir/linux-dlls" ]]
 		then
-			mkdir "$gamedir/linux-dll"
+			mkdir "$gamedir/linux-dlls"
 		fi
-		mv "$gamedir/${monodllarray[i]}" mkdir "$gamedir/linux-dll"
+		mv "$gamedir/${monodllarray[i]}" "$gamedir/linux-dlls"
 	fi
 	let i=i+1
 done
