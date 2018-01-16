@@ -25,7 +25,7 @@ Requirements:
 Usage:
 ------
 
-`fnaify \<launch script\>`
+`fnaify <launch script>`
 
 Status:
 -------
@@ -33,3 +33,4 @@ Status:
 The following games have been reported to work with this script:
 
 * Escape Goat
+* Escape Goat 2
