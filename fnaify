@@ -23,6 +23,7 @@
 # TODO:
 # - [[ ... ]] vs. [ ... ]
 # - test that can be invoked without bugs from outside the game folder
+# - fix regex for libraries: 'libSDL2.so' -> '.' is regex character (for any)
 #########
 
 #########
@@ -99,18 +100,20 @@ do
 	configfilesarray[${#configfiles[*]} + 1]=$cfile
 done
 
-# monodllarray: array of dll names that need to be removed from the game folder
-monodllarray[1]="System.dll"
-monodllarray[2]="Mono.Posix.dll"
-monodllarray[3]="Mono.Security.dll"
-monodllarray[4]="System.Configuration.dll"
-monodllarray[5]="System.Core.dll"
-monodllarray[6]="System.Data.dll"
-monodllarray[7]="System.Xml.dll"
-monodllarray[8]="System.Security.dll"
-monodllarray[9]="System.Runtime.Serialization.dll"
-monodllarray[10]="mscorlib.dll"
-monodllarray[11]="System.Drawing.dll"
+# monofilearray: array of mono files that need to be removed from the game folder
+monofilearray[1]="System.dll"
+monofilearray[2]="Mono.Posix.dll"
+monofilearray[3]="Mono.Security.dll"
+monofilearray[4]="System.Configuration.dll"
+monofilearray[5]="System.Core.dll"
+monofilearray[6]="System.Data.dll"
+monofilearray[7]="System.Xml.dll"
+monofilearray[8]="System.Security.dll"
+monofilearray[9]="System.Runtime.Serialization.dll"
+monofilearray[10]="mscorlib.dll"
+monofilearray[11]="System.Drawing.dll"
+monofilearray[12]="monoconfig"
+monofilearray[13]="System.Xml.Linq.dll"
 
 #needlibarray[*] is the array that will hold the names of needed libraries
 #foundlibarray[*] is the array of the libraries that were found to match
@@ -190,17 +193,31 @@ do
 done
 
 # Fix SDL2 filename{,mes}s
-print "Fixing SDL2 filenames..."
+print -n "Fixing SDL2 filenames..."
 i=1
 while [[ i -le ${#needlibarray[*]} ]]
 do
 	needlibarray[i]=$(print "${needlibarray[i]}" | sed -E "s/(libSDL2.*)-2\.0(\.so.*)/\1\2/")
 	let i=i+1
 done
+print " done."
 
 print -n "Needed libraries: "
 print ${needlibarray[*]}
 print ""
+
+# Fix libpngXX.so filename
+print -n "Fixing libpng filenames..."
+i=1
+while [[ i -le ${#needlibarray[*]} ]]
+do
+	needlibarray[i]=$(print "${needlibarray[i]}" | sed -E "s/(libpng1).(\.so.*)/\1.\2/")
+	let i=i+1
+done
+print " done."
+
+# FIXME: find more generic way to fix libpngXX.so, independent of
+#	installed and found version
 
 # Check if the libraries are available on the system (/usr/local/lib).
 # If not, break and inform user which libraries need to be installed.
@@ -296,18 +313,18 @@ do
 done
 print "Config files adjusted."
 
-# Move interfering .dll files out of the way
+# Move interfering mono files out of the way
 print -n "Moving some bundled dll files into linux-dlls subfolder... "
 i=1
-while [[ i -le ${#monodllarray[*]} ]]
+while [[ i -le ${#monofilearray[*]} ]]
 do
-	if [[ -e "$gamedir/${monodllarray[i]}" ]]
+	if [[ -e "$gamedir/${monofilearray[i]}" ]]
 	then
 		if [[ ! -e "$gamedir/linux-dlls" ]]
 		then
 			mkdir "$gamedir/linux-dlls"
 		fi
-		mv "$gamedir/${monodllarray[i]}" "$gamedir/linux-dlls"
+		mv "$gamedir/${monofilearray[i]}" "$gamedir/linux-dlls"
 	fi
 	let i=i+1
 done
