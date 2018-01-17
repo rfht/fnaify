@@ -29,6 +29,8 @@
 # - test that fnaify can be invoked repeatedly without getting buggy (same
 #   result expected)
 # - RCRU: fnaify doesn't check system for libtheorafile
+# - StardewValley: '/lib{,64}/' in config makes it so that checking for
+#   duplicate library names doesn succeed
 #########
 
 #########
@@ -135,10 +137,12 @@ monofilearray[10]="mscorlib.dll"
 monofilearray[11]="System.Drawing.dll"
 monofilearray[12]="monoconfig"
 monofilearray[13]="System.Xml.Linq.dll"
+monofilearray[14]="WindowsBase.dll"
 
 # ignoredarray: array of lib names to ignore for the configuration checking
 ignoredarray[1]="libCSteamworks.so"
 ignoredarray[2]="libsteam_api.so"
+ignoredarray[3]="libSteamworksNative.so"
 
 #needlibarray[*] is the array that will hold the names of needed libraries
 #foundlibarray[*] is the array of the libraries that were found to match
@@ -198,6 +202,11 @@ else
 		# FIXME: may need to account for *bsd, too
 		for libstring in $(print "$linuxlines" | sed -n -E "s/.*target=\"([^\"]+).*/\1/p")
 		do
+			# Fix where library name includes directory information
+			# remove "./" at the beginning of librarynames
+			libstring=$(print "$libstring" | sed -E 's/^.\///')
+			# remove directories at the start of lib name
+			libstring=$(print "$libstring" | sed -E 's/^.*\///')
 			print -n "\t\tFound library string: $libstring"
 			# sort out libs (e.g. steam) that need to be ignored
 			validlib $libstring
@@ -340,8 +349,8 @@ do
 	# someone may be able to provide a more compact solution for this section
 	# remove "./" at the beginning of any target="..."
 	sed -i -E 's/(.*target=")\.\/(.*)$/\1\2/g' "$gamedir/$file"
-	# remove directory lib64 at the start of any target="..."
-	sed -i -E 's/(.*target=")lib64\/(.*)$/\1\2/g' "$gamedir/$file"
+	# remove directory lib{,64} at the start of any target="..."
+	sed -i -E 's/(.*target=")lib(64)?\/(.*)$/\1\3/g' "$gamedir/$file"
 	sed -i 's/os="linux"/os="openbsd"/g' "$gamedir/$file"
 	# remove suffix numbers
 	sed -i -E 's/(target="lib.*.so)[\.0-9]*(.*)$/\1\2/g' "$gamedir/$file"

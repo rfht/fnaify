@@ -36,3 +36,4 @@ The following games have been reported to work with this script:
 * Escape Goat 2
 * Paladin (needs libtheoraplay)
 * TowerFall: Ascension (needs libtheoraplay and libXNAFileDialog)
+* Stardew Valley
