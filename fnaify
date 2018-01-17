@@ -24,6 +24,11 @@
 # - [[ ... ]] vs. [ ... ]
 # - test that can be invoked without bugs from outside the game folder
 # - fix regex for libraries: 'libSDL2.so' -> '.' is regex character (for any)
+# - may need to check for duplicates with library names from 'lib64/' folder,
+#   too. E.g. cotcidx has both libmono-2.0.so and libmono-2.0.so.1
+# - test that fnaify can be invoked repeatedly without getting buggy (same
+#   result expected)
+# - RCRU: fnaify doesn't check system for libtheorafile
 #########
 
 #########
@@ -58,6 +63,22 @@ inarray()
 		inarray $firstarg $*
 	fi
 }
+
+# validlib: returns 0 unless $1 is in ignoredarray, then returns 1
+validlib()
+{
+	ig=1
+	while [[ $ig -le ${#ignoredarray[*]} ]]
+	do
+		if [[ $1 = ${ignoredarray[ig]} ]]
+		then
+			return 1
+		fi
+		let ig=ig+1
+	done
+	return 0
+}
+		
 
 #######################################################################
 
@@ -115,6 +136,10 @@ monofilearray[11]="System.Drawing.dll"
 monofilearray[12]="monoconfig"
 monofilearray[13]="System.Xml.Linq.dll"
 
+# ignoredarray: array of lib names to ignore for the configuration checking
+ignoredarray[1]="libCSteamworks.so"
+ignoredarray[2]="libsteam_api.so"
+
 #needlibarray[*] is the array that will hold the names of needed libraries
 #foundlibarray[*] is the array of the libraries that were found to match
 #                 needlibarray
@@ -139,6 +164,12 @@ else
 	#        filenames
 	for file in $(ls "$gamedir/lib64")
 	do
+		# sort out libs (e.g. steam) that need to be ignored
+		validlib $file
+		if [[ $? -eq 1 ]]
+		then
+			continue
+		fi
 		if [[ "$(file -b $gamedir/lib64/$file)" != "ELF 64-bit LSB shared object, x86-64, version 1" ]]
 		then
 			print "\tfile $file: not a valid library file type"
@@ -168,6 +199,13 @@ else
 		for libstring in $(print "$linuxlines" | sed -n -E "s/.*target=\"([^\"]+).*/\1/p")
 		do
 			print -n "\t\tFound library string: $libstring"
+			# sort out libs (e.g. steam) that need to be ignored
+			validlib $libstring
+			if [[ $? -eq 1 ]]
+			then
+				print " - ignored"
+				continue
+			fi
 			# check if libstring is already in needlibarray.
 			# add to needlibarray only if not.
 			if (inarray $libstring ${needlibarray[*]})
@@ -184,13 +222,14 @@ fi
 print "Done with identification of needed libraries."
 
 # truncate library names because suffix may be different
-print "Truncating library names..."
+print -n "Truncating library names..."
 i=1
 while [[ i -le ${#needlibarray[*]} ]]
 do
-	needlibarray[i]=$(print "${needlibarray[i]}" | sed -n -E "s/(.*\.so)\..*/\1/p")
+	needlibarray[i]=$(print "${needlibarray[i]}" | sed -n -E "s/(.*\.so)\.?.*/\1/p")
 	let i=i+1
 done
+print " done."
 
 # Fix SDL2 filename{,mes}s
 print -n "Fixing SDL2 filenames..."
@@ -222,6 +261,7 @@ print " done."
 # Check if the libraries are available on the system (/usr/local/lib).
 # If not, break and inform user which libraries need to be installed.
 print "Checking installed libraries..."
+
 i=1
 while [[ i -le ${#needlibarray[*]} ]]
 do
