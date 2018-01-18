@@ -44,5 +44,4 @@ The following games have been reported to work with this script:
 * Stardew Valley
 * Capsized (needs libtheoraplay)
 * A Virus Named TOM (needs libtheoraplay)
-* Axiom Verge (needs libtheoraplay; cannot confirm yet if saving works with DRM-free version)
 * Skulls of the Shogun (needs libtheoraplay)
