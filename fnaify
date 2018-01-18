@@ -282,8 +282,14 @@ do
 	then
 		print "\tfound system lib for: ${needlibarray[i]}"
 	else
-		print "\tNot found: ${needlibarray[i]}"
-		missinglibs[${#missinglibs[*]} + 1]=${needlibarray[i]}
+		if print ${needlibarray[i]} | grep -q 'libfreetype\.so.*'
+		then
+			# DEBUG
+			print "\tfound libfreetype (see /usr/X11R6/lib)"
+		else
+			print "\tNot found: ${needlibarray[i]}"
+			missinglibs[${#missinglibs[*]} + 1]=${needlibarray[i]}
+		fi
 	fi
 	let i=i+1
 done

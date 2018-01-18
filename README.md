@@ -45,3 +45,4 @@ The following games have been reported to work with this script:
 * Capsized (needs libtheoraplay)
 * A Virus Named TOM (needs libtheoraplay)
 * Skulls of the Shogun (needs libtheoraplay)
+* Owlboy (needs libtheorafile and libXNAFileDialog)
