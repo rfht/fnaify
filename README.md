@@ -38,13 +38,19 @@ Status:
 The following games have been reported to work with this script:
 
 * A Virus Named TOM (needs libtheoraplay)
+* Bleed 2
 * Capsized (needs libtheoraplay)
 * Dust: An Elysian Tail (needs libtheorafile)
 * Escape Goat
 * Escape Goat 2
+* FEZ (needs libtheoraplay)
 * HackNet (only runs with -disableweb which is automaticall set by fnaify; needs libtheoraplay)
+* MidBoss (needs libtiny_jpeg and libtheorafile)
 * Owlboy (needs libtheorafile and libXNAFileDialog)
 * Paladin (needs libtheoraplay)
-* Stardew Valley
+* Rogue Legacy
 * Skulls of the Shogun (needs libtheoraplay)
+* Soulcaster 1
+* Soulcaster 2
+* Stardew Valley
 * TowerFall: Ascension (needs libtheoraplay and libXNAFileDialog)

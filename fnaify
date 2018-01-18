@@ -33,8 +33,9 @@
 #   too. E.g. cotcidx has both libmono-2.0.so and libmono-2.0.so.1
 # - test that fnaify can be invoked repeatedly without getting buggy (same
 #   result expected)
-# - RCRU: fnaify doesn't check system for libtheorafile
 # - fix duplicate appearance of library names (happens with RCRU)
+# - currently assumes that there is only one .exe file in the game's folder
+#   - this should at least throw an error and exit if there's more than 1
 #########
 
 #########
@@ -149,6 +150,7 @@ ignoredarray[2]="libsteam_api.so"
 ignoredarray[3]="libSteamworksNative.so"
 ignoredarray[4]="libcef.so"
 ignoredarray[5]="libXNAWebRenderer.so"
+ignoredarray[6]="libSteamWrapper.so"
 
 #needlibarray[*] is the array that will hold the names of needed libraries
 #foundlibarray[*] is the array of the libraries that were found to match
@@ -335,7 +337,7 @@ then
 	print ""
 	exit 1
 fi
-print "SUCCEEDED"
+print "SUCCESS"
 
 ####
 # replace all occurences of 'linux' in .config files (dllmap) with 'openbsd'
