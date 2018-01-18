@@ -30,7 +30,7 @@ Requirements:
 Usage:
 ------
 
-`fnaify <launch script>`
+`fnaify < [/path/to/]launchscript >`
 
 Status:
 -------
