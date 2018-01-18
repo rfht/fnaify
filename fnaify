@@ -36,6 +36,11 @@
 # - fix duplicate appearance of library names (happens with RCRU)
 # - currently assumes that there is only one .exe file in the game's folder
 #   - this should at least throw an error and exit if there's more than 1
+# - fix: sed: 1: "s/<WINDOWS_EXECUTABLE>/ ...: unescaped newline inside substitute pattern
+#   e.g. occuring with Hive, super rad raygun
+# - some games only ship with lib but no lib64 folder e.g. Hive
+# - fix 'file libtheoraplay.so: not a valid library file type' happening e.g. with Overdriven Reloaded
+#   -> also with Rex Rocket...
 #########
 
 #########
@@ -143,6 +148,7 @@ monofilearray[11]="System.Drawing.dll"
 monofilearray[12]="monoconfig"
 monofilearray[13]="System.Xml.Linq.dll"
 monofilearray[14]="WindowsBase.dll"
+monofilearray[15]="monomachineconfig"
 
 # ignoredarray: array of lib names to ignore for the configuration checking
 ignoredarray[1]="libCSteamworks.so"
@@ -151,6 +157,9 @@ ignoredarray[3]="libSteamworksNative.so"
 ignoredarray[4]="libcef.so"
 ignoredarray[5]="libXNAWebRenderer.so"
 ignoredarray[6]="libSteamWrapper.so"
+ignoredarray[7]="libParisSteam.so"
+ignoredarray[8]="steamwrapper.so"
+ignoredarray[9]="libCommunityExpressSW.so"
 
 #needlibarray[*] is the array that will hold the names of needed libraries
 #foundlibarray[*] is the array of the libraries that were found to match

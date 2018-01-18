@@ -38,17 +38,21 @@ Status:
 The following games have been reported to work with this script:
 
 * A Virus Named TOM (needs libtheoraplay)
-* Bleed 2
+* Bleed (needs libtheoraplay)
+* Bleed 2 (needs libtheorafile)
 * Capsized (needs libtheoraplay)
 * Dust: An Elysian Tail (needs libtheorafile)
 * Escape Goat
 * Escape Goat 2
 * FEZ (needs libtheoraplay)
 * HackNet (only runs with -disableweb which is automaticall set by fnaify; needs libtheoraplay)
+* Hidden In Plain Sight (needs libtheorafile)
 * MidBoss (needs libtiny_jpeg and libtheorafile)
+* Overdriven Reloaded (needs libtheoraplay)
 * Owlboy (needs libtheorafile and libXNAFileDialog)
 * Paladin (needs libtheoraplay)
 * Rogue Legacy
+* Shipwreck
 * Skulls of the Shogun (needs libtheoraplay)
 * Soulcaster 1
 * Soulcaster 2
