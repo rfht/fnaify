@@ -6,6 +6,11 @@
 #################
 # Script to get FNA-based games
 # ready to run on OpenBSD
+#
+# FNA is a reimplementation of the Microsoft XNA Game Studio 4.0 Refresh libraries.
+# Thanks to the great work by Ethan Lee (flibitijibibo) games using FNA are
+# highly portable and can even run on OpenBSD.
+# Please refer to https://fna-xna.github.io/ for more information about FNA
 ##################
 # Requirements:
 #
@@ -29,8 +34,7 @@
 # - test that fnaify can be invoked repeatedly without getting buggy (same
 #   result expected)
 # - RCRU: fnaify doesn't check system for libtheorafile
-# - StardewValley: '/lib{,64}/' in config makes it so that checking for
-#   duplicate library names doesn succeed
+# - fix duplicate appearance of library names (happens with RCRU)
 #########
 
 #########

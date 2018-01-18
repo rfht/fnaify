@@ -8,6 +8,11 @@ by Thomas Frohwein (thfr)
 
 Script to get FNA-based games ready to run on OpenBSD
 
+FNA is a reimplementation of the Microsoft XNA Game Studio 4.0 Refresh libraries.
+Thanks to the great work by Ethan Lee (flibitijibibo) games using FNA are
+highly portable and can even run on OpenBSD. 
+Please refer to https://fna-xna.github.io/ for more information about FNA
+
 Requirements:
 -------------
 
@@ -37,3 +42,7 @@ The following games have been reported to work with this script:
 * Paladin (needs libtheoraplay)
 * TowerFall: Ascension (needs libtheoraplay and libXNAFileDialog)
 * Stardew Valley
+* Capsized (needs libtheoraplay)
+* A Virus Named TOM (needs libtheoraplay)
+* Axiom Verge (needs libtheoraplay; cannot confirm yet if saving works with DRM-free version)
+* Skulls of the Shogun (needs libtheoraplay)
