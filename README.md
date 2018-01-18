@@ -46,3 +46,4 @@ The following games have been reported to work with this script:
 * A Virus Named TOM (needs libtheoraplay)
 * Skulls of the Shogun (needs libtheoraplay)
 * Owlboy (needs libtheorafile and libXNAFileDialog)
+* HackNet (only runs with -disableweb which is automaticall set by fnaify; needs libtheoraplay)

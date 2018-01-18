@@ -147,6 +147,8 @@ monofilearray[14]="WindowsBase.dll"
 ignoredarray[1]="libCSteamworks.so"
 ignoredarray[2]="libsteam_api.so"
 ignoredarray[3]="libSteamworksNative.so"
+ignoredarray[4]="libcef.so"
+ignoredarray[5]="libXNAWebRenderer.so"
 
 #needlibarray[*] is the array that will hold the names of needed libraries
 #foundlibarray[*] is the array of the libraries that were found to match
