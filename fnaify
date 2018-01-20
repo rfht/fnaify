@@ -41,6 +41,8 @@
 # - some games only ship with lib but no lib64 folder e.g. Hive
 # - fix 'file libtheoraplay.so: not a valid library file type' happening e.g. with Overdriven Reloaded
 #   -> also with Rex Rocket...
+# - libXNAFileDialog is on ignoredarray because non-essential and cannot test
+#   if it works. Remove from ignoredarray after testing
 #########
 
 #########
@@ -160,6 +162,7 @@ ignoredarray[6]="libSteamWrapper.so"
 ignoredarray[7]="libParisSteam.so"
 ignoredarray[8]="steamwrapper.so"
 ignoredarray[9]="libCommunityExpressSW.so"
+ignoredarray[10]="libXNAFileDialog.so"
 
 #needlibarray[*] is the array that will hold the names of needed libraries
 #foundlibarray[*] is the array of the libraries that were found to match

@@ -49,7 +49,7 @@ The following games have been reported to work with this script:
 * Hidden In Plain Sight (needs libtheorafile)
 * MidBoss (needs libtiny_jpeg and libtheorafile)
 * Overdriven Reloaded (needs libtheoraplay)
-* Owlboy (needs libtheorafile and libXNAFileDialog)
+* Owlboy (needs libtheorafile)
 * Paladin (needs libtheoraplay)
 * Rogue Legacy
 * Shipwreck
@@ -57,4 +57,4 @@ The following games have been reported to work with this script:
 * Soulcaster 1
 * Soulcaster 2
 * Stardew Valley
-* TowerFall: Ascension (needs libtheoraplay and libXNAFileDialog)
+* TowerFall: Ascension (needs libtheoraplay)
