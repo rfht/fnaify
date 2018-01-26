@@ -37,6 +37,7 @@ Status:
 
 The following games have been reported to work with this script:
 
+* Atom Zombie Smasher (needs [AZSNotSFML](https://github.com/flibitijibibo/AZSNotSFML))
 * A Virus Named TOM (needs libtheoraplay)
 * Bleed (needs libtheoraplay)
 * Bleed 2 (needs libtheorafile)
@@ -47,7 +48,6 @@ The following games have been reported to work with this script:
 * FEZ (needs libtheoraplay)
 * HackNet (only runs with -disableweb which is automaticall set by fnaify; needs libtheoraplay)
 * Hidden In Plain Sight (needs libtheorafile)
-* MidBoss (needs libtiny_jpeg and libtheorafile)
 * Overdriven Reloaded (needs libtheoraplay)
 * Owlboy (needs libtheorafile)
 * Paladin (needs libtheoraplay)
