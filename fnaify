@@ -159,6 +159,7 @@ monofilearray[20]="I18N.West.dll"
 monofilearray[21]="I18N.dll"
 monofilearray[22]="Microsoft.CSharp.dll"
 monofilearray[23]="Mono.CSharp.dll"
+monofilearray[24]="System.ServiceModel.dll"
 
 # ignoredarray: array of lib names to ignore for the configuration checking
 ignoredarray[1]="libCSteamworks.so"
@@ -397,17 +398,17 @@ done
 print "Config files adjusted."
 
 # Move interfering mono files out of the way
-print -n "Moving some bundled dll files into linux-dlls subfolder... "
+print -n "Moving some bundled dll files into linux-files subfolder... "
 i=1
 while [[ i -le ${#monofilearray[*]} ]]
 do
 	if [[ -e "$gamedir/${monofilearray[i]}" ]]
 	then
-		if [[ ! -e "$gamedir/linux-dlls" ]]
+		if [[ ! -e "$gamedir/linux-files" ]]
 		then
-			mkdir "$gamedir/linux-dlls"
+			mkdir "$gamedir/linux-files"
 		fi
-		mv "$gamedir/${monofilearray[i]}" "$gamedir/linux-dlls"
+		mv "$gamedir/${monofilearray[i]}" "$gamedir/linux-files"
 	fi
 	let i=i+1
 done
