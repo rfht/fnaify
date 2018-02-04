@@ -37,6 +37,7 @@ Status:
 
 The following games have been reported to work with this script:
 
+* The Adventures of Shuggy (needs libtheoraplay and a different FNA.dll than the bundled one)
 * Apotheon (needs a different FNA.dll than the bundled one)
 * Atom Zombie Smasher (needs [AZSNotSFML](https://github.com/flibitijibibo/AZSNotSFML))
 * A Virus Named TOM (needs libtheoraplay)
@@ -48,8 +49,10 @@ The following games have been reported to work with this script:
 * Escape Goat
 * Escape Goat 2
 * FEZ (needs libtheoraplay)
+* Gateways
 * HackNet (only runs with -disableweb which is automaticall set by fnaify; needs libtheoraplay)
 * Hidden In Plain Sight (needs libtheorafile)
+* Hyphen (needs libtheoraplay)
 * Overdriven Reloaded (needs libtheoraplay)
 * Owlboy (needs libtheorafile)
 * Paladin (needs libtheoraplay)
