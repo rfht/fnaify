@@ -37,11 +37,13 @@ Status:
 
 The following games have been reported to work with this script:
 
+* Apotheon (needs a different FNA.dll than the bundled one)
 * Atom Zombie Smasher (needs [AZSNotSFML](https://github.com/flibitijibibo/AZSNotSFML))
 * A Virus Named TOM (needs libtheoraplay)
 * Bleed (needs libtheoraplay)
 * Bleed 2 (needs libtheorafile)
 * Capsized (needs libtheoraplay)
+* Curse of the Crescent Isled DX (needs libtheoraplay and different FNA.dll than the bundled one)
 * Dust: An Elysian Tail (needs libtheorafile)
 * Escape Goat
 * Escape Goat 2
