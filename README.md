@@ -56,6 +56,7 @@ The following games have been reported to work with this script:
 * Overdriven Reloaded (needs libtheoraplay)
 * Owlboy (needs libtheorafile)
 * Paladin (needs libtheoraplay)
+* Rex Rocket (needs a different FNA.dll than the bundled one)
 * Rogue Legacy
 * Shipwreck
 * Skulls of the Shogun (needs libtheoraplay)
@@ -63,3 +64,4 @@ The following games have been reported to work with this script:
 * Soulcaster 2
 * Stardew Valley
 * TowerFall: Ascension (needs libtheoraplay)
+* Wyv and Keep (needs libtheorafile; needs a different FNA.dll than the bundled one)
