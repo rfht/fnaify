@@ -1,5 +1,5 @@
-Where DRM-free Versions of fnaify Games can be found
-====================================================
+DRM-free Versions of fnaify Games
+=================================
 
 * Curse of the Crescent Isle DX: [itch](https://1amowery.itch.io/curse-of-the-crescent-isle-dx) or [humble](https://www.humblebundle.com/store/curse-of-the-crescent-isle-dx?hmb_source=search_bar)
 * Flinthook: DRM-free on [steam](http://store.steampowered.com/app/401710/Flinthook/) (also runs without Steamworks tweaks etc)

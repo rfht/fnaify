@@ -1,5 +1,7 @@
-Where DRM-free Versions of XNA Games can be found (may or may not be runnable via XnaToFna)
-===========================================================================================
+DRM-free Versions of XNA Games
+==============================
+
+(may or may not be runnable via [XnaToFna](https://github.com/0x0ade/XnaToFna)
 
 * [Aces Wild: Manic Brawling Action](http://www.tylerdoak.com/aceswild/)
 * [Poof vs The Cursed Kitty](https://www.humblebundle.com/store/pof-vs-the-cursed-kitty)
