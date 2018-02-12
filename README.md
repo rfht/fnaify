@@ -72,3 +72,7 @@ Special Case: Axiom Verge
 -------------------------
 
 Axiom Verge's DRM-free version is the physical Collector's Edition (GameTrust/indiebox) on optical disc, but it only includes the Windows/XNA version. In order to run it on OpenBSD, [XnaToFna](https://github.com/0x0ade/XnaToFna) is needed. Instructions on how to set it up are being worked on.
+
+List of DRM-free game sources [here](https://github.com/thfrwn/fnaify/blob/master/drm-free.md)
+
+List of DRM-free XNA games [here](https://github.com/thfrwn/fnaify/blob/master/drm-free-xna.md)

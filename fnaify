@@ -41,6 +41,7 @@
 # - detect bad FNA.dll versions and complain and/or exchange them (e.g. with hash or size) (monodis --assembly FNA.dll | grep Version)
 # - set to take game directory as the argument rather than the script
 # - go through FIXME's
+# - make launcher script have generic, neutral name, like 'runfna'
 #########
 
 #########
