@@ -26,114 +26,28 @@
 #
 ##########
 # TODO:
-# - [[ ... ]] vs. [ ... ]
 # - test that can be invoked without bugs from outside the game folder
 # - fix regex for libraries: 'libSDL2.so' -> '.' is regex character (for any)
-# - may need to check for duplicates with library names from 'lib64/' folder,
-#   too. E.g. cotcidx has both libmono-2.0.so and libmono-2.0.so.1
 # - test that fnaify can be invoked repeatedly without getting buggy (same
 #   result expected)
 # - fix duplicate appearance of library names (happens with RCRU)
 # - currently assumes that there is only one .exe file in the game's folder
 #   - this should at least throw an error and exit if there's more than 1
-# - fix: sed: 1: "s/<WINDOWS_EXECUTABLE>/ ...: unescaped newline inside substitute pattern
-#   e.g. occuring with Hive, super rad raygun
-# - some games only ship with lib but no lib64 folder e.g. Hive
-# - fix 'file libtheoraplay.so: not a valid library file type' happening e.g. with Overdriven Reloaded
-#   -> also with Rex Rocket...
+#   (RELATED: fix: sed: 1: "s/<WINDOWS_EXECUTABLE>/ ...: unescaped newline inside substitute pattern
+#   e.g. occuring with Hive, super rad raygun)
 # - libXNAFileDialog is on ignoredarray because non-essential and cannot test
-#   if it works. Remove from ignoredarray after testing
+#   if it works. Remove from ignoredarray after testing (TowerFall: Ascension ADD-ON)
+# - read monofilearray and ignoredarray in from files (while IFS= read -r line; do ... done <"filename")
+# - detect bad FNA.dll versions and complain and/or exchange them (e.g. with hash or size) (monodis --assembly FNA.dll | grep Version)
+# - set to take game directory as the argument rather than the script
+# - go through FIXME's
 #########
 
 #########
-# FUNCTION DEFINITIONS
+# VARIABLE AND FUNCTION DEFINITIONS
 #########
 
-# printdash: print $1 number of dashes in one line, followed by newline
-printdash()
-{
-	c=1
-	while [[ $c -le $1 ]]
-	do
-		print -n - -
-		let c=c+1
-	done
-	print ""
-}
-
-# inarray: check if $1 is in array (reads #2 recursively)
-inarray()
-{
-	if [[ "$#" < 2 ]]
-	then
-		return 1
-	else
-		if [[ "$1" = "$2" ]]
-		then
-			return 0
-		fi
-		firstarg="$1"
-		shift 2
-		inarray $firstarg $*
-	fi
-}
-
-# validlib: returns 0 unless $1 is in ignoredarray, then returns 1
-validlib()
-{
-	ig=1
-	while [[ $ig -le ${#ignoredarray[*]} ]]
-	do
-		if [[ $1 = ${ignoredarray[ig]} ]]
-		then
-			return 1
-		fi
-		let ig=ig+1
-	done
-	return 0
-}
-		
-
-#######################################################################
-
-#######
-# MAIN SCRIPT
-#######
-print ""
-print "Performing initial checks..."
-printdash 28
-if [[ ! -e "$1" ]]
-then
-	print "file not found"
-	exit 1
-fi
-print "found file $1"
-
-print "found file type: `file -b \"$1\"`"
-if [[ "`file -b \"$1\"`" != "Bourne-Again shell script text executable" ]]
-then
-	print "file type doesn't fit (expected type 'Bourne-Again shell script text executable')"
-	exit 1
-fi
-print "file type is appropriate"
-print "Done with initial checks."
-print ""
-
-# variable definitions
-fullfnaifypath="$0"
-fnaifyfile="`basename \"$fullfnaifypath\"`"
-fnaifydir="`dirname \"$fullfnaifypath\"`"
-fullscriptpath="`pwd`/$1"
-scriptfile="`basename \"$fullscriptpath\"`"
-gamedir="`dirname \"$fullscriptpath\"`"
-# FIXME: add test that there is only one .exe file, otherwise error out
-exefile="`ls \"$gamedir\" | grep \"\.exe$\"`"
-fullexepath="$gamedir/$exefile"
-
-for cfile in "`ls \"$gamedir\" | grep \"\.config$\"`"
-do
-	configfilesarray[${#configfiles[*]} + 1]=$cfile
-done
+SAVEIFS=$IFS
 
 # monofilearray: array of mono files that need to be removed from the game folder
 monofilearray[1]="System.dll"
@@ -178,23 +92,123 @@ ignoredarray[10]="libXNAFileDialog.so"
 #                 needlibarray
 #missinglibs[*] accumulates missing library names to inform user
 
+# printdash: print $1 number of dashes in one line, followed by newline
+printdash()
+{
+	c=1
+	while [[ $c -le $1 ]]
+	do
+		print -n - -
+		let c=c+1
+	done
+	print ""
+}
+
+# inarray: check if $1 is in array $2 (with simple grep)
+inarray()
+{
+	firstarg="$1"
+	shift 1
+	print "$*" | fgrep -q "$firstarg"
+	return
+}
+
+# validlib: returns 0 unless $1 is in ignoredarray, then returns 1
+# FIXME: this won't be able to deal with whitespace at the moment
+validlib()
+{
+	ig=1
+	while [[ $ig -le ${#ignoredarray[*]} ]]
+	do
+		if [[ $1 = ${ignoredarray[ig]} ]]
+		then
+			return 1
+		fi
+		let ig=ig+1
+	done
+	return 0
+}
+
+# trunklibnam: truncate the name of the library (and remove '-2.0') to match OpenBSD
+trunklibnam()
+{
+	libnam="$1"
+	libnam="$(print "$libnam" | sed -n -E "s/(.*\.so)\.?.*/\1/p")"
+	libnam="$(print "$libnam" | sed -E "s/(libSDL2[^-]*)-2\.0(\.so.*)/\1\2/")"
+	print "$libnam"
+}
+
+#######################################################################
+
+#######
+# MAIN SCRIPT
+#######
+print ""
+print "Performing initial checks..."
+printdash 28
+if [[ ! -e "$1" ]]
+then
+	print "file not found"
+	exit 1
+fi
+print "found file $1"
+
+# FIXME: make independent of the useless bash script (just take directory as parameter, if any)
+# FIXME: need to make sure that no important file is changed
+print "found file type: `file -b \"$1\"`"
+print "Done with initial checks."
+print ""
+
+# path and file variable definitions
+fullfnaifypath="$0"
+fnaifyfile="`basename \"$fullfnaifypath\"`"
+fnaifydir="`dirname \"$fullfnaifypath\"`"
+fullscriptpath="`pwd`/$1"
+scriptfile="`basename \"$fullscriptpath\"`"
+gamedir="`dirname \"$fullscriptpath\"`"
+# FIXME: add test that there is only one .exe file, otherwise error out
+IFS="
+"
+for xfile in $(ls "$gamedir" | grep "\.exe$")
+do
+	exefile[${#exefile[*]} + 1]=$xfile
+done
+#exefile="`ls \"$gamedir\" | grep \"\.exe$\"`"
+IFS=$SAVEIFS
+
+#fullexepath="$gamedir/$exefile" # likely not needed and can be removed
+
+# configfilesarray: array of files in gamedir ending in '.config'
+print "Identifying config files..."
+IFS="
+"
+for cfile in $(ls "$gamedir" | grep "\.config$")
+do
+	print "\tfound config file: $cfile"
+	configfilesarray[${#configfilesarray[*]} + 1]="$cfile"
+done
+IFS=$SAVEIFS
+print "Done identifying config files."
+print ""
+
 ####
 # identify required libraries
 ####
 # - this is likely imperfect and may identify too many or too few libraries
 # - at the moment will check 2 sources: lib64 and .config files
+# - filenames not whitespace-safe, but should not be used in such files anyway
 ####
 
 print "Identifying libraries required by the game..."
+printdash 45
 
 # get library names from lib64 folder
+print ""
 if [[ ! -e "$gamedir/lib64" ]]
 then
 	print "Couldn't find library directory $gamedir/lib64"
 else
 	print "Entering library directory $gamedir/lib64"
-	# FIXME: not sure if this for statement can deal with whitespace in
-	#        filenames
 	for file in $(ls "$gamedir/lib64")
 	do
 		# sort out libs (e.g. steam) that need to be ignored
@@ -203,32 +217,75 @@ else
 		then
 			continue
 		fi
-		if [[ "$(file -b $gamedir/lib64/$file)" != "ELF 64-bit LSB shared object, x86-64, version 1" ]]
+		print -n "\tfound library file: $file"
+		file=$(trunklibnam "$file")
+		print " -> $file"
+		inarray $file ${needlibarray[*]}
+		if [[ $? -eq 0 ]]
 		then
-			print "\tfile $file: not a valid library file type"
-		else
-			print "\t$file: looks like a Linux shared library"
+			print " - already in array"
+		elif [[ $? -eq 1 ]]
+		then
 			needlibarray[${#needlibarray[*]} + 1]=$file
+		else
+			print "\n\t - ERROR: inarray returned with unexpected error"
+			exit 1
 		fi
 	done
 	print "Done with library directory $gamedir/lib64"
 fi
 
+# get library names from lib folder
+print ""
+if [[ ! -e "$gamedir/lib" ]]
+then
+	print "Couldn't find library directory $gamedir/lib"
+else
+	print "Entering library directory $gamedir/lib"
+	for file in $(ls "$gamedir/lib")
+	do
+		# sort out libs (e.g. steam) that need to be ignored
+		validlib $file
+		if [[ $? -eq 1 ]]
+		then
+			continue
+		fi
+		print -n "\tfound library file: $file"
+		file=$(trunklibnam "$file")
+		print -n " -> $file"
+		inarray $file ${needlibarray[*]}
+		if [[ $? -eq 0 ]]
+		then
+			print " - already in array"
+		elif [[ $? -eq 1 ]]
+		then
+			needlibarray[${#needlibarray[*]} + 1]=$file
+			print ""
+		else
+			print "\n\t - ERROR: inarray returned with unexpected error"
+			exit 1
+		fi
+	done
+	print "Done with library directory $gamedir/lib"
+fi
+
 # get library names from .config files
 print "Obtaining library names from the following config files"
+
 # check that configfilesarray isn't empty
 if [[ ${#configfilesarray[*]} < 1 ]]
 then
 	print "No config files found."
 else
 	cfile=""	# empty the variable because it has been used before
+	IFS="
+	"
 	for cfile in ${configfilesarray[*]}
 	do
 		print "\t$cfile"
-		linuxlines="$(grep "os\=\"linux\"" "$gamedir/$cfile")"
+		linuxlines=$(grep "os\=\"linux" $gamedir/$cfile)
 		# FIXME: this sed call would probably get messed up if there is
 		#	whitespace
-		# FIXME: may need to account for *bsd, too
 		for libstring in $(print "$linuxlines" | sed -n -E "s/.*target=\"([^\"]+).*/\1/p")
 		do
 			# Fix where library name includes directory information
@@ -244,57 +301,41 @@ else
 				print " - ignored"
 				continue
 			fi
+			# truncate/fix SDL2 names{,s}
+			libstring=$(trunklibnam "$libstring")
+			print -n " -> $libstring"
+			#needlibarray[${#needlibarray[*]} + 1]=$libstring
 			# check if libstring is already in needlibarray.
 			# add to needlibarray only if not.
-			if (inarray $libstring ${needlibarray[*]})
+			inarray $libstring ${needlibarray[*]}
+			if [[ $? -eq 0 ]]
 			then
 				print " - already in array"
-			else
+			elif [[ $? -eq 1 ]]
+			then
 				needlibarray[${#needlibarray[*]} + 1]=$libstring
 				print " - added to array"
+			else
+				print "\n\t - ERROR: inarray returned with unexpected error"
+				exit 1
 			fi
 		done
 	done
 	print "Done with identifying libraries in config files"
 fi
 print "Done with identification of needed libraries."
-
-# truncate library names because suffix may be different
-print -n "Truncating library names..."
-i=1
-while [[ i -le ${#needlibarray[*]} ]]
-do
-	needlibarray[i]=$(print "${needlibarray[i]}" | sed -n -E "s/(.*\.so)\.?.*/\1/p")
-	let i=i+1
-done
-print " done."
-
-# Fix SDL2 filename{,mes}s
-print -n "Fixing SDL2 filenames..."
-i=1
-while [[ i -le ${#needlibarray[*]} ]]
-do
-	needlibarray[i]=$(print "${needlibarray[i]}" | sed -E "s/(libSDL2.*)-2\.0(\.so.*)/\1\2/")
-	let i=i+1
-done
-print " done."
-
-print -n "Needed libraries: "
-print ${needlibarray[*]}
-print ""
+IFS=$SAVEIFS
 
 # Fix libpngXX.so filename
-print -n "Fixing libpng filenames..."
+print -n "Fixing libpng filenames if present..."
 i=1
 while [[ i -le ${#needlibarray[*]} ]]
 do
-	needlibarray[i]=$(print "${needlibarray[i]}" | sed -E "s/(libpng1).(\.so.*)/\1.\2/")
+	needlibarray[i]=$(print "${needlibarray[i]}" | sed -E "s/(libpng)..(\.so.*)/\1\2/")
 	let i=i+1
 done
 print " done."
-
-# FIXME: find more generic way to fix libpngXX.so, independent of
-#	installed and found version
+print ""
 
 # Check if the libraries are available on the system (/usr/local/lib).
 # If not, break and inform user which libraries need to be installed.
@@ -359,6 +400,7 @@ then
 	exit 1
 fi
 print "SUCCESS"
+printdash 40
 
 ####
 # replace all occurences of 'linux' in .config files (dllmap) with 'openbsd'
@@ -368,7 +410,10 @@ print ""
 print "Adjusting config files for OpenBSD..."
 
 # create backup .linux files of the original .config files
+# (unless this has already been done; then don't overwrite)
 print -n "\t(creating copy of original config files with suffix '.linux')... "
+IFS="
+"
 for file in $(ls "$gamedir" | grep "\.config$")
 do
 	if [[ ! -e "$gamedir/$file.linux" ]]
@@ -376,9 +421,12 @@ do
 		cp -p "$gamedir/$file" "$gamedir/$file.linux"
 	fi
 done
+IFS=$SAVEIFS
 print "done."
 
 # now replace all terms in *.config
+IFS="
+"
 for file in $(ls "$gamedir" | grep "\.config$")
 do
 	# someone may be able to provide a more compact solution for this section
@@ -386,7 +434,7 @@ do
 	sed -i -E 's/(.*target=")\.\/(.*)$/\1\2/g' "$gamedir/$file"
 	# remove directory lib{,64} at the start of any target="..."
 	sed -i -E 's/(.*target=")lib(64)?\/(.*)$/\1\3/g' "$gamedir/$file"
-	sed -i 's/os="linux"/os="openbsd"/g' "$gamedir/$file"
+	sed -i 's/os="linux/os="openbsd/g' "$gamedir/$file"
 	# remove suffix numbers
 	sed -i -E 's/(target="lib.*.so)[\.0-9]*(.*)$/\1\2/g' "$gamedir/$file"
 	# fix SDL2 naming by removing the '-2.0'
@@ -395,6 +443,7 @@ do
 	# 	(there was an example with libfreetype in this place somewhere)
 	sed -i -E 's/(dll="lib[a-zA-Z]*\.so)[\.0-9]*(.*)$/\1\2/g' "$gamedir/$file"
 done
+IFS=$SAVEIFS
 print "Config files adjusted."
 
 # Move interfering mono files out of the way
@@ -416,8 +465,29 @@ print " done."
 
 ###
 # copy wrapper script template into the game folder, set correct .exe in script, and set to executable
-#
-#    FIXME: Hacknet needs -disableweb flag
+
+if [[ ${#exefile[*]} -gt 1 ]]
+then
+	i=0
+	while [[ ++i -le ${#exefile[*]} ]]
+	#for i in {1..${#exefile[*]}}
+	do
+		print "$i: ${exefile[i]}"
+	done
+	print -n "Enter number of .exe file to choose for wrapper script: "
+	# FIXME: this breaks with error when whitespace in input
+	while [[ $input -lt 1 || $input -gt ${#exefile[*]} ]]
+	do
+		read input
+	done
+	selectexe="${exefile[$input]}"
+elif
+then
+	selectexe="${exefile[1]}"
+else
+	print "ERROR: no .exe file found"
+	exit 1
+fi
 
 print "Replacing launcher script with OpenBSD variant."
 # if not exists, make backup of original script for linux
@@ -430,9 +500,9 @@ print "done."
 cp "$fnaifydir/wrapper.template" "$fullscriptpath"
 if [[ $scriptfile = "Hacknet" ]]
 then
-	sed -i "s/<WINDOWS_EXECUTABLE>/\"$exefile\" -disableweb/g" "$fullscriptpath"
+	sed -i "s/<WINDOWS_EXECUTABLE>/\"$selectexe\" -disableweb/g" "$fullscriptpath"
 else
-	sed -i "s/<WINDOWS_EXECUTABLE>/\"$exefile\"/g" "$fullscriptpath"
+	sed -i "s/<WINDOWS_EXECUTABLE>/\"$selectexe\"/g" "$fullscriptpath"
 fi
 chmod +x "$fullscriptpath"
 print "Launcher script replaced."

@@ -43,8 +43,9 @@ The following games have been reported to work with this script:
 * A Virus Named TOM (needs libtheoraplay)
 * Bleed (needs libtheoraplay)
 * Bleed 2 (needs libtheorafile)
+* Brushwood Buddies (needs libtheoraplay and a different FNA.dll than the bundled one)
 * Capsized (needs libtheoraplay)
-* Curse of the Crescent Isled DX (needs libtheoraplay and different FNA.dll than the bundled one)
+* Curse of the Crescent Isle DX (needs libtheoraplay and different FNA.dll than the bundled one)
 * Dust: An Elysian Tail (needs libtheorafile)
 * Escape Goat
 * Escape Goat 2
@@ -56,6 +57,7 @@ The following games have been reported to work with this script:
 * Overdriven Reloaded (needs libtheoraplay)
 * Owlboy (needs libtheorafile)
 * Paladin (needs libtheoraplay)
+* Press X to Not Die (needs libtheorafile)
 * Rex Rocket (needs a different FNA.dll than the bundled one)
 * Rogue Legacy
 * Shipwreck
@@ -65,3 +67,8 @@ The following games have been reported to work with this script:
 * Stardew Valley
 * TowerFall: Ascension (needs libtheoraplay)
 * Wyv and Keep (needs libtheorafile; needs a different FNA.dll than the bundled one)
+
+Special Case: Axiom Verge
+-------------------------
+
+Axiom Verge's DRM-free version is the physical Collector's Edition (GameTrust/indiebox) on optical disc, but it only includes the Windows/XNA version. In order to run it on OpenBSD, [XnaToFna](https://github.com/0x0ade/XnaToFna) is needed. Instructions on how to set it up are being worked on.
