@@ -11,7 +11,7 @@ DRM-free Versions of XNA Games
 * [Unholy Heights](https://www.gog.com/game/unholy_heights)
 * [Super Puzzle Platformer Deluxe](https://www.gog.com/game/super_puzzle_platformer_deluxe)
 * [DLC Quest](https://www.humblebundle.com/store/dlc-quest?hmb_source=search_bar)
-* [Super Amazing Wagon Adventure](http://www.sparsevector.com/wagon-adventure/)
+* [Super Amazing Wagon Adventure](http://www.sparsevector.com/wagon-adventure/) - **works**
 * [DwarfCorp](https://completelyfairgames.itch.io/dwarfcorp)
 * [Cosmic Star Heroine](https://www.humblebundle.com/store/cosmic-star-heroine) or [GOG](https://www.gog.com/game/cosmic_star_heroine)
 * Bloody Trapland: [HTML5 version](https://20170217.itch.io/trapland)
@@ -27,5 +27,5 @@ DRM-free Versions of XNA Games
 * [REVOLVER360 RE:ACTOR](https://www.gog.com/game/revolver360_reactor) or [humble](https://www.humblebundle.com/store/revolver-360-reactor?hmb_source=search_bar)
 * [Kiki and the Monster](http://noelberry.ca/#kikimonster)
 * [Outpost](http://noelberry.ca/#outpost)
-* [ChaosHeart](http://ludumdare.com/compo/ludum-dare-30/?action=preview&uid=1176)
+* [ChaosHeart](http://ludumdare.com/compo/ludum-dare-30/?action=preview&uid=1176) - **works**
 * [The Useful Dead](http://www.bootdiskrevolution.com/the-useful-dead/)
