@@ -66,6 +66,7 @@ The following games have been reported to work with this script:
 * Soulcaster 2
 * Stardew Valley
 * TowerFall: Ascension (needs libtheoraplay)
+* Wizorb (needs a different FNA.dll than the bundled one)
 * Wyv and Keep (needs libtheorafile; needs a different FNA.dll than the bundled one)
 
 Special Case: Axiom Verge
