@@ -1,7 +1,7 @@
 DRM-free Versions of XNA Games
 ==============================
 
-(may or may not be runnable via [XnaToFna](https://github.com/0x0ade/XnaToFna)
+(may or may not be runnable via [XnaToFna](https://github.com/0x0ade/XnaToFna))
 
 * [Aces Wild: Manic Brawling Action](http://www.tylerdoak.com/aceswild/)
 * [Aqua Kitty: Milk Mine Defender](https://www.humblebundle.com/store/aqua-kitty-milk-mine-defender) or [here](http://tikipod.com/aquakitty/) or [here](https://www.gog.com/game/aqua_kitty_milk_mine_defender)
