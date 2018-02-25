@@ -79,6 +79,6 @@ DRM-free Games
 
 Very helpful because there is no Steam client for OpenBSD:
 
-List of DRM-free game sources [here](https://github.com/thfrwn/fnaify/blob/master/drm-free.md)
+List of DRM-free FNA games (and related) [here](https://github.com/thfrwn/fnaify/blob/master/drm-free.md)
 
 List of DRM-free XNA games [here](https://github.com/thfrwn/fnaify/blob/master/drm-free-xna.md)
