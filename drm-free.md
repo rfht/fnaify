@@ -1,31 +1,31 @@
-DRM-free Versions of fnaify Games
+DRM-free Versions of FNA Games
 =================================
 
-* Curse of the Crescent Isle DX: [itch](https://1amowery.itch.io/curse-of-the-crescent-isle-dx) or [humble](https://www.humblebundle.com/store/curse-of-the-crescent-isle-dx?hmb_source=search_bar)
-* Flinthook: DRM-free on [steam](http://store.steampowered.com/app/401710/Flinthook/) (also runs without Steamworks tweaks etc)
-* Gateways: [developer page](http://www.smudgedcat.com/gateways.htm)
-* Rex Rocket: [developer page](http://castlepixel.com/rexrocket/)
-* The Adventures of Shuggy: [developer page](http://www.smudgedcat.com/shuggy.htm)
-* Shipwreck: [itch](https://brushfiregames.itch.io/shipwreck/)
-* Stardew Valley: [GOG](https://www.gog.com/game/stardew_valley)
-* Skulls of the Shogun: [GOG](https://www.gog.com/game/skulls_of_the_shogun)
-* Rogue Legacy: [GOG](https://www.gog.com/game/rogue_legacy), humble
-* Escape Goat: [GOG](https://www.gog.com/game/escape_goat), humble
-* Escape Goat 2: [GOG](https://www.gog.com/game/escape_goat_2), humble
-* Capsized: [GOG](https://www.gog.com/game/capsized)
-* FEZ: [GOG](https://www.gog.com/game/fez), humble
-* Owlboy: [GOG](https://www.gog.com/game/owlboy), humble
-* Dust: An Elysian Tail: [GOG](https://www.gog.com/game/dust_an_elysian_tail)
-* HackNet: [GOG](https://www.gog.com/game/hacknet), humble
-* TowerFall: Ascension: [GOG](https://www.gog.com/game/towerfall_ascension)
-* Atom Zombie Smasher: humble
-* Apotheon: humble, [GOG](https://www.gog.com/game/apotheon)
-* A Virus Named TOM: humble
-* Bleed: humble
-* Bleed 2: humble
-* Paladin: humble
-* Soulcaster I&II: humble
-* Wizorb: humble
-* Wyv and Keep: humble
+* Apotheon: [humble](https://www.humblebundle.com/store/apotheon), [GOG](https://www.gog.com/game/apotheon)
 * Axiom Verge: look for DRM-free Gametrust Collection/Collector's Edition (physical copy) for example on eBay
+* The Adventures of Shuggy: [developer page](http://www.smudgedcat.com/shuggy.htm)
+* Atom Zombie Smasher: [developer page](http://blendogames.com/atomzombiesmasher/buy.htm)
+* Bleed: [humble](https://www.humblebundle.com/store/bleed)
+* Bleed 2: [humble](https://www.humblebundle.com/store/bleed-2)
+* Capsized: [GOG](https://www.gog.com/game/capsized) or [humble](https://www.humblebundle.com/store/capsized)
 * Cryptark: [GOG](https://www.gog.com/game/cryptark)
+* Curse of the Crescent Isle DX: [itch](https://1amowery.itch.io/curse-of-the-crescent-isle-dx) or [humble](https://www.humblebundle.com/store/curse-of-the-crescent-isle-dx)
+* Dust: An Elysian Tail: [GOG](https://www.gog.com/game/dust_an_elysian_tail) or [humble](https://www.humblebundle.com/store/dust-an-elysian-tail)
+* Escape Goat: [GOG](https://www.gog.com/game/escape_goat), [humble](https://www.humblebundle.com/store/escape-goat)
+* Escape Goat 2: [GOG](https://www.gog.com/game/escape_goat_2), [humble](https://www.humblebundle.com/store/escape-goat-2)
+* FEZ: [GOG](https://www.gog.com/game/fez), [humble](https://www.humblebundle.com/store/fez)
+* Flinthook: DRM-free on [steam](http://store.steampowered.com/app/401710/Flinthook/) (also runs without Steamworks tweaks etc) - steam version can also be bought on [humble](https://www.humblebundle.com/store/flinthook)
+* Gateways: [developer page](http://www.smudgedcat.com/gateways.htm)
+* HackNet: [GOG](https://www.gog.com/game/hacknet), [humble](https://www.humblebundle.com/store/hacknet)
+* Owlboy: [GOG](https://www.gog.com/game/owlboy), [humble](https://www.humblebundle.com/store/owlboy)
+* Paladin: [humble](https://www.humblebundle.com/store/paladin)
+* Rex Rocket: [developer page](http://castlepixel.com/rexrocket/)
+* Rogue Legacy: [GOG](https://www.gog.com/game/rogue_legacy), [humble](https://www.humblebundle.com/store/rogue-legacy)
+* Shipwreck: [itch](https://brushfiregames.itch.io/shipwreck/)
+* Skulls of the Shogun: [GOG](https://www.gog.com/game/skulls_of_the_shogun)
+* Soulcaster I&II: [humble](https://www.humblebundle.com/store/soulcaster-book-i-ii)
+* Stardew Valley: [GOG](https://www.gog.com/game/stardew_valley)
+* TowerFall: Ascension: [GOG](https://www.gog.com/game/towerfall_ascension), [humble](https://www.humblebundle.com/store/towerfall-ascension)
+* A Virus Named TOM: [humble](https://www.humblebundle.com/store/a-virus-named-tom)
+* Wizorb: [humble](https://www.humblebundle.com/store/wizorb)
+* Wyv and Keep: [humble](https://www.humblebundle.com/store/wyv-and-keep-the-temple-of-the-lost-idol)
