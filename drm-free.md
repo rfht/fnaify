@@ -1,4 +1,4 @@
-DRM-free Versions of FNA Games
+DRM-free Versions of FNA Games (or compatible ones, e.g. based on MonoGame)
 =================================
 
 * Apotheon: [humble](https://www.humblebundle.com/store/apotheon), [GOG](https://www.gog.com/game/apotheon)
