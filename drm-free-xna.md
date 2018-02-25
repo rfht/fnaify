@@ -18,6 +18,7 @@ DRM-free Versions of XNA Games
 * [LaserCat](https://monsterjail.itch.io/lasercat)
 * [Oozi: Earth Adventure](https://www.humblebundle.com/store/oozi-earth-adventure)
 * [Outpost](http://noelberry.ca/#outpost)
+* [Penny Arcade's On the Rain-Slick Precipice of Darkness 3](http://store.steampowered.com/app/213030/Penny_Arcades_On_the_RainSlick_Precipice_of_Darkness_3/) - **works** - Steam version comes without Steamworks/DRM
 * [Poof vs The Cursed Kitty](https://www.humblebundle.com/store/pof-vs-the-cursed-kitty)
 * [Press X to Not Die](https://all-seeing-eye-games.itch.io/press-x-to-not-die)
 * [REVOLVER360 RE:ACTOR](https://www.gog.com/game/revolver360_reactor) or [humble](https://www.humblebundle.com/store/revolver-360-reactor)
