@@ -42,6 +42,7 @@
 # - set to take game directory as the argument rather than the script
 # - go through FIXME's
 # - make launcher script have generic, neutral name, like 'runfna'
+# - currently, ignoredarray needs version of libfmod{,studio}.so.10. fix it so this isn't needed
 #########
 
 #########
@@ -113,6 +114,8 @@ ignoredarray[7]="libParisSteam.so"
 ignoredarray[8]="steamwrapper.so"
 ignoredarray[9]="libCommunityExpressSW.so"
 ignoredarray[10]="libXNAFileDialog.so"
+ignoredarray[11]="libfmod.so.10"
+ignoredarray[12]="libfmodstudio.so.10"
 
 #needlibarray[*] is the array that will hold the names of needed libraries
 #foundlibarray[*] is the array of the libraries that were found to match

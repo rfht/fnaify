@@ -6,6 +6,7 @@ DRM-free Versions of XNA Games
 * [Aces Wild: Manic Brawling Action](http://www.tylerdoak.com/aceswild/)
 * [Aqua Kitty: Milk Mine Defender](https://www.humblebundle.com/store/aqua-kitty-milk-mine-defender) or [here](http://tikipod.com/aquakitty/) or [here](https://www.gog.com/game/aqua_kitty_milk_mine_defender)
 * Bloody Trapland: [HTML5 version](https://20170217.itch.io/trapland)
+* Breath of Death VII & Cthulhu Saves the World - DRM-free on [Steam](http://store.steampowered.com/sub/8848/) - **works**
 * [ChaosHeart](http://ludumdare.com/compo/ludum-dare-30/?action=preview&uid=1176) - **works**
 * [Cosmic Star Heroine](https://www.humblebundle.com/store/cosmic-star-heroine) or [GOG](https://www.gog.com/game/cosmic_star_heroine)
 * [Dead Pixels](http://deadpixelsthegame.com/buy-direct/)
