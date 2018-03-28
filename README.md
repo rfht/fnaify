@@ -37,37 +37,37 @@ Status:
 
 The following games have been reported to work with this script:
 
-* The Adventures of Shuggy (needs libtheoraplay and a different FNA.dll than the bundled one)
+* The Adventures of Shuggy (needs different FNA.dll than the bundled one)
 * Apotheon (needs a different FNA.dll than the bundled one)
 * Atom Zombie Smasher (needs [AZSNotSFML](https://github.com/flibitijibibo/AZSNotSFML))
-* A Virus Named TOM (needs libtheoraplay)
-* Bleed (needs libtheoraplay)
-* Bleed 2 (needs libtheorafile)
-* Brushwood Buddies (needs libtheoraplay and a different FNA.dll than the bundled one)
-* Capsized (needs libtheoraplay)
-* Curse of the Crescent Isle DX (needs libtheoraplay and different FNA.dll than the bundled one)
-* Dust: An Elysian Tail (needs libtheorafile)
+* A Virus Named TOM
+* Bleed
+* Bleed 2
+* Brushwood Buddies (needs a different FNA.dll than the bundled one)
+* Capsized
+* Curse of the Crescent Isle DX (needs different FNA.dll than the bundled one)
+* Dust: An Elysian Tail
 * Escape Goat
 * Escape Goat 2
-* FEZ (needs libtheoraplay)
+* FEZ - **currently with game-breaking bugs, under investigation**
 * Gateways
-* HackNet (only runs with -disableweb which is automaticall set by fnaify; needs libtheoraplay)
-* Hidden In Plain Sight (needs libtheorafile)
-* Hyphen (needs libtheoraplay)
-* Overdriven Reloaded (needs libtheoraplay)
-* Owlboy (needs libtheorafile)
-* Paladin (needs libtheoraplay)
-* Press X to Not Die (needs libtheorafile)
+* HackNet (only runs with -disableweb which is automaticall set by fnaify)
+* Hidden In Plain Sight
+* Hyphen
+* Overdriven Reloaded
+* Owlboy
+* Paladin
+* Press X to Not Die
 * Rex Rocket (needs a different FNA.dll than the bundled one)
 * Rogue Legacy
 * Shipwreck
-* Skulls of the Shogun (needs libtheoraplay)
+* Skulls of the Shogun
 * Soulcaster 1
 * Soulcaster 2
 * Stardew Valley
-* TowerFall: Ascension (needs libtheoraplay)
+* TowerFall: Ascension
 * Wizorb (needs a different FNA.dll than the bundled one)
-* Wyv and Keep (needs libtheorafile; needs a different FNA.dll than the bundled one)
+* Wyv and Keep (needs a different FNA.dll than the bundled one)
 
 Special Case: Axiom Verge
 -------------------------

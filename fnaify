@@ -43,6 +43,7 @@
 # - go through FIXME's
 # - make launcher script have generic, neutral name, like 'runfna'
 # - currently, ignoredarray needs version of libfmod{,studio}.so.10. fix it so this isn't needed
+# - remove libtiny_jpeg.so from ignoredarray (only needed for MidBoss)
 #########
 
 #########
@@ -116,6 +117,7 @@ ignoredarray[9]="libCommunityExpressSW.so"
 ignoredarray[10]="libXNAFileDialog.so"
 ignoredarray[11]="libfmod.so.10"
 ignoredarray[12]="libfmodstudio.so.10"
+ignoredarray[13]="libtiny_jpeg.so"	# still needed for MidBoss, so may wanna remove this line later
 
 #needlibarray[*] is the array that will hold the names of needed libraries
 #foundlibarray[*] is the array of the libraries that were found to match
