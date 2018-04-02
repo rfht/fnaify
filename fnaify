@@ -17,12 +17,14 @@
 # - SDL2 library that identifies as 'Linux' rather than 'OpenBSD'
 #   (needs to be compiled this way; patch to recognize OpenBSD in
 #   progress upstream)
-# - mono (package in ports marked as BROKEN, but compiles on amd64
-#   if /usr/ports is mounted with wxallowed)
+# - mono
+# - some additional libraries, like mojoshader, theorafile, etc
 ##################
 # Usage:
 #
 # fnaify <launch script>
+#
+# Enable verbose output by setting environment variable FNAIFY_DEBUG
 #
 ##########
 # TODO:
@@ -41,10 +43,9 @@
 # - detect bad FNA.dll versions and complain and/or exchange them (e.g. with hash or size) (monodis --assembly FNA.dll | grep Version)
 # - set to take game directory as the argument rather than the script
 # - go through FIXME's
-# - make launcher script have generic, neutral name, like 'runfna'
+# - make launcher script have generic, neutral name, like 'runfna_<name of game>'
 # - currently, ignoredarray needs version of libfmod{,studio}.so.10. fix it so this isn't needed
 # - remove libtiny_jpeg.so from ignoredarray (only needed for MidBoss)
-# - document FNAIFY_DEBUG env var
 #########
 
 #########

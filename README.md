@@ -32,6 +32,8 @@ Usage:
 
 `fnaify <[/path/to/]launchscript>`
 
+For verbose output, set the environment variable FNAIFY_DEBUG to anything.
+
 Status:
 -------
 
