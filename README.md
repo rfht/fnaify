@@ -21,7 +21,7 @@ Requirements:
   *BSD platforms have been rolled out.
   You can check with [sdl2plat](https://github.com/thfrwn/sdl2plat)
   which platform is returned by SDL_GetPlatform.
-- mono: package availabel for -current, but not for 6.2 or 6.3. However, a
+- mono: package available for -current, but not for 6.2 or 6.3. However, a
   version of mono with a few bugs can likely be built from the ports tree, by
   removing the line starting with `BROKEN`
 - game-specific libraries, like theoraplay, mojoshader, ... fnaify
