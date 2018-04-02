@@ -539,4 +539,10 @@ fi
 chmod +x "$fullscriptpath"
 print "Launcher script replaced."
 print ""
-print "Setup complete. You should now be able to start the game by running $fullscriptpath."
+print "SETUP COMPLETE"
+printdash 14
+print ""
+print "You should now be able to start the game by running:"
+print ""
+print "\$ ./$scriptfile"
+print ""
