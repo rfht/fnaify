@@ -21,8 +21,9 @@ Requirements:
   *BSD platforms have been rolled out.
   You can check with [sdl2plat](https://github.com/thfrwn/sdl2plat)
   which platform is returned by SDL_GetPlatform.
-- mono (package in ports marked as BROKEN, but compiles on amd64
-  if /usr/ports is mounted with wxallowed)
+- mono: package availabel for -current, but not for 6.2 or 6.3. However, a
+  version of mono with a few bugs can likely be built from the ports tree, by
+  removing the line starting with `BROKEN`
 - game-specific libraries, like theoraplay, mojoshader, ... fnaify
   should abort and tell you which libraries need to be installed if
   some of them can't be found.
@@ -74,7 +75,11 @@ The following games have been reported to work with this script:
 Special Case: Axiom Verge
 -------------------------
 
-Axiom Verge's DRM-free version is the physical Collector's Edition (GameTrust/indiebox) on optical disc, but it only includes the Windows/XNA version. In order to run it on OpenBSD, [XnaToFna](https://github.com/0x0ade/XnaToFna) is needed. Instructions on how to set it up are being worked on.
+Axiom Verge's DRM-free version is the physical Collector's Edition
+(GameTrust/indiebox) on optical disc, but it only includes the Windows/XNA
+version. In order to run it on OpenBSD,
+[XnaToFna](https://github.com/0x0ade/XnaToFna) is needed. Instructions on how to
+set it up are being worked on.
 
 DRM-free Games
 --------------
