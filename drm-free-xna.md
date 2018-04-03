@@ -8,7 +8,7 @@ DRM-free Versions of XNA Games
 * Bloody Trapland: [HTML5 version](https://20170217.itch.io/trapland)
 * Breath of Death VII & Cthulhu Saves the World - DRM-free on [Steam](http://store.steampowered.com/sub/8848/) - **works**
 * [ChaosHeart](http://ludumdare.com/compo/ludum-dare-30/?action=preview&uid=1176) - **works**
-* [Cosmic Star Heroine](https://www.humblebundle.com/store/cosmic-star-heroine) or [GOG](https://www.gog.com/game/cosmic_star_heroine)
+* Cosmic Star Heroine: [humblebundle](https://www.humblebundle.com/store/cosmic-star-heroine) or [GOG](https://www.gog.com/game/cosmic_star_heroine)
 * [Dead Pixels](http://deadpixelsthegame.com/buy-direct/)
 * [Dead Pixels II](http://deadpixels2.com/)
 * [Distant Worlds: Universe](https://www.gog.com/game/distant_worlds_universe)
