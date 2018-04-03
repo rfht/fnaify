@@ -61,7 +61,7 @@ The following games have been reported to work with this script:
 * Owlboy
 * Paladin
 * Press X to Not Die
-* Rex Rocket (needs a different FNA.dll than the bundled one)
+* Rex Rocket (needs a different FNA.dll than the bundled one) - **currently not launching, under investigation**
 * Rogue Legacy
 * Shipwreck
 * Skulls of the Shogun

@@ -39,6 +39,7 @@
 # - make launcher script have generic, neutral name, like 'runfna_<name of game>'
 # - currently, ignoredarray needs version of libfmod{,studio}.so.10. fix it so this isn't needed
 # - remove libtiny_jpeg.so from ignoredarray (only needed for MidBoss)
+# - make warning about replacing FNA.dll more visible - e.g. set variable and check it at the end
 #########
 
 #########
@@ -666,6 +667,10 @@ cp "$fnaifydir/wrapper.template" "$fullscriptpath"
 if [[ $scriptfile = "Hacknet" ]]
 then
 	sed -i "s/<WINDOWS_EXECUTABLE>/\"$selectexe\" -disableweb/g" "$fullscriptpath"
+elif [ $scriptfile = "Wizorb" ]
+then
+	sed -i "s/<WINDOWS_EXECUTABLE>/\"$selectexe\"/g" "$fullscriptpath"
+	sed -i "s/LD_LIBRARY_PATH=\/usr\/local\/lib/LD_LIBRARY_PATH=\/usr\/local\/lib MONO_IOMAP=all/g" "$fullscriptpath"
 else
 	sed -i "s/<WINDOWS_EXECUTABLE>/\"$selectexe\"/g" "$fullscriptpath"
 fi
