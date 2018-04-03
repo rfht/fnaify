@@ -156,18 +156,11 @@ while IFS= read -r line
 do
 	monofilearray[${#monofilearray[*]} + 1]=$line
 done <"$fnaifydir/monolist"
-print "length of monofilearray: ${#monofilearray[*]}"
-print "${monofilearray[*]}"
-print ""
 while IFS= read -r line
 do
 	ignoredarray[${#ignoredarray[*]} + 1]=$line
 done <"$fnaifydir/ignorelist"
-print "length of ignoredarray: ${#ignoredarray[*]}"
-print "${ignoredarray[*]}"
 IFS=$SAVEIFS
-#exit
-
 
 # configfilesarray: array of files in gamedir ending in '.config'
 if [ -n "$FNAIFY_DEBUG" ]
