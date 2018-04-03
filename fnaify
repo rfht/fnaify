@@ -22,7 +22,7 @@
 ##################
 # Usage:
 #
-# fnaify <launch script>
+# sh /path/to/fnaify <launch script>
 #
 # Enable verbose output by setting environment variable FNAIFY_DEBUG
 #
@@ -33,14 +33,7 @@
 # - test that fnaify can be invoked repeatedly without getting buggy (same
 #   result expected)
 # - fix duplicate appearance of library names (happens with RCRU)
-# - currently assumes that there is only one .exe file in the game's folder
-#   - this should at least throw an error and exit if there's more than 1
-#   (RELATED: fix: sed: 1: "s/<WINDOWS_EXECUTABLE>/ ...: unescaped newline inside substitute pattern
-#   e.g. occuring with Hive, super rad raygun)
-# - libXNAFileDialog is on ignoredarray because non-essential and cannot test
 #   if it works. Remove from ignoredarray after testing (TowerFall: Ascension ADD-ON)
-# - read monofilearray and ignoredarray in from files (while IFS= read -r line; do ... done <"filename")
-# - detect bad FNA.dll versions and complain and/or exchange them (e.g. with hash or size) (monodis --assembly FNA.dll | grep Version)
 # - set to take game directory as the argument rather than the script
 # - go through FIXME's
 # - make launcher script have generic, neutral name, like 'runfna_<name of game>'
@@ -49,78 +42,13 @@
 #########
 
 #########
-# Problematic FNA.dll versions:
-#########
-# - FNA.dll 15.12.21.0 (apotheon)
-# - FNA.dll 0.0.0.1 (shuggy, wizorb, wyv and keep)
-# - FNA.dll 16.1.0.0 (brushwood)
-# - FNA.dll 16.3.0.0 (rex rocket)
-#########
-
-# Working:
-# MonoGame.Framework.dll 0.0.0.0 (StardewValley)
-# MonoGame.Framework.dll 3.0.0.0 (AVNT, Capsized, EscapeGoat, Rogue Legacy, Soulcaster1&2)
-# MonoGame.Framework.dll 3.1.2.0 (EscapeGoat2, Gateways, Skulls of the Shogun)
-# FNA.dll 16.5.0.0 (bleed ((super rad raygun))
-# FNA.dll 16.7.0.0 (TowerFall: Ascension)
-# FNA.dll 16.8.0.0 (Paladin, Shipwreck)
-# FNA.dll 16.11.0.0 (FEZ)
-# FNA.dll 16.12.0.0 (Overdriven Reloaded, Square Heroes)
-# FNA.dll 17.2.0.0 (Hacknet)
-# FNA.dll 17.3.0.0 (Salt&Sanctuary, ((Terraria)))
-# FNA.dll 17.5.0.0 (Hidden in Plain Sight)
-# FNA.dll 17.6.0.0 (bleed2, dust-aet, press x to not die)
-# FNA.dll 17.9.0.0 (Charlie Murder, The Dishwasher: Vampire Smile, ((MidBoss)))
-# FNA.dll 17.11.0.0 (Flinthook, RCRU)
-# FNA.dll 17.12.0.0 (cotcidx, Hyphen, owlboy)
-
-#########
 # VARIABLE AND FUNCTION DEFINITIONS
 #########
 
 SAVEIFS=$IFS
 
-# monofilearray: array of mono files that need to be removed from the game folder
-monofilearray[1]="System.dll"
-monofilearray[2]="Mono.Posix.dll"
-monofilearray[3]="Mono.Security.dll"
-monofilearray[4]="System.Configuration.dll"
-monofilearray[5]="System.Core.dll"
-monofilearray[6]="System.Data.dll"
-monofilearray[7]="System.Xml.dll"
-monofilearray[8]="System.Security.dll"
-monofilearray[9]="System.Runtime.Serialization.dll"
-monofilearray[10]="mscorlib.dll"
-monofilearray[11]="System.Drawing.dll"
-monofilearray[12]="monoconfig"
-monofilearray[13]="System.Xml.Linq.dll"
-monofilearray[14]="WindowsBase.dll"
-monofilearray[15]="monomachineconfig"
-monofilearray[16]="I18N.CJK.dll"
-monofilearray[17]="I18N.MidEast.dll"
-monofilearray[18]="I18N.Other.dll"
-monofilearray[19]="I18N.Rare.dll"
-monofilearray[20]="I18N.West.dll"
-monofilearray[21]="I18N.dll"
-monofilearray[22]="Microsoft.CSharp.dll"
-monofilearray[23]="Mono.CSharp.dll"
-monofilearray[24]="System.ServiceModel.dll"
-
-# ignoredarray: array of lib names to ignore for the configuration checking
-ignoredarray[1]="libCSteamworks.so"
-ignoredarray[2]="libsteam_api.so"
-ignoredarray[3]="libSteamworksNative.so"
-ignoredarray[4]="libcef.so"
-ignoredarray[5]="libXNAWebRenderer.so"
-ignoredarray[6]="libSteamWrapper.so"
-ignoredarray[7]="libParisSteam.so"
-ignoredarray[8]="steamwrapper.so"
-ignoredarray[9]="libCommunityExpressSW.so"
-ignoredarray[10]="libXNAFileDialog.so"
-ignoredarray[11]="libfmod.so.10"
-ignoredarray[12]="libfmodstudio.so.10"
-ignoredarray[13]="libtiny_jpeg.so"	# still needed for MidBoss, so may wanna remove this line later
-
+#monofilearray: array of mono files that need to be removed from the game folder
+#ignoredarray: array of lib names to ignore for the configuration checking
 #needlibarray[*] is the array that will hold the names of needed libraries
 #foundlibarray[*] is the array of the libraries that were found to match
 #                 needlibarray
@@ -185,7 +113,8 @@ then
 fi
 if [[ ! -e "$1" ]]
 then
-	print "file not found"
+	print "file not found: $1"
+	print ""
 	exit 1
 fi
 if [ -n "$FNAIFY_DEBUG" ]
@@ -209,17 +138,36 @@ fnaifydir="`dirname \"$fullfnaifypath\"`"
 fullscriptpath="`pwd`/$1"
 scriptfile="`basename \"$fullscriptpath\"`"
 gamedir="`dirname \"$fullscriptpath\"`"
-# FIXME: add test that there is only one .exe file, otherwise error out
 IFS="
 "
 for xfile in $(ls "$gamedir" | grep "\.exe$")
 do
 	exefile[${#exefile[*]} + 1]=$xfile
 done
-#exefile="`ls \"$gamedir\" | grep \"\.exe$\"`"
 IFS=$SAVEIFS
 
-#fullexepath="$gamedir/$exefile" # likely not needed and can be removed
+# read names of monofiles to move out of the directory, as well as library
+# files to ignore from files
+if [ -n "$FNAIFY_DEBUG" ]
+then
+	print "reading names of monolist and ignorelist"
+fi
+while IFS= read -r line
+do
+	monofilearray[${#monofilearray[*]} + 1]=$line
+done <"$fnaifydir/monolist"
+print "length of monofilearray: ${#monofilearray[*]}"
+print "${monofilearray[*]}"
+print ""
+while IFS= read -r line
+do
+	ignoredarray[${#ignoredarray[*]} + 1]=$line
+done <"$fnaifydir/ignorelist"
+print "length of ignoredarray: ${#ignoredarray[*]}"
+print "${ignoredarray[*]}"
+IFS=$SAVEIFS
+#exit
+
 
 # configfilesarray: array of files in gamedir ending in '.config'
 if [ -n "$FNAIFY_DEBUG" ]
@@ -247,7 +195,7 @@ fi
 # identify required libraries
 ####
 # - this is likely imperfect and may identify too many or too few libraries
-# - at the moment will check 2 sources: lib64 and .config files
+# - at the moment will check 3 sources: lib64, lib, and .config files
 # - filenames not whitespace-safe, but should not be used in such files anyway
 ####
 
@@ -302,6 +250,7 @@ else
 			needlibarray[${#needlibarray[*]} + 1]=$file
 		else
 			print "\n\t - ERROR: inarray returned with unexpected error"
+			print ""
 			exit 1
 		fi
 	done
@@ -360,6 +309,7 @@ else
 			fi
 		else
 			print "\n\t - ERROR: inarray returned with unexpected error"
+			print ""
 			exit 1
 		fi
 	done
@@ -441,6 +391,7 @@ else
 				fi
 			else
 				print "\n\t - ERROR: inarray returned with unexpected error"
+				print ""
 				exit 1
 			fi
 		done
@@ -518,12 +469,54 @@ missingmono=0
 whence mono > /dev/null
 if [[ $? -ne 0 ]]
 then
-	print " Couldn't find mono."
+	print " Couldn't find mono in PATH"
 	missingmono=1
 else
 	if [ -n "$FNAIFY_DEBUG" ]
 	then
 		print " Found mono."
+	fi
+fi
+print ""
+
+# check version of framework library (FNA.dll or MonoGame.Framework.dll)
+if [ $missingmono -lt 1 ]
+then
+
+	if [ -n "$FNAIFY_DEBUG" ]
+	then
+		print "Checking version of framework library..."
+	fi
+	# the following code assumes that only one of FNA.dll and MonoGame.Framework.dll is present
+	if [ -e "$gamedir/FNA.dll" ]
+	then
+		fnaversion=`monodis --assembly "$gamedir/FNA.dll" | grep "Version" | tr -d [:alpha:] | tr -d " " | tr -d \:`
+		fnamajor=`print "$fnaversion" | sed -n -E "s/\..*//p"`
+		if [ -n "$FNAIFY_DEBUG" ]
+		then
+			print "\tFound FNA.dll version $fnaversion"
+		fi
+		if [ $fnamajor -lt 17 ]
+		then
+			print "WARNING: version of FNA.dll potentially incompatble!"
+			print "If unable to launch with this version, consider replacing with newer version."
+			print "(https://github.com/FNA-XNA/FNA/releases)"
+		fi
+	elif [ -e "$gamedir/MonoGame.Framework.dll" ]
+	then
+		mgversion=`monodis --assembly "$gamedir/FNA.dll" | grep "Version" | tr -d [:alpha:] | tr -d " " | tr -d \:`
+		#mgmajor=`print "$mgversion" | sed -n -E "s/\..*//p"` # not needed because at this point not checking mg version
+		if [ -n "$FNAIFY_DEBUG" ]
+		then
+			print "\tFound MonoGame.Framework.dll version $mgversion"
+		fi
+	else
+		print "WARNING: Could not find framework library (FNA.dll or MonoGame.Framework.dll) in $gamedir"
+	fi
+else
+	if [ -n "$FNAIFY_DEBUG" ]
+	then
+		print "Can't check version of framework library because couldn't find mono"
 	fi
 fi
 print ""
@@ -658,6 +651,7 @@ then
 	selectexe="${exefile[1]}"
 else
 	print "ERROR: no .exe file found"
+	print ""
 	exit 1
 fi
 

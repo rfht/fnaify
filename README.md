@@ -31,7 +31,7 @@ Requirements:
 Usage:
 ------
 
-`fnaify <[/path/to/]launchscript>`
+`sh /path/to/fnaify <[/path/to/]launchscript>`
 
 For verbose output, set the environment variable FNAIFY_DEBUG to anything.
 
