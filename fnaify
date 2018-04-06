@@ -40,6 +40,7 @@
 # - currently, ignoredarray needs version of libfmod{,studio}.so.10. fix it so this isn't needed
 # - remove libtiny_jpeg.so from ignoredarray (only needed for MidBoss)
 # - make warning about replacing FNA.dll more visible - e.g. set variable and check it at the end
+# - consider adding instructions on which packages to install for the missing libraries
 #########
 
 #########
@@ -498,7 +499,7 @@ then
 		fi
 	elif [ -e "$gamedir/MonoGame.Framework.dll" ]
 	then
-		mgversion=`monodis --assembly "$gamedir/FNA.dll" | grep "Version" | tr -d [:alpha:] | tr -d " " | tr -d \:`
+		mgversion=`monodis --assembly "$gamedir/MonoGame.Framework.dll" | grep "Version" | tr -d [:alpha:] | tr -d " " | tr -d \:`
 		#mgmajor=`print "$mgversion" | sed -n -E "s/\..*//p"` # not needed because at this point not checking mg version
 		if [ -n "$FNAIFY_DEBUG" ]
 		then
