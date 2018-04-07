@@ -495,7 +495,7 @@ then
 		then
 			print "WARNING: version of FNA.dll potentially incompatble!"
 			print "If unable to launch with this version, consider replacing with newer version."
-			print "(https://github.com/FNA-XNA/FNA/releases)"
+			print "Source available at https://github.com/FNA-XNA/FNA/releases"
 		fi
 	elif [ -e "$gamedir/MonoGame.Framework.dll" ]
 	then
