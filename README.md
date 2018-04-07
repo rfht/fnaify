@@ -67,7 +67,7 @@ The following games have been reported to work with this script:
 * Skulls of the Shogun
 * Soulcaster 1
 * Soulcaster 2
-* Stardew Valley (recommend data size limit of 2G, see issue #25)
+* Stardew Valley (recommend data size limit of 2G, see [issue #25](https://github.com/thfrwn/fnaify/issues/25))
 * TowerFall: Ascension
 * Wizorb (needs a different FNA.dll than the bundled one)
 * Wyv and Keep (needs a different FNA.dll than the bundled one)
