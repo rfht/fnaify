@@ -1,9 +1,8 @@
 # Problematic FNA.dll versions:
 
 * FNA.dll 15.12.21.0 (Apotheon)
-* FNA.dll 0.0.0.1 (Adventures of Shuggy, Wizorb, Wyv and Keep)
+* FNA.dll 0.0.0.1 (Adventures of Shuggy, Rex Rocket, Wizorb, Wyv and Keep)
 * FNA.dll 16.1.0.0 (Brushwood)
-* FNA.dll 16.3.0.0 (Rex Rocket)
 
 # Working:
 
