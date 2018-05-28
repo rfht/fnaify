@@ -11,3 +11,6 @@ libXNAFileDialog.so
 libfmod.so.10
 libfmodstudio.so.10
 libtiny_jpeg.so
+libGalaxy64.so
+libGalaxyCSharpGlue.so
+libGalaxy.so

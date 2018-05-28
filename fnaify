@@ -62,10 +62,10 @@ printdash()
 	c=1
 	while [[ $c -le $1 ]]
 	do
-		print -n - -
+		echo -n - -
 		let c=c+1
 	done
-	print ""
+	echo ""
 }
 
 # inarray: check if $1 is in array $2 (with simple grep)
@@ -73,7 +73,7 @@ inarray()
 {
 	firstarg="$1"
 	shift 1
-	print "$*" | fgrep -q "$firstarg"
+	echo "$*" | fgrep -q "$firstarg"
 	return
 }
 
@@ -97,9 +97,9 @@ validlib()
 trunklibnam()
 {
 	libnam="$1"
-	libnam="$(print "$libnam" | sed -n -E "s/(.*\.so)\.?.*/\1/p")"
-	libnam="$(print "$libnam" | sed -E "s/(libSDL2[^-]*)-2\.0(\.so.*)/\1\2/")"
-	print "$libnam"
+	libnam="$(echo "$libnam" | sed -n -E "s/(.*\.so)\.?.*/\1/p")"
+	libnam="$(echo "$libnam" | sed -E "s/(libSDL2[^-]*)-2\.0(\.so.*)/\1\2/")"
+	echo "$libnam"
 }
 
 #######################################################################
@@ -107,30 +107,30 @@ trunklibnam()
 #######
 # MAIN SCRIPT
 #######
-print ""
-print "Performing initial checks..."
+echo ""
+echo "Performing initial checks..."
 if [ -n "$FNAIFY_DEBUG" ]
 then
 	printdash 28
 fi
 if [[ ! -e "$1" ]]
 then
-	print "file not found: $1"
-	print ""
+	echo "file not found: $1"
+	echo ""
 	exit 1
 fi
 if [ -n "$FNAIFY_DEBUG" ]
 then
-	print "found file $1"
+	echo "found file $1"
 fi
 
 # FIXME: make independent of the useless bash script (just take directory as parameter, if any)
 # FIXME: need to make sure that no important file is changed
 if [ -n "$FNAIFY_DEBUG" ]
 then
-	print "found file type: `file -b \"$1\"`"
-	print "Done with initial checks."
-	print ""
+	echo "found file type: `file -b \"$1\"`"
+	echo "Done with initial checks."
+	echo ""
 fi
 
 # path and file variable definitions
@@ -152,7 +152,7 @@ IFS=$SAVEIFS
 # files to ignore from files
 if [ -n "$FNAIFY_DEBUG" ]
 then
-	print "reading names of monolist and ignorelist"
+	echo "reading names of monolist and ignorelist"
 fi
 while IFS= read -r line
 do
@@ -167,7 +167,7 @@ IFS=$SAVEIFS
 # configfilesarray: array of files in gamedir ending in '.config'
 if [ -n "$FNAIFY_DEBUG" ]
 then
-	print "Identifying config files..."
+	echo "Identifying config files..."
 fi
 IFS="
 "
@@ -175,15 +175,15 @@ for cfile in $(ls "$gamedir" | grep "\.config$")
 do
 	if [ -n "$FNAIFY_DEBUG" ]
 	then
-		print "\tfound config file: $cfile"
+		echo "\tfound config file: $cfile"
 	fi
 	configfilesarray[${#configfilesarray[*]} + 1]="$cfile"
 done
 IFS=$SAVEIFS
 if [ -n "$FNAIFY_DEBUG" ]
 then
-	print "Done identifying config files."
-	print ""
+	echo "Done identifying config files."
+	echo ""
 fi
 
 ####
@@ -196,25 +196,25 @@ fi
 
 if [ -n "$FNAIFY_DEBUG" ]
 then
-	print "Identifying libraries required by the game..."
+	echo "Identifying libraries required by the game..."
 	printdash 45
 fi
 
 # get library names from lib64 folder
 if [ -n "$FNAIFY_DEBUG" ]
 then
-	print ""
+	echo ""
 fi
 if [[ ! -e "$gamedir/lib64" ]]
 then
 	if [ -n "$FNAIFY_DEBUG" ]
 	then
-		print "Couldn't find library directory $gamedir/lib64"
+		echo "Couldn't find library directory $gamedir/lib64"
 	fi
 else
 	if [ -n "$FNAIFY_DEBUG" ]
 	then
-		print "Entering library directory $gamedir/lib64"
+		echo "Entering library directory $gamedir/lib64"
 	fi
 	for file in $(ls "$gamedir/lib64")
 	do
@@ -226,50 +226,50 @@ else
 		fi
 		if [ -n "$FNAIFY_DEBUG" ]
 		then
-			print -n "\tfound library file: $file"
+			echo -n "\tfound library file: $file"
 		fi
 		file=$(trunklibnam "$file")
 		if [ -n "$FNAIFY_DEBUG" ]
 		then
-			print " -> $file"
+			echo " -> $file"
 		fi
 		inarray $file ${needlibarray[*]}
 		if [[ $? -eq 0 ]]
 		then
 			if [ -n "$FNAIFY_DEBUG" ]
 			then
-				print " - already in array"
+				echo " - already in array"
 			fi
 		elif [[ $? -eq 1 ]]
 		then
 			needlibarray[${#needlibarray[*]} + 1]=$file
 		else
-			print "\n\t - ERROR: inarray returned with unexpected error"
-			print ""
+			echo "\n\t - ERROR: inarray returned with unexpected error"
+			echo ""
 			exit 1
 		fi
 	done
 	if [ -n "$FNAIFY_DEBUG" ]
 	then
-		print "Done with library directory $gamedir/lib64"
+		echo "Done with library directory $gamedir/lib64"
 	fi
 fi
 
 # get library names from lib folder
 if [ -n "$FNAIFY_DEBUG" ]
 then
-	print ""
+	echo ""
 fi
 if [[ ! -e "$gamedir/lib" ]]
 then
 	if [ -n "$FNAIFY_DEBUG" ]
 	then
-		print "Couldn't find library directory $gamedir/lib"
+		echo "Couldn't find library directory $gamedir/lib"
 	fi
 else
 	if [ -n "$FNAIFY_DEBUG" ]
 	then
-		print "Entering library directory $gamedir/lib"
+		echo "Entering library directory $gamedir/lib"
 	fi
 	for file in $(ls "$gamedir/lib")
 	do
@@ -281,43 +281,43 @@ else
 		fi
 		if [ -n "$FNAIFY_DEBUG" ]
 		then
-			print -n "\tfound library file: $file"
+			echo -n "\tfound library file: $file"
 		fi
 		file=$(trunklibnam "$file")
 		if [ -n "$FNAIFY_DEBUG" ]
 		then
-			print -n " -> $file"
+			echo -n " -> $file"
 		fi
 		inarray $file ${needlibarray[*]}
 		if [[ $? -eq 0 ]]
 		then
 			if [ -n "$FNAIFY_DEBUG" ]
 			then
-				print " - already in array"
+				echo " - already in array"
 			fi
 		elif [[ $? -eq 1 ]]
 		then
 			needlibarray[${#needlibarray[*]} + 1]=$file
 			if [ -n "$FNAIFY_DEBUG" ]
 			then
-				print ""
+				echo ""
 			fi
 		else
-			print "\n\t - ERROR: inarray returned with unexpected error"
-			print ""
+			echo "\n\t - ERROR: inarray returned with unexpected error"
+			echo ""
 			exit 1
 		fi
 	done
 	if [ -n "$FNAIFY_DEBUG" ]
 	then
-		print "Done with library directory $gamedir/lib"
+		echo "Done with library directory $gamedir/lib"
 	fi
 fi
 
 # get library names from .config files
 if [ -n "$FNAIFY_DEBUG" ]
 then
-	print "Obtaining library names from the following config files"
+	echo "Obtaining library names from the following config files"
 fi
 
 # check that configfilesarray isn't empty
@@ -325,7 +325,7 @@ if [[ ${#configfilesarray[*]} < 1 ]]
 then
 	if [ -n "$FNAIFY_DEBUG" ]
 	then
-		print "No config files found."
+		echo "No config files found."
 	fi
 else
 	cfile=""	# empty the variable because it has been used before
@@ -335,21 +335,21 @@ else
 	do
 		if [ -n "$FNAIFY_DEBUG" ]
 		then
-			print "\t$cfile"
+			echo "\t$cfile"
 		fi
 		linuxlines=$(grep "os\=\"linux" $gamedir/$cfile)
 		# FIXME: this sed call would probably get messed up if there is
 		#	whitespace
-		for libstring in $(print "$linuxlines" | sed -n -E "s/.*target=\"([^\"]+).*/\1/p")
+		for libstring in $(echo "$linuxlines" | sed -n -E "s/.*target=\"([^\"]+).*/\1/p")
 		do
 			# Fix where library name includes directory information
 			# remove "./" at the beginning of librarynames
-			libstring=$(print "$libstring" | sed -E 's/^.\///')
+			libstring=$(echo "$libstring" | sed -E 's/^.\///')
 			# remove directories at the start of lib name
-			libstring=$(print "$libstring" | sed -E 's/^.*\///')
+			libstring=$(echo "$libstring" | sed -E 's/^.*\///')
 			if [ -n "$FNAIFY_DEBUG" ]
 			then
-				print -n "\t\tFound library string: $libstring"
+				echo -n "\t\tFound library string: $libstring"
 			fi
 			# sort out libs (e.g. steam) that need to be ignored
 			validlib $libstring
@@ -357,7 +357,7 @@ else
 			then
 				if [ -n "$FNAIFY_DEBUG" ]
 				then
-					print " - ignored"
+					echo " - ignored"
 				fi
 				continue
 			fi
@@ -365,7 +365,7 @@ else
 			libstring=$(trunklibnam "$libstring")
 			if [ -n "$FNAIFY_DEBUG" ]
 			then
-				print -n " -> $libstring"
+				echo -n " -> $libstring"
 			fi
 			#needlibarray[${#needlibarray[*]} + 1]=$libstring
 			# check if libstring is already in needlibarray.
@@ -375,53 +375,53 @@ else
 			then
 				if [ -n "$FNAIFY_DEBUG" ]
 				then
-					print " - already in array"
+					echo " - already in array"
 				fi
 			elif [[ $? -eq 1 ]]
 			then
 				needlibarray[${#needlibarray[*]} + 1]=$libstring
 				if [ -n "$FNAIFY_DEBUG" ]
 				then
-					print " - added to array"
+					echo " - added to array"
 				fi
 			else
-				print "\n\t - ERROR: inarray returned with unexpected error"
-				print ""
+				echo "\n\t - ERROR: inarray returned with unexpected error"
+				echo ""
 				exit 1
 			fi
 		done
 	done
 	if [ -n "$FNAIFY_DEBUG" ]
 	then
-		print "Done with identifying libraries in config files"
+		echo "Done with identifying libraries in config files"
 	fi
 fi
 if [ -n "$FNAIFY_DEBUG" ]
 then
-	print "Done with identification of needed libraries."
+	echo "Done with identification of needed libraries."
 fi
 IFS=$SAVEIFS
 
 # Fix libpngXX.so filename
 if [ -n "$FNAIFY_DEBUG" ]
 then
-	print -n "Fixing libpng filenames if present..."
+	echo -n "Fixing libpng filenames if present..."
 fi
 i=1
 while [[ i -le ${#needlibarray[*]} ]]
 do
-	needlibarray[i]=$(print "${needlibarray[i]}" | sed -E "s/(libpng)..(\.so.*)/\1\2/")
+	needlibarray[i]=$(echo "${needlibarray[i]}" | sed -E "s/(libpng)..(\.so.*)/\1\2/")
 	let i=i+1
 done
 if [ -n "$FNAIFY_DEBUG" ]
 then
-	print " done."
-	print ""
+	echo " done."
+	echo ""
 fi
 
 # Check if the libraries are available on the system (/usr/local/lib).
 # If not, break and inform user which libraries need to be installed.
-print "Checking installed libraries..."
+echo "Checking installed libraries..."
 
 i=1
 while [[ i -le ${#needlibarray[*]} ]]
@@ -430,20 +430,20 @@ do
 	then
 		if [ -n "$FNAIFY_DEBUG" ]
 		then
-			print "\tfound system lib for: ${needlibarray[i]}"
+			echo "\tfound system lib for: ${needlibarray[i]}"
 		fi
 	else
-		if [ -n $(print ${needlibarray[i]} | grep -q 'libfreetype\.so.*')
+		if [ -n $(echo ${needlibarray[i]} | grep -q 'libfreetype\.so.*')
 		then
 			# DEBUG
 			if [ -n "$FNAIFY_DEBUG" ]
 			then
-				print "\tfound libfreetype (see /usr/X11R6/lib)"
+				echo "\tfound libfreetype (see /usr/X11R6/lib)"
 			fi
 		else
 			if [ -n "$FNAIFY_DEBUG" ]
 			then
-				print "\tNot found: ${needlibarray[i]}"
+				echo "\tNot found: ${needlibarray[i]}"
 			fi
 			missinglibs[${#missinglibs[*]} + 1]=${needlibarray[i]}
 		fi
@@ -452,27 +452,27 @@ do
 done
 if [ -n "$FNAIFY_DEBUG" ]
 then
-	print ""
+	echo ""
 fi
 
 # Check if mono is available
 if [ -n "$FNAIFY_DEBUG" ]
 then
-	print -n "Checking that mono can be called..."
+	echo -n "Checking that mono can be called..."
 fi
 missingmono=0
 whence mono > /dev/null
 if [[ $? -ne 0 ]]
 then
-	print " Couldn't find mono in PATH"
+	echo " Couldn't find mono in PATH"
 	missingmono=1
 else
 	if [ -n "$FNAIFY_DEBUG" ]
 	then
-		print " Found mono."
+		echo " Found mono."
 	fi
 fi
-print ""
+echo ""
 
 # check version of framework library (FNA.dll or MonoGame.Framework.dll)
 if [ $missingmono -lt 1 ]
@@ -480,71 +480,71 @@ then
 
 	if [ -n "$FNAIFY_DEBUG" ]
 	then
-		print "Checking version of framework library..."
+		echo "Checking version of framework library..."
 	fi
 	# the following code assumes that only one of FNA.dll and MonoGame.Framework.dll is present
 	if [ -e "$gamedir/FNA.dll" ]
 	then
 		fnaversion=`monodis --assembly "$gamedir/FNA.dll" | grep "Version" | tr -d [:alpha:] | tr -d " " | tr -d \:`
-		fnamajor=`print "$fnaversion" | sed -n -E "s/\..*//p"`
-		fnaminor=`print "$fnaversion" | sed -n -E "s/[0-9]+\.([0-9]+)\.[0-9]+\.[0-9]+/\1/p"`
+		fnamajor=`echo "$fnaversion" | sed -n -E "s/\..*//p"`
+		fnaminor=`echo "$fnaversion" | sed -n -E "s/[0-9]+\.([0-9]+)\.[0-9]+\.[0-9]+/\1/p"`
 		if [ -n "$FNAIFY_DEBUG" ]
 		then
-			print "\tFound FNA.dll version $fnaversion"
-			print "fnamajor: $fnamajor"
-			print "fnaminor: $fnaminor"
+			echo "\tFound FNA.dll version $fnaversion"
+			echo "fnamajor: $fnamajor"
+			echo "fnaminor: $fnaminor"
 		fi
 		if [ $fnamajor -lt 16 ] || ( [ $fnamajor -eq 16 ] && [ $fnaminor -lt 5 ] )
 		then
-			print "WARNING: version of FNA.dll potentially incompatble!"
-			print "If unable to launch with this version, consider replacing with newer version."
-			print "Source available at https://github.com/FNA-XNA/FNA/releases"
+			echo "WARNING: version of FNA.dll potentially incompatble!"
+			echo "If unable to launch with this version, consider replacing with newer version."
+			echo "Source available at https://github.com/FNA-XNA/FNA/releases"
 		fi
 	elif [ -e "$gamedir/MonoGame.Framework.dll" ]
 	then
 		mgversion=`monodis --assembly "$gamedir/MonoGame.Framework.dll" | grep "Version" | tr -d [:alpha:] | tr -d " " | tr -d \:`
-		#mgmajor=`print "$mgversion" | sed -n -E "s/\..*//p"` # not needed because at this point not checking mg version
+		#mgmajor=`echo "$mgversion" | sed -n -E "s/\..*//p"` # not needed because at this point not checking mg version
 		if [ -n "$FNAIFY_DEBUG" ]
 		then
-			print "\tFound MonoGame.Framework.dll version $mgversion"
+			echo "\tFound MonoGame.Framework.dll version $mgversion"
 		fi
 	else
-		print "WARNING: Could not find framework library (FNA.dll or MonoGame.Framework.dll) in $gamedir"
+		echo "WARNING: Could not find framework library (FNA.dll or MonoGame.Framework.dll) in $gamedir"
 	fi
 else
 	if [ -n "$FNAIFY_DEBUG" ]
 	then
-		print "Can't check version of framework library because couldn't find mono"
+		echo "Can't check version of framework library because couldn't find mono"
 	fi
 fi
-print ""
+echo ""
 
-print -n "Result of configuration testing: "
+echo -n "Result of configuration testing: "
 if [[ ( ${#missinglibs[*]} -gt 0 ) || ( $missingmono -gt 0 ) ]]
 then
-	print "FAILED"
+	echo "FAILED"
 	printdash 39
 	
-	print "The following requirements were not met:"
+	echo "The following requirements were not met:"
 	if [[ $missingmono = 1 ]]
 	then
-		print -n - -
-		print " Could not find 'mono' in PATH"
+		echo -n - -
+		echo " Could not find 'mono' in PATH"
 	fi
 	if [[ ${#missinglibs[*]} > 0 ]]
 	then
 		i=1
 		while [[ i -le ${#missinglibs[*]} ]]
 		do
-			print -n - -
-			print " Could not find library: ${missinglibs[i]}"
+			echo -n - -
+			echo " Could not find library: ${missinglibs[i]}"
 			let i=i+1
 		done
 	fi
-	print ""
+	echo ""
 	exit 1
 fi
-print "SUCCESS"
+echo "SUCCESS"
 if [ -n "$FNAIFY_DEBUG" ]
 then
 	printdash 40
@@ -554,14 +554,14 @@ fi
 # replace all occurences of 'linux' in .config files (dllmap) with 'openbsd'
 #    (this won't be needed after fna 18.01+ rolled out)
 
-print ""
-print "Adjusting config files for OpenBSD..."
+echo ""
+echo "Adjusting config files for OpenBSD..."
 
 # create backup .linux files of the original .config files
 # (unless this has already been done; then don't overwrite)
 if [ -n "$FNAIFY_DEBUG" ]
 then
-	print -n "\t(creating copy of original config files with suffix '.linux')... "
+	echo -n "\t(creating copy of original config files with suffix '.linux')... "
 fi
 IFS="
 "
@@ -575,7 +575,7 @@ done
 IFS=$SAVEIFS
 if [ -n "$FNAIFY_DEBUG" ]
 then
-	print "done."
+	echo "done."
 fi
 
 # now replace all terms in *.config
@@ -600,13 +600,13 @@ done
 IFS=$SAVEIFS
 if [ -n "$FNAIFY_DEBUG" ]
 then
-	print "Config files adjusted."
+	echo "Config files adjusted."
 fi
 
 # Move interfering mono files out of the way
 if [ -n "$FNAIFY_DEBUG" ]
 then
-	print -n "Moving some bundled dll files into linux-files subfolder... "
+	echo -n "Moving some bundled dll files into linux-files subfolder... "
 fi
 i=1
 while [[ i -le ${#monofilearray[*]} ]]
@@ -623,7 +623,7 @@ do
 done
 if [ -n "$FNAIFY_DEBUG" ]
 then
-	print " done."
+	echo " done."
 fi
 
 ###
@@ -635,9 +635,9 @@ then
 	while [[ ++i -le ${#exefile[*]} ]]
 	#for i in {1..${#exefile[*]}}
 	do
-		print "$i: ${exefile[i]}"
+		echo "$i: ${exefile[i]}"
 	done
-	print -n "Enter number of .exe file to choose for wrapper script: "
+	echo -n "Enter number of .exe file to choose for wrapper script: "
 	# FIXME: this breaks with error when whitespace in input
 	while [[ $input -lt 1 || $input -gt ${#exefile[*]} ]]
 	do
@@ -648,16 +648,16 @@ elif
 then
 	selectexe="${exefile[1]}"
 else
-	print "ERROR: no .exe file found"
-	print ""
+	echo "ERROR: no .exe file found"
+	echo ""
 	exit 1
 fi
 
-print "Replacing launcher script with OpenBSD variant..."
+echo "Replacing launcher script with OpenBSD variant..."
 # if not exists, make backup of original script for linux
 if [ -n "$FNAIFY_DEBUG" ]
 then
-	print -n "\t(creating copy of original launcher script with suffix '.linux')... "
+	echo -n "\t(creating copy of original launcher script with suffix '.linux')... "
 fi
 if [ ! -e "$fullscriptpath.linux" ]
 then
@@ -665,7 +665,7 @@ then
 fi
 if [ -n "$FNAIFY_DEBUG" ]
 then
-	print "done."
+	echo "done."
 fi
 cp "$fnaifydir/wrapper.template" "$fullscriptpath"
 if [[ $scriptfile = "Hacknet" ]]
@@ -681,16 +681,16 @@ fi
 chmod +x "$fullscriptpath"
 if [ -n "$FNAIFY_DEBUG" ]
 then
-	print "Launcher script replaced."
-	print ""
+	echo "Launcher script replaced."
+	echo ""
 fi
 if [ -n "$FNAIFY_DEBUG" ]
 then
-	print "SETUP COMPLETE"
+	echo "SETUP COMPLETE"
 	printdash 14
 fi
-print ""
-print "You should now be able to start the game by running:"
-print ""
-print "\$ ./$scriptfile"
-print ""
+echo ""
+echo "You should now be able to start the game by running:"
+echo ""
+echo "\$ ./$scriptfile"
+echo ""
