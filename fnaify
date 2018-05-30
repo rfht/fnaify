@@ -433,7 +433,7 @@ do
 			echo "\tfound system lib for: ${needlibarray[i]}"
 		fi
 	else
-		if [ -n $(echo ${needlibarray[i]} | grep -q 'libfreetype\.so.*')
+		if [ -n $(echo ${needlibarray[i]} | grep -q 'libfreetype\.so.*') ]
 		then
 			# DEBUG
 			if [ -n "$FNAIFY_DEBUG" ]
