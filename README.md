@@ -1,3 +1,9 @@
+# Note: This repository is out of date. Development is now hosted on my CVS repo.
+#       Find the current repository here: https://thfr.info/cgi-bin/cvsweb/projects/fnaify
+
+
+
+
 NOTE: beta version
 
 fnaify
