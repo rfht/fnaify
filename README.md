@@ -42,6 +42,8 @@ Usage:
 	/usr/local/share/steamstubs if present)
 `-h`:	display usage information
 `-v`:	enable verbose output
+`-i`:	interactive mode (prompt for missing deps)
+`-y`:	non-interactive; answer yes to all prompts
 
 <gamedir> is optional and defaults to $PWD if not specified.
 
@@ -108,6 +110,7 @@ List of games known to work with fnaify. Main testing done on OpenBSD.
 
 ### MonoGame
 
+* Dad Quest
 * Stardew Valley
 
 ### Other
