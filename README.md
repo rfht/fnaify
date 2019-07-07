@@ -129,6 +129,7 @@ Caveats
 Release History
 ---------------
 
+```
 1.3:	Add prompt to download and replace FNA.dll if incompatible version is found.
 	Detect `/usr/local/share/steamstubs` directory and use Steamworks.NET.dll
 	stub if present.
@@ -136,3 +137,4 @@ Release History
 	Shuggy, Atom Zombie Smasher), add directory path to plug in additional libraries
 1.1:	fix bug selecting .exe by separating input variables
 1.0:	initial release
+```
