@@ -1,696 +1,864 @@
 #!/bin/sh
 
-##################
-# created 2017-12-27
-# by Thomas Frohwein (thfr)
-#################
-# Script to get FNA-based games
-# ready to run on OpenBSD
-#
-# FNA is a reimplementation of the Microsoft XNA Game Studio 4.0 Refresh libraries.
-# Thanks to the great work by Ethan Lee (flibitijibibo) games using FNA are
-# highly portable and can even run on OpenBSD.
-# Please refer to https://fna-xna.github.io/ for more information about FNA
-##################
-# Requirements:
-#
-# - SDL2 library that identifies as 'Linux' rather than 'OpenBSD'
-#   (needs to be compiled this way; patch to recognize OpenBSD in
-#   progress upstream)
-# - mono
-# - some additional libraries, like mojoshader, theorafile, etc
-##################
-# Usage:
-#
-# sh /path/to/fnaify <launch script>
-#
-# Enable verbose output by setting environment variable FNAIFY_DEBUG
-#
-##########
-# TODO:
-# - test that can be invoked without bugs from outside the game folder
-# - fix regex for libraries: 'libSDL2.so' -> '.' is regex character (for any)
-# - test that fnaify can be invoked repeatedly without getting buggy (same
-#   result expected)
-# - fix duplicate appearance of library names (happens with RCRU)
-#   if it works. Remove from ignoredarray after testing (TowerFall: Ascension ADD-ON)
-# - set to take game directory as the argument rather than the script
-# - go through FIXME's
-# - make launcher script have generic, neutral name, like 'runfna_<name of game>'
-# - currently, ignoredarray needs version of libfmod{,studio}.so.10. fix it so this isn't needed
-# - remove libtiny_jpeg.so from ignoredarray (only needed for MidBoss)
-# - make warning about replacing FNA.dll more visible - e.g. set variable and check it at the end
-# - consider adding instructions on which packages to install for the missing libraries
-#########
+#########################################################################
+# fnaify 2.0-beta							#
+# ===============							#
+#									#
+# Script to get FNA-based games ready to run on BSD			#
+#									#
+# created 2017-12-27 by Thomas Frohwein (thfr)				#
+# portability fixes by Mariusz Zaborski (oshogbo)			#
+#									#
+# FNA is a reimplementation of the Microsoft XNA Game Studio 4.0	#
+# Refresh libraries.							#
+# Thanks to the great work by Ethan Lee (flibitijibibo) games using FNA	#
+# are highly portable and can even run on OpenBSD. Please refer to	#
+# https://fna-xna.github.io/ for more information about FNA.		#
+#									#
+# License: ISC								#
+#########################################################################
 
-#########
-# VARIABLE AND FUNCTION DEFINITIONS
-#########
+# TODO:
+# - make output formatting more consistent
+# - mention /tmp/fnaify*.log in finish_fnaify() ? and/or README
+# - figure out why Theora conversion doesn't work with One Finger Death Punch
+# - add flag to force "yes" on prompt ('-y')
+# - add mention of pulled-in directories and libs to README
+# - man page?
+# - fix FIXMEs
+# - only add steamworks-nosteam to $monopath if Steamworks.NET.dll found in $gamedir
+# - fix x86/ x64/ directories in .config of Dad Quest
+# - universal log for fnaify somewhere, including output from ffmpeg and xbuild
+# - replace sed for .config files with using MONO_CONFIG= or mono --config
+#   -> check how to handle different libSDL2_image_compact for MidBoss
+# - add CLI option to specify a non-default mono-config(5) file
+# - flags: -i for interactive mode (about downloading FNA etc, pick launch script),
+#   -y for yes to all questions (non-interactive), -n for no (== default)
+# - hook up fnaify.dllmap.config
+# - delete dirs in /tmp from extracted distfiles? (NLog etc)
+# - check_nlog now only looks at major version number; is there a better way?
+#   (it reports only major in 'monodis --assembly': 3.0.0.0, 4.0.0.0)
+
+USAGE="Usage: `basename $0` [-vh] [i|y] [-d <dependency dirs>] [-m <monopath>] [<gamedir>]\n\
+\n\
+-d: replace directories for finding dependencies\n\
+    NOTE: separate multiple entries with ':' (default:
+    /usr/local/share/fnaify-libs:/usr/local/lib:/usr/X11R6/lib)\n\
+-m: add directories to MONO_PATH (automatically adds
+    /usr/local/share/steamstubs if present)\n\
+-h: print usage information\n\
+-i: interactive mode
+-y: non-interactive mode; with 'yes' to all offered installations
+-v: verbose output\n\
+\n\
+<gamedir> is optional and defaults to \$PWD if not specified.\
+"
+
+netstub_commit=e7d890e0ede0caa9e76ef37af6070344e3ab0abf
+libatomstb_commit=f8291c591d04ac304c4f5324163bc83287de77b7
+gamedir="$PWD"
+newline='
+'
+licenses=
+scriptfile=
+interaction=n	# y|n|i: yes to all, no to all, interactive
+monopath="${MONO_PATH}:"
+# /usr/X11R6/lib is location of libfreetype.so on OpenBSD
+depdir="/usr/local/lib:/usr/X11R6/lib"
+
+if [ -d "/usr/local/lib/steamworks-nosteam" ] ; then
+	monopath="${monopath}/usr/local/lib/steamworks-nosteam:"
+	depdir="/usr/local/lib/steamworks-nosteam:$depdir"
+fi
+if [ -d "/usr/local/share/steamstubs" ]; then
+	monopath="${monopath}/usr/local/share/steamstubs:"
+fi
+if [ -d "/usr/local/share/fnaify-libs" ]; then
+	depdir="/usr/local/share/fnaify-libs:$depdir"
+fi
+
+while [ $# -gt 0 ]; do
+	case "$1" in
+		-d) depdir="$2"; shift;;
+		-h) echo "$USAGE"; exit 0;;
+		-i) interaction=i;;
+		-m) monopath="$2"; shift;;
+		-v) FNAIFY_DEBUG=1;;
+		-y) interaction=y;;
+		-*) echo "$USAGE"; exit 1;;
+		*) gamedir=$(readlink -f "$1");;
+	esac
+	shift
+done
+cd "$gamedir"
+
+# Variables and Functions
 
 SAVEIFS=$IFS
+fna_warning=0
+nlog_warning=0
 
-#monofilearray: array of mono files that need to be removed from the game folder
-#ignoredarray: array of lib names to ignore for the configuration checking
-#needlibarray[*] is the array that will hold the names of needed libraries
-#foundlibarray[*] is the array of the libraries that were found to match
-#                 needlibarray
-#missinglibs[*] accumulates missing library names to inform user
+# array of lib names to ignore for the configuration checking
+ignoredarray="libCSteamworks.so
+libsteam_api.so
+libcef.so
+libXNAWebRenderer.so
+libSteamWrapper.so
+libParisSteam.so
+steamwrapper.so
+libCommunityExpressSW.so
+libXNAFileDialog.so
+libfmod.so
+libfmodstudio.so
+libtiny_jpeg.so
+libGalaxy64.so
+libGalaxyCSharpGlue.so
+libGalaxy.so"
 
-# printdash: print $1 number of dashes in one line, followed by newline
-printdash()
+# array of mono files that need to be removed from the game folder
+monofilearray="System.dll
+Mono.Posix.dll
+Mono.Security.dll
+System.Configuration.dll
+System.Core.dll
+System.Data.dll
+System.Xml.dll
+System.Security.dll
+System.Runtime.Serialization.dll
+mscorlib.dll
+System.Drawing.dll
+monoconfig
+System.Xml.Linq.dll
+WindowsBase.dll
+monomachineconfig
+I18N.CJK.dll
+I18N.MidEast.dll
+I18N.Other.dll
+I18N.Rare.dll
+I18N.West.dll
+I18N.dll
+Microsoft.CSharp.dll
+Mono.CSharp.dll
+System.ServiceModel.dll"
+
+needlibarray="" # array that will hold the names of needed libraries
+
+#list of exefiles and their number
+exefile=
+nexefile=0
+my_exe=""	# the .exe selected for the launch script
+
+debug_echo()
 {
-	c=1
-	while [[ $c -le $1 ]]
-	do
-		echo -n - -
-		let c=c+1
-	done
-	echo ""
+	if [ -z "$FNAIFY_DEBUG" ]; then
+		return
+	fi
+	if [ "${1}" = '-n' ]; then
+		printf "$2"
+	else
+		printf "$1\n"
+	fi
 }
 
-# inarray: check if $1 is in array $2 (with simple grep)
-inarray()
+exe_flags=""
+exe_env=""
+
+printdash()
+{
+	if [ -z "$*" ]; then
+		return
+	fi
+	printf "$*\n"
+	c=1
+	dashes=
+	while [ $c -lt $(echo "$*" | wc -c) ]
+	do
+		dashes="${dashes}-"
+		# $((...)) for arithmetic substitution
+		c=$((c+1))
+	done
+	echo "$dashes"
+}
+
+inarray() # check if $1 is in array $2
 {
 	firstarg="$1"
 	shift 1
-	echo "$*" | fgrep -q "$firstarg"
-	return
+	echo "$*" | grep -q "$firstarg"
 }
 
-# validlib: returns 0 unless $1 is in ignoredarray, then returns 1
-# FIXME: this won't be able to deal with whitespace at the moment
-validlib()
+validlib() # returns 1 if $1 is in ignoredarray, otherwise 0
 {
-	ig=1
-	while [[ $ig -le ${#ignoredarray[*]} ]]
-	do
-		if [[ $1 = ${ignoredarray[ig]} ]]
-		then
-			return 1
-		fi
-		let ig=ig+1
-	done
-	return 0
+	libnam="$(trunklibnam $1)"
+	if [ -n "$(echo \"$ignoredarray\" | grep $libnam)" ]; then
+		return 1
+	elif [ -n "$(echo \"$libnam\" | grep '\.dll[ \t]*')" ]; then
+		return 1
+	else
+		return 0
+	fi
 }
 
-# trunklibnam: truncate the name of the library (and remove '-2.0') to match OpenBSD
-trunklibnam()
+trunklibnam() # truncate library name
 {
 	libnam="$1"
-	libnam="$(echo "$libnam" | sed -n -E "s/(.*\.so)\.?.*/\1/p")"
+	libnam="$(echo "$libnam" | sed -n -E "s/[\.0-9]*$//p")"
 	libnam="$(echo "$libnam" | sed -E "s/(libSDL2[^-]*)-2\.0(\.so.*)/\1\2/")"
 	echo "$libnam"
 }
 
-#######################################################################
+libraryname()
+{
+        version="$1"
+	if [ ! -e "$gamedir/$version" ]; then
+		debug_echo "\nCouldn't find library directory $gamedir/$version"
+	else
+		debug_echo "\nEntering library directory $gamedir/$version"
+		for file in $(ls "$gamedir/$version"); do
+			# sort out libs that need to be ignored
+			validlib $file
+			if [ $? -eq 1 ]; then
+				debug_echo "\tignored file: $file"
+				continue
+			fi
+			debug_echo -n "\tfound library file: $file"
+			file=$(trunklibnam "$file")
+			debug_echo -n " -> $file"
+			inarray $file ${needlibarray}
+			if [ $? -eq 0 ]; then
+				debug_echo " - already in array"
+			elif [ $? -eq 1 ]; then
+				needlibarray="$needlibarray$file "
+				debug_echo ""
+			else
+				echo "\n\t - ERROR: inarray returned with unexpected error\n"
+				exit 1
+			fi
+		done
+		debug_echo "Done with library directory $gamedir/$version"
+	fi
+}
 
-#######
-# MAIN SCRIPT
-#######
-echo ""
-echo "Performing initial checks..."
-if [ -n "$FNAIFY_DEBUG" ]
-then
-	printdash 28
+selectexe()
+{
+	# find correct .exe file for the wrapper script
+	if [ $nexefile -gt 1 ]; then
+		if [ "x$interaction" = "xi" ] ; then
+			i=1
+			while [ $i -le $nexefile ]; do
+				echo "$i: $(echo $exefile | cut -f $i -d ':')"
+				i=$((i + 1))
+			done
+			input_exe=0
+			while [ \( $(echo "$input_exe" | wc -c) -gt 2 \) -o \( -z "$(echo "$input_exe" | grep [1-9])" \) -o \( $input_exe -gt $((i - 1)) \) ]; do
+				echo -n "Enter number of .exe file to choose for wrapper script: "
+				read input_exe
+			done
+			# NOTE: this only works for up to 9 candidate files
+			my_exe="$(echo $exefile | cut -f $input_exe -d ':')"
+		else
+			# FIXME: for now just pick the first .exe. Come up with
+			#        better heuristic (match directory or launch
+			#        script name; pick shortest-name .exe ... ?
+			my_exe="$(echo $exefile | cut -f 1 -d ':')"
+		fi
+	elif [ $nexefile -eq 1 ]; then
+		my_exe="$exefile"
+	else
+		echo "ERROR: no .exe file found\n"
+		exit 1
+	fi
+	my_exe="$(echo "$my_exe" | sed -E "s/[ \t]$//")" # trim trailing whitespace
+}
+
+# check if Steamworks.NET.dll is present, move it away if stub is in $monopath
+check_remove_steamworks()
+{
+	# FIXME: likely not whitespace-safe
+	if [ -e "$gamedir/Steamworks.NET.dll" \
+		-a -n "$monopath" -a -n "$(ls $(echo "$monopath" | tr -s ':' ' ') | grep -m 1 "Steamworks\.NET\.dll")" ]
+	then
+		if $(ls $(echo "$monopath" | tr -s ':' ' ') | grep -q "Steamworks\.NET\.dll"); then
+			debug_echo "\nFound Steamworks.NET.dll in gamedir and in monopath, moving it out of gamedir"
+			mkdir -p "$gamedir/fnaify-backup"
+			mv "$gamedir/Steamworks.NET.dll" "$gamedir/fnaify-backup/"
+		fi
+	fi
+}
+
+create_wrapper()
+{
+	cat <<EOF > "$fullscriptpath"
+#!/bin/sh
+
+# fnaify wrapper script for launching FNA games on BSD
+
+cd "\`dirname "\$0"\`" # Move to the game's location in case it was invoked from elsewhere
+
+LD_LIBRARY_PATH="$(echo "$depdir" | sed -E 's/:$//')" MONO_PATH="$(echo "$monopath" | sed -E 's/:$//' | sed -E 's/^://')" MONO_CONFIG="$HOME/.config/fnaify/fnaify.dllmap.config" $exe_env exec "$FNAIFY_MONO" "$(echo "$my_exe" | tr -d '\:')" $exe_flags \$*
+EOF
+
+	chmod +x "$fullscriptpath"
+}
+
+finish_fnaify()
+{
+	#echo ""
+	#printdash $(echo "SETUP COMPLETE")
+	#echo ""
+	if [ -n "${licenses}" ]; then
+		echo "Installed modules are under the following license(s):\n"
+		echo "${licenses}"
+	fi
+	echo "To run the game in $gamedir, use\n"
+	echo "./${scriptfile}\n"
+	exit 0
+}
+
+# install FNA into gamedir; specify version (e.g. 17.12) as $1
+# if XNA bridge should be installed, add "xna_bridge" as $2
+install_fna()
+{
+	if [ $# -lt 1 ]; then
+		echo "ERROR: install_fna called with insufficient arguments"
+		exit 1
+	fi
+	fna_version=
+	if [ "${1}" = 'latest' ]; then
+		# get version number of latest release from GitHub API
+		fna_version=$(ftp -Vo - https://api.github.com/repos/FNA-XNA/FNA/releases/latest \
+			| grep -Eo "\"tag_name\"\:\"[0-9\.]*\"" \
+			| cut -d\" -f4)
+	else
+		fna_version="$1"
+	fi
+	echo "\nInstalling FNA ..."
+	licenses="${licenses}FNA:\t\tMs-PL (https://github.com/FNA-XNA/FNA/blob/master/licenses/LICENSE)${newline}"
+	lastdir="$PWD"
+	cd /tmp
+	ftp -V https://github.com/FNA-XNA/FNA/releases/download/${fna_version}/FNA-$(echo $fna_version | tr -d '.').zip
+	debug_echo "extracting FNA ${fna_version}"
+	unzip FNA-$(echo $fna_version | tr -d '.').zip > /dev/null
+	if [ \( $# -gt 1 \) -a \( x$2 = 'xxna_bridge' \) ]; then
+		echo "\nInstalling FNA.NetStub for XNA ..."
+		licenses="${licenses}FNA.NetStub:\tMs-PL (https://github.com/FNA-XNA/FNA.NetStub/blob/master/LICENSE)${newline}"
+		ftp -V https://github.com/FNA-XNA/FNA.NetStub/archive/$netstub_commit.tar.gz
+		tar zxf $netstub_commit.tar.gz
+		mv FNA.NetStub-$netstub_commit FNA.NetStub
+		echo -n "compiling XNA ABI/bridge files. This may take a moment... "
+		xbuild FNA/abi/Microsoft.Xna.Framework.sln >> /tmp/fnaify-xbuild.log
+		echo "done."
+		cp /tmp/FNA/abi/bin/Debug/* "$gamedir/"
+	else
+		echo -n "compiling FNA ${fna_version} with xbuild... "
+		xbuild FNA/FNA.sln >> /tmp/fnaify-xbuild.log
+		debug_echo "done."
+		echo "Moving FNA.dll to fnaify-backup subdirectory"
+		mkdir -p "$gamedir/fnaify-backup"
+		mv "$gamedir/FNA.dll" "$gamedir/fnaify-backup/"
+		cp /tmp/FNA/bin/Debug/FNA.dll "$gamedir"
+	fi
+	debug_echo "removing the temporary build directory for FNA and returning to previous directory"
+	rm -rf /tmp/FNA /tmp/FNA.NetStub
+	cd "$lastdir"
+}
+
+check_nlog()
+{
+	if [ -f "$gamedir/NLog.dll" ] ; then
+		nlogversion=`monodis --assembly "$gamedir/NLog.dll" | grep "Version" | tr -d [:alpha:] | tr -d " " | tr -d \:`
+		nlogmajor=`echo "$nlogversion" | sed -n -E "s/\..*//p"`
+		nlogminor=`echo "$nlogversion" | sed -n -E "s/[0-9]+\.([0-9]+)\.[0-9]+\.[0-9]+/\1/p"`
+		debug_echo -n "\tNLog.dll version $nlogversion, "
+		debug_echo -n "major: $nlogmajor, "
+		debug_echo "minor: $nlogminor"
+		if [ \( $nlogmajor -lt 4 \) -a \( "x$interaction" = "xi" \) ] ; then
+			echo -n "\nInstall NLog 4.6.5 from www.nuget.org? [y/n]"
+			response=
+			until [ \( "x$response" = "xy" \) -o \( "x$response" = "xn" \) ]
+			do
+				read response
+			done
+		elif [ \( $nlogmajor -lt 4 \) -a \( "x$interaction" = "xy" \) ] ; then
+			response="y"
+		else
+			response="n"
+			if [ $nlogmajor -lt 4 ] ; then
+				nlog_warning=1
+			fi
+		fi
+		if [ "x$response" = "xy" ] ; then
+			debug_echo "Moving old NLog.dll out of the way"
+			mkdir -p "$gamedir/fnaify-backup"
+			mv "$gamedir/NLog.dll" "$gamedir/fnaify-backup/"
+			lastdir="$PWD"
+			mkdir /tmp/nlog
+			cd /tmp/nlog
+			echo "\nInstalling NLog 4.6.5 ..."
+			licenses="${licenses}NLog:\tBSD 3-clause (https://github.com/NLog/NLog/blob/master/LICENSE.txt)${newline}"
+			ftp -Vo nlog.4.6.5.nupkg https://www.nuget.org/api/v2/package/NLog/4.6.5
+			unzip nlog.4.6.5.nupkg > /dev/null
+			cp lib/net45/NLog.dll "$gamedir/"
+			cd "$lastdir"
+		fi
+	fi
+}
+# check if this is an XNA game, otherwise abort
+xnasetup()
+{
+	# reset exefile and nexefile to pick only XNA files
+	exefile=
+	nexefile=0
+	IFS='
+'
+	for assembly in $(cd "${gamedir}" && find . -maxdepth 1 -type f | grep -E ".*\.exe$" | cut -f 2 -d "/"); do
+		debug_echo "Checking $assembly for XNA"
+		monodis --assemblyref "${gamedir}/$assembly" 2>&1 \
+			| grep -iqm 1 "Microsoft.Xna.Framework"
+		if [ $? -eq 0 ]; then
+			exefile="$exefile$assembly:"
+			nexefile=$((nexefile + 1))
+		fi
+	done
+	IFS=$SAVEIFS
+	if [ $nexefile -lt 1 ]; then
+		echo "No FNA or XNA game found. Quitting."
+		exit 1
+	fi
+	if [ -d "/usr/local/share/fnaify-libs/XNA-bridge" ];then
+		monopath="${monopath}/usr/local/share/fnaify-libs/XNA-bridge:"
+	else
+		if [ "x$interaction" = "xi" ] ; then
+			echo -n "\nInstall FNA files from GitHub to for this XNA application? [y/n] "
+			response=
+			until [ \( "x$response" = "xy" \) -o \( "x$response" = "xn" \) ]
+			do
+				read response
+			done
+		elif [ "x$interaction" = "xy" ] ; then
+			response="y"
+		else
+			response="n"
+		fi
+
+		if [ "$response" = "y" ]; then
+			install_fna latest xna_bridge
+		else
+			echo "Failed to install FNA/XNA files. Try running with -i or -y flag\n"
+			exit 1
+		fi
+	fi
+	
+	# convert .wma to .ogg and .wmv to .ogv
+	# https://gist.github.com/flibitijibibo/c97bc14aab04b1277d8ef5e97fc9aeff
+	IFS="
+"
+	# FIXME: check for errors on return of these commands
+	echo -n "checking for WMA/WMV files and converting. This may take several minutes..."
+	for afile in $(find "$gamedir" -name "*.wma"); do
+		ffmpeg -loglevel fatal -i "$afile" -c:a libvorbis -q:a 10 \
+			"$(echo "$afile" | rev | cut -d. -f2-$(($(echo "$afile" \
+			| tr -dc '.' | wc -c) + 1)) | rev).ogg"
+	done
+	for vfile in $(find . -name "*.wmv"); do
+		ffmpeg -loglevel fatal -i "$vfile" -c:v libtheora -q:v 10 -c:a libvorbis \
+			-q:a 10 "$(echo "$vfile" | rev | cut -d. -f2-$(($(echo "$vfile" \
+			| tr -dc '.' | wc -c) + 1)) | rev).ogv"
+	done
+	IFS=$SAVEIFS
+	echo " done."
+
+	selectexe
+	check_remove_steamworks
+	debug_echo "creating launch script"
+	exe_env="${exe_env}MONO_IOMAP=all "
+	scriptfile="run_game.sh"
+	fullscriptpath="$gamedir/$scriptfile"
+	create_wrapper
+	finish_fnaify
+}
+
+# End of Variables and Functions
+
+debug_echo "Dependency directory string: $depdir"
+
+# Identify mono and FNA/MonoGame framework files first, warn/break if errors
+
+if [ -z "$FNAIFY_MONO" ]; then
+	FNAIFY_MONO="mono"
 fi
-if [[ ! -e "$1" ]]
-then
-	echo "file not found: $1"
-	echo ""
+
+debug_echo "Checking mono, monodis, framework library (FNA/MonoGame)..."
+"$FNAIFY_MONO" --version 2>/dev/null >/dev/null
+if [ "$?" -gt 0 ]; then
+	echo "error calling mono - aborting... Please make sure that mono is in path or set it in FNAIFY_MONO environment variable!"
 	exit 1
 fi
-if [ -n "$FNAIFY_DEBUG" ]
-then
-	echo "found file $1"
+# check if monodis can be called
+monodis 2>/dev/null
+if [ "$?" -eq 127 ]; then
+	echo "error calling monodis - aborting... Please make sure that monodis is in the PATH!"
+	exit 1
+fi
+# does any of the framework files exist in $gamedir?
+if [ -e "$gamedir/FNA.dll" ]; then
+	debug_echo "\tFound FNA.dll"
+elif [ -e "$gamedir/MonoGame.Framework.dll" ]; then
+	debug_echo "\tFound MonoGame.Framework.dll"
+else
+	# Atom Zombie Smasher is the only compatible game without framework files
+	ls "$gamedir" | grep -iqm 1 "atomzombiesmasher"
+	if [ $? -eq 0 ]; then
+		debug_echo "Atom Zombie Smasher requires libatomstb.so"
+		# FIXME: check for "libatomstb.so*" in depdirs
+		#        only proceed if not found
+		if [ "x$interaction" = "xi" ] ; then
+			echo -n "Compile and install libatomstb.so in game directory? [y/n]"
+			response=
+			until [ \( "x$response" = "xy" \) -o \( "x$response" = "xn" \) ]
+			do
+				read response
+			done
+		elif [ "x$interaction" = "xy" ] ; then
+			response="y"
+		else
+			response="n"
+		fi
+
+		if [ "x$response" = "xy" ] ; then
+			lastdir="$PWD"
+			cd /tmp/
+			echo "\nInstalling libatomstb.so ..."
+			licenses="${licenses}libatomstb:\thttps://github.com/flibitijibibo/AZSNotSFML/blob/master/NotSFML.cs${newline}"
+			ftp -V https://github.com/flibitijibibo/AZSNotSFML/archive/$libatomstb_commit.tar.gz
+			tar zxf $libatomstb_commit.tar.gz
+			mv AZSNotSFML-$libatomstb_commit AZSNotSFML
+			echo -n "compiling libatomstb.so. This may take a moment... "
+			cc -O2 -pipe -c -fpic -I/usr/include/sys \
+				-o AZSNotSFML/atomstb/atomstb.o AZSNotSFML/atomstb/atomstb.c
+			cc -shared -o AZSNotSFML/atomstb/libatomstb.so \
+				AZSNotSFML/atomstb/atomstb.o
+			echo "done."
+			cp /tmp/AZSNotSFML/atomstb/libatomstb.so "$gamedir/"
+			cd "$lastdir"
+		fi
+	else
+		check_nlog
+		xnasetup	# check if this is an XNA game and set up in that case
+	fi
 fi
 
-# FIXME: make independent of the useless bash script (just take directory as parameter, if any)
-# FIXME: need to make sure that no important file is changed
-if [ -n "$FNAIFY_DEBUG" ]
-then
-	echo "found file type: `file -b \"$1\"`"
-	echo "Done with initial checks."
-	echo ""
+# The following code assumes that only one of FNA.dll and MonoGame.Framework.dll is present
+if [ -e "$gamedir/FNA.dll" ]; then
+	fnaversion=`monodis --assembly "$gamedir/FNA.dll" | grep "Version" | tr -d [:alpha:] | tr -d " " | tr -d \:`
+	fnamajor=`echo "$fnaversion" | sed -n -E "s/\..*//p"`
+	fnaminor=`echo "$fnaversion" | sed -n -E "s/[0-9]+\.([0-9]+)\.[0-9]+\.[0-9]+/\1/p"`
+	debug_echo -n "\tFNA.dll version $fnaversion, "
+	debug_echo -n "major: $fnamajor, "
+	debug_echo "minor: $fnaminor"
+	if [ $fnamajor -lt 16 ] || ( [ $fnamajor -eq 16 ] && [ $fnaminor -lt 5 ] )
+	then
+		fna_warning=1
+	fi
+elif [ -e "$gamedir/MonoGame.Framework.dll" ]; then
+	mgversion=`monodis --assembly "$gamedir/MonoGame.Framework.dll" | grep "Version" | tr -d [:alpha:] | tr -d " " | tr -d \:`
+	debug_echo "\tMonoGame.Framework.dll version $mgversion"
 fi
+
+check_nlog
+
+debug_echo "\nTrying to identify the launch script file automatically..."
+scount=0
+scriptfilearray="" # files that are possible launchscripts
+sfile=""
+IFS="
+"
+for sfile in $(cd "$gamedir" && find . -maxdepth 1 -type f | grep -Ev "\.[^/]|mono.*config$" | cut -f 2 -d "/"); do
+	debug_echo "\tfound candidate for launch script file: $sfile"
+	if [ -z "${scriptfilearray}" ]; then
+		scriptfilearray="$sfile"
+	else
+		scriptfilearray="$scriptfilearray $sfile"
+	fi
+	scount=$((scount + 1))
+done
+IFS=$SAVEIFS
+
+if [ \( $scount -gt 1 \) -a \( "x$interaction" = "xi" \) ]; then
+	i=1
+	for fsc in $scriptfilearray; do
+		echo "$i: ${fsc}"
+		i=$((i + 1))
+	done
+	input_script=0
+	# Parentheses for grouping must be escaped with '\'
+	# check for range of numbers, number of characters, and presence of non-digit characters
+	while [ \( $(echo "$input_script" | wc -c) -gt 2 \) -o \( -z "$(echo "$input_script" | grep [1-9])" \) -o \( $input_script -gt $((i - 1)) \) ]; do
+		echo -n "Enter number of the file to use as the launch script: "
+		read input_script
+	done
+	# http://www.etalabs.net/sh_tricks.html - Working with arrays
+	set -- ${scriptfilearray}
+	input_script="\$$input_script"
+	# hmm, eval... simplest way to pick an array element it seems.
+	# http://mywiki.wooledge.org/BashFAQ/048
+	# NOTE: this only works for up to 9 candidate files
+	scriptfile=$(eval echo "$input_script")
+elif [ $scount -eq 1 ]; then
+	scriptfile="${scriptfilearray}"
+else
+	scriptfile="run_game.sh"
+fi
+
+debug_echo "Identified the following file as the launch script: ${scriptfile}\n"
 
 # path and file variable definitions
-fullfnaifypath="$0"
-fnaifyfile="`basename \"$fullfnaifypath\"`"
-fnaifydir="`dirname \"$fullfnaifypath\"`"
-fullscriptpath="`pwd`/$1"
-scriptfile="`basename \"$fullscriptpath\"`"
-gamedir="`dirname \"$fullscriptpath\"`"
+fullscriptpath="$gamedir/$scriptfile"
+
+configfilesarray="" # files in gamedir ending in '.config'
+nconfigfilesarray=0
+debug_echo "Identifying config files..."
 IFS="
 "
-for xfile in $(ls "$gamedir" | grep "\.exe$")
-do
-	exefile[${#exefile[*]} + 1]=$xfile
+for cfile in $(ls "$gamedir" | grep "\.config$"); do
+	debug_echo "\tfound config file: $cfile"
+	configfilesarray="$configfilesarray$cfile "
+	nconfigfilesarray=$((nconfigfilesarray + 1))
 done
 IFS=$SAVEIFS
+debug_echo "Done identifying config files.\n"
 
-# read names of monofiles to move out of the directory, as well as library
-# files to ignore from files
-if [ -n "$FNAIFY_DEBUG" ]
-then
-	echo "reading names of monolist and ignorelist"
-fi
-while IFS= read -r line
-do
-	monofilearray[${#monofilearray[*]} + 1]=$line
-done <"$fnaifydir/monolist"
-while IFS= read -r line
-do
-	ignoredarray[${#ignoredarray[*]} + 1]=$line
-done <"$fnaifydir/ignorelist"
-IFS=$SAVEIFS
+# identify required libraries in .config files and lib{,64} directories
+# FIXME: filenames not whitespace-safe (but should not be used in such files anyway)
+printdash $(debug_echo "Identifying libraries required by the game...")
 
-# configfilesarray: array of files in gamedir ending in '.config'
-if [ -n "$FNAIFY_DEBUG" ]
-then
-	echo "Identifying config files..."
-fi
-IFS="
-"
-for cfile in $(ls "$gamedir" | grep "\.config$")
-do
-	if [ -n "$FNAIFY_DEBUG" ]
-	then
-		echo "\tfound config file: $cfile"
-	fi
-	configfilesarray[${#configfilesarray[*]} + 1]="$cfile"
-done
-IFS=$SAVEIFS
-if [ -n "$FNAIFY_DEBUG" ]
-then
-	echo "Done identifying config files."
-	echo ""
+#for MidBoss, add SDL2_image_compact to needlib
+MidBoss=0
+ls "$gamedir" | grep -iqm 1 "midboss"
+if [ $? -eq 0 ]; then
+	MidBoss=1
+	needlibarray="${needlibarray}libSDL2_image_compact.so "
+	# FIXME: add option to compile https://github.com/FNA-XNA/SDL_image_compact ??
 fi
 
-####
-# identify required libraries
-####
-# - this is likely imperfect and may identify too many or too few libraries
-# - at the moment will check 3 sources: lib64, lib, and .config files
-# - filenames not whitespace-safe, but should not be used in such files anyway
-####
+libraryname "lib64"
+libraryname "lib"
 
-if [ -n "$FNAIFY_DEBUG" ]
-then
-	echo "Identifying libraries required by the game..."
-	printdash 45
-fi
-
-# get library names from lib64 folder
-if [ -n "$FNAIFY_DEBUG" ]
-then
-	echo ""
-fi
-if [[ ! -e "$gamedir/lib64" ]]
-then
-	if [ -n "$FNAIFY_DEBUG" ]
-	then
-		echo "Couldn't find library directory $gamedir/lib64"
-	fi
+debug_echo "Obtaining library names from the following config files"
+if [ $nconfigfilesarray -lt 1 ]; then
+	debug_echo "No config files found."
 else
-	if [ -n "$FNAIFY_DEBUG" ]
-	then
-		echo "Entering library directory $gamedir/lib64"
-	fi
-	for file in $(ls "$gamedir/lib64")
-	do
-		# sort out libs (e.g. steam) that need to be ignored
-		validlib $file
-		if [[ $? -eq 1 ]]
-		then
-			continue
-		fi
-		if [ -n "$FNAIFY_DEBUG" ]
-		then
-			echo -n "\tfound library file: $file"
-		fi
-		file=$(trunklibnam "$file")
-		if [ -n "$FNAIFY_DEBUG" ]
-		then
-			echo " -> $file"
-		fi
-		inarray $file ${needlibarray[*]}
-		if [[ $? -eq 0 ]]
-		then
-			if [ -n "$FNAIFY_DEBUG" ]
-			then
-				echo " - already in array"
-			fi
-		elif [[ $? -eq 1 ]]
-		then
-			needlibarray[${#needlibarray[*]} + 1]=$file
-		else
-			echo "\n\t - ERROR: inarray returned with unexpected error"
-			echo ""
-			exit 1
-		fi
-	done
-	if [ -n "$FNAIFY_DEBUG" ]
-	then
-		echo "Done with library directory $gamedir/lib64"
-	fi
-fi
-
-# get library names from lib folder
-if [ -n "$FNAIFY_DEBUG" ]
-then
-	echo ""
-fi
-if [[ ! -e "$gamedir/lib" ]]
-then
-	if [ -n "$FNAIFY_DEBUG" ]
-	then
-		echo "Couldn't find library directory $gamedir/lib"
-	fi
-else
-	if [ -n "$FNAIFY_DEBUG" ]
-	then
-		echo "Entering library directory $gamedir/lib"
-	fi
-	for file in $(ls "$gamedir/lib")
-	do
-		# sort out libs (e.g. steam) that need to be ignored
-		validlib $file
-		if [[ $? -eq 1 ]]
-		then
-			continue
-		fi
-		if [ -n "$FNAIFY_DEBUG" ]
-		then
-			echo -n "\tfound library file: $file"
-		fi
-		file=$(trunklibnam "$file")
-		if [ -n "$FNAIFY_DEBUG" ]
-		then
-			echo -n " -> $file"
-		fi
-		inarray $file ${needlibarray[*]}
-		if [[ $? -eq 0 ]]
-		then
-			if [ -n "$FNAIFY_DEBUG" ]
-			then
-				echo " - already in array"
-			fi
-		elif [[ $? -eq 1 ]]
-		then
-			needlibarray[${#needlibarray[*]} + 1]=$file
-			if [ -n "$FNAIFY_DEBUG" ]
-			then
-				echo ""
-			fi
-		else
-			echo "\n\t - ERROR: inarray returned with unexpected error"
-			echo ""
-			exit 1
-		fi
-	done
-	if [ -n "$FNAIFY_DEBUG" ]
-	then
-		echo "Done with library directory $gamedir/lib"
-	fi
-fi
-
-# get library names from .config files
-if [ -n "$FNAIFY_DEBUG" ]
-then
-	echo "Obtaining library names from the following config files"
-fi
-
-# check that configfilesarray isn't empty
-if [[ ${#configfilesarray[*]} < 1 ]]
-then
-	if [ -n "$FNAIFY_DEBUG" ]
-	then
-		echo "No config files found."
-	fi
-else
-	cfile=""	# empty the variable because it has been used before
-	IFS="
-	"
-	for cfile in ${configfilesarray[*]}
-	do
-		if [ -n "$FNAIFY_DEBUG" ]
-		then
-			echo "\t$cfile"
-		fi
-		linuxlines=$(grep "os\=\"linux" $gamedir/$cfile)
-		# FIXME: this sed call would probably get messed up if there is
-		#	whitespace
-		for libstring in $(echo "$linuxlines" | sed -n -E "s/.*target=\"([^\"]+).*/\1/p")
-		do
+	cfile=""
+	for cfile in $configfilesarray; do
+		debug_echo "\t$cfile"
+		linuxlines=$(grep "os\=\"linux" "$gamedir/$cfile")
+		for libstring in $(echo "$linuxlines" | sed -n -E "s/.*target=\"([^\"]+).*/\1/p"); do
 			# Fix where library name includes directory information
-			# remove "./" at the beginning of librarynames
 			libstring=$(echo "$libstring" | sed -E 's/^.\///')
 			# remove directories at the start of lib name
 			libstring=$(echo "$libstring" | sed -E 's/^.*\///')
-			if [ -n "$FNAIFY_DEBUG" ]
-			then
-				echo -n "\t\tFound library string: $libstring"
-			fi
-			# sort out libs (e.g. steam) that need to be ignored
+			debug_echo -n "\t\tFound library string: $libstring"
+			# sort out libs that need to be ignored
 			validlib $libstring
-			if [[ $? -eq 1 ]]
-			then
-				if [ -n "$FNAIFY_DEBUG" ]
-				then
-					echo " - ignored"
-				fi
+			if [ $? -eq 1 ]; then
+				debug_echo " - ignored"
 				continue
 			fi
-			# truncate/fix SDL2 names{,s}
 			libstring=$(trunklibnam "$libstring")
-			if [ -n "$FNAIFY_DEBUG" ]
-			then
-				echo -n " -> $libstring"
-			fi
-			#needlibarray[${#needlibarray[*]} + 1]=$libstring
-			# check if libstring is already in needlibarray.
-			# add to needlibarray only if not.
-			inarray $libstring ${needlibarray[*]}
-			if [[ $? -eq 0 ]]
-			then
-				if [ -n "$FNAIFY_DEBUG" ]
-				then
-					echo " - already in array"
-				fi
-			elif [[ $? -eq 1 ]]
-			then
-				needlibarray[${#needlibarray[*]} + 1]=$libstring
-				if [ -n "$FNAIFY_DEBUG" ]
-				then
-					echo " - added to array"
-				fi
+			debug_echo -n " -> $libstring"
+			# add to libstring to needlibarray if not in there yet
+			inarray $libstring $needlibarray
+			if [ $? -eq 0 ]; then
+				debug_echo " - already in array"
+			elif [ $? -eq 1 ]; then
+				needlibarray="$needlibarray$libstring "
+				debug_echo " - added to array"
 			else
-				echo "\n\t - ERROR: inarray returned with unexpected error"
-				echo ""
+				echo "\n\t - ERROR: inarray returned with unexpected error\n"
 				exit 1
 			fi
 		done
 	done
-	if [ -n "$FNAIFY_DEBUG" ]
-	then
-		echo "Done with identifying libraries in config files"
-	fi
+	debug_echo "Done with identifying libraries in config files"
 fi
-if [ -n "$FNAIFY_DEBUG" ]
-then
-	echo "Done with identification of needed libraries."
-fi
-IFS=$SAVEIFS
+debug_echo "Done with identification of needed libraries."
 
-# Fix libpngXX.so filename
-if [ -n "$FNAIFY_DEBUG" ]
-then
-	echo -n "Fixing libpng filenames if present..."
-fi
-i=1
-while [[ i -le ${#needlibarray[*]} ]]
-do
-	needlibarray[i]=$(echo "${needlibarray[i]}" | sed -E "s/(libpng)..(\.so.*)/\1\2/")
-	let i=i+1
-done
-if [ -n "$FNAIFY_DEBUG" ]
-then
-	echo " done."
-	echo ""
-fi
+debug_echo -n "Fixing libpng filenames if present..."
+needlibarray=$(echo "${needlibarray}" | sed -E "s/(libpng)..(\.so.*)/\1\2/")
+debug_echo " done.\n"
 
 # Check if the libraries are available on the system (/usr/local/lib).
 # If not, break and inform user which libraries need to be installed.
-echo "Checking installed libraries..."
+echo -n "Checking installed libraries... "
+debug_echo ""
 
-i=1
-while [[ i -le ${#needlibarray[*]} ]]
-do
-	if [[ $(ls /usr/local/lib | grep "^${needlibarray[i]}") != "" ]]
+# missinglibs[*] accumulates missing library names to inform user
+missinglibs=""
+for needlib in ${needlibarray}; do
+	if $(ls $(echo "$depdir" | tr -s ':' ' ') | grep -q "$needlib")
 	then
-		if [ -n "$FNAIFY_DEBUG" ]
-		then
-			echo "\tfound system lib for: ${needlibarray[i]}"
-		fi
+		IFS=$SAVEIFS
+		debug_echo "\tfound library for: $needlib"
 	else
-		if [ -n $(echo ${needlibarray[i]} | grep -q 'libfreetype\.so.*') ]
-		then
-			# DEBUG
-			if [ -n "$FNAIFY_DEBUG" ]
-			then
-				echo "\tfound libfreetype (see /usr/X11R6/lib)"
-			fi
-		else
-			if [ -n "$FNAIFY_DEBUG" ]
-			then
-				echo "\tNot found: ${needlibarray[i]}"
-			fi
-			missinglibs[${#missinglibs[*]} + 1]=${needlibarray[i]}
-		fi
+		IFS=$SAVEIFS
+		debug_echo "\tNot found: $needlib"
+		missinglibs="$missinglibs$needlib "
 	fi
-	let i=i+1
 done
-if [ -n "$FNAIFY_DEBUG" ]
-then
-	echo ""
+echo "done.\n"
+
+if [ -n "${missinglibs}" ]; then
+	#printdash $(echo "Result of configuration testing: FAILED")
+	echo "\nCould not find the following libraries:\n
+	${missinglibs}\n"
+	exit 1
+#else
+	#printdash $(echo "Result of configuration testing: SUCCESS")
 fi
 
-# Check if mono is available
-if [ -n "$FNAIFY_DEBUG" ]
-then
-	echo -n "Checking that mono can be called..."
-fi
-missingmono=0
-whence mono > /dev/null
-if [[ $? -ne 0 ]]
-then
-	echo " Couldn't find mono in PATH"
-	missingmono=1
-else
-	if [ -n "$FNAIFY_DEBUG" ]
-	then
-		echo " Found mono."
-	fi
-fi
-echo ""
+# FIXME: rather put this file into /usr/local/share/fnaify/
+# if ~/.config/fnaify/fnaify.dllmap.config doesn't exist, create it
+if [ ! -e "~/.config/fnaify/fnaify.dllmap.config" ] ; then
+	debug_echo 'creating ~/.config/fnaify/fnaify.dllmap.config'
+	mkdir -p ~/.config/fnaify
+	cat <<EOF > ~/.config/fnaify/fnaify.dllmap.config
+<?xml version="1.0" encoding="utf-8"?>
+<!-- mono config file for fnaify dllmaps -->
+<configuration>
+	<dllmap dll="FAudio" target="libFAudio.so"/>
+	<dllmap dll="MojoShader.dll" target="libmojoshader.so"/>
+	<dllmap dll="SDL2.dll" target="libSDL2.so"/>
+	<!-- MidBoss needs libSDL2_image_compact.so -->
+	<dllmap dll="SDL2_image.dll" target="libSDL2_image.so"/>
+	<dllmap dll="SDL2_mixer.dll" target="libSDL2_mixer.so"/>
+	<dllmap dll="SDL2_ttf.dll" target="libSDL2_ttf.so"/>
+	<dllmap dll="SteamworksNative.dll" target="libSteamworksNative.so"/>
+	<dllmap dll="freetype6" target="libfreetype.so" />
+	<dllmap dll="freetype6.dll" target="libfreetype.so" />
+	<dllmap dll="libtheorafile.dll" target="libtheorafile.so"/>
+	<dllmap dll="libtheoraplay.dll" target="libtheoraplay.so"/>
+	<dllmap dll="libvorbisfile.dll" target="libvorbisfile.so"/>
+	<dllmap dll="openal32.dll" target="libopenal.so"/>
+	<dllmap dll="soft_oal.dll" target="libopenal.so"/>
 
-# check version of framework library (FNA.dll or MonoGame.Framework.dll)
-if [ $missingmono -lt 1 ]
-then
+	<!-- Atom Zombie Smasher -->
+	<dllmap dll="msvcr100.dll" target="libc.so"/>
 
-	if [ -n "$FNAIFY_DEBUG" ]
-	then
-		echo "Checking version of framework library..."
-	fi
-	# the following code assumes that only one of FNA.dll and MonoGame.Framework.dll is present
-	if [ -e "$gamedir/FNA.dll" ]
-	then
-		fnaversion=`monodis --assembly "$gamedir/FNA.dll" | grep "Version" | tr -d [:alpha:] | tr -d " " | tr -d \:`
-		fnamajor=`echo "$fnaversion" | sed -n -E "s/\..*//p"`
-		fnaminor=`echo "$fnaversion" | sed -n -E "s/[0-9]+\.([0-9]+)\.[0-9]+\.[0-9]+/\1/p"`
-		if [ -n "$FNAIFY_DEBUG" ]
-		then
-			echo "\tFound FNA.dll version $fnaversion"
-			echo "fnamajor: $fnamajor"
-			echo "fnaminor: $fnaminor"
-		fi
-		if [ $fnamajor -lt 16 ] || ( [ $fnamajor -eq 16 ] && [ $fnaminor -lt 5 ] )
-		then
-			echo "WARNING: version of FNA.dll potentially incompatble!"
-			echo "If unable to launch with this version, consider replacing with newer version."
-			echo "Source available at https://github.com/FNA-XNA/FNA/releases"
-		fi
-	elif [ -e "$gamedir/MonoGame.Framework.dll" ]
-	then
-		mgversion=`monodis --assembly "$gamedir/MonoGame.Framework.dll" | grep "Version" | tr -d [:alpha:] | tr -d " " | tr -d \:`
-		#mgmajor=`echo "$mgversion" | sed -n -E "s/\..*//p"` # not needed because at this point not checking mg version
-		if [ -n "$FNAIFY_DEBUG" ]
-		then
-			echo "\tFound MonoGame.Framework.dll version $mgversion"
-		fi
-	else
-		echo "WARNING: Could not find framework library (FNA.dll or MonoGame.Framework.dll) in $gamedir"
-	fi
-else
-	if [ -n "$FNAIFY_DEBUG" ]
-	then
-		echo "Can't check version of framework library because couldn't find mono"
-	fi
+	<!-- Terraria, Solaroids -->
+	<dllmap dll="gdiplus.dll" target="libgdiplus.so"/>
+
+	<!-- MidBoss (monoconfig) -->
+	<dllmap dll="i:cygwin1.dll" target="libc.so" />
+	<dllmap dll="libc" target="libc.so" />
+	<dllmap dll="intl" target="libc.so" />
+	<dllmap dll="libintl" target="libc.so" />
+	<dllmap dll="i:libxslt.dll" target="libxslt.so" />
+	<dllmap dll="i:odbc32.dll" target="libodbc.so" />
+	<dllmap dll="oci" target="libclntsh.so" />
+	<dllmap dll="db2cli" target="libdb2_36.so" />
+	<dllmap dll="MonoPosixHelper" target="libMonoPosixHelper.so" />
+	<dllmap dll="i:msvcrt" target="libc.so" />
+	<dllmap dll="i:msvcrt.dll" target="libc.so" />
+	<dllmap dll="sqlite" target="libsqlite.so" />
+	<dllmap dll="sqlite3" target="libsqlite3.so" />
+	<dllmap dll="libX11" target="libX11.so" />
+	<dllmap dll="libcairo-2.dll" target="libcairo.so" />
+	<dllmap dll="libcups" target="libcups.so" />
+
+</configuration>
+EOF
 fi
-echo ""
 
-echo -n "Result of configuration testing: "
-if [[ ( ${#missinglibs[*]} -gt 0 ) || ( $missingmono -gt 0 ) ]]
-then
-	echo "FAILED"
-	printdash 39
-	
-	echo "The following requirements were not met:"
-	if [[ $missingmono = 1 ]]
-	then
-		echo -n - -
-		echo " Could not find 'mono' in PATH"
+# identify all .config files that do dllmap and move out of the way
+debug_echo 'moving .config files with dllmap out of the way'
+if [ ! -d "$gamedir/fnaify-backup" ] ; then	# FIXME: is this check needed?
+	mkdir -p "$gamedir/fnaify-backup"
+fi
+for config_file in $(ls "$gamedir" | grep "\.config$"); do
+	if $(grep -q "dllmap" "$config_file"); then
+		mv "$config_file" "$gamedir/fnaify-backup/"
 	fi
-	if [[ ${#missinglibs[*]} > 0 ]]
-	then
-		i=1
-		while [[ i -le ${#missinglibs[*]} ]]
-		do
-			echo -n - -
-			echo " Could not find library: ${missinglibs[i]}"
-			let i=i+1
+done
+
+# FIXME: leave this out if not importing libSDL2_image_compact??
+# if MidBoss, add a FNA.dll.config to overwrite libSDL2_image_compact
+#if [ $MidBoss -eq 1 ]; then
+	#debug_echo 'creating FNA.dll.config for MidBoss'
+	#cat <<EOF > "$gamedir/FNA.dll.config"
+#<?xml version="1.0" encoding="utf-8"?>
+#<configuration>
+	#<dllmap dll="SDL2_image.dll" os="openbsd,freebsd,netbsd" target="libSDL2_image_compact.so"/>
+#</configuration>
+#EOF
+#fi
+
+debug_echo "Moving some bundled dll files into fnaify-backup subfolder... "
+for file in $monofilearray; do
+	if [ -e "$gamedir/$file" ]; then
+		debug_echo "\tFound bundled mono file: $file"
+		mkdir -p "$gamedir/fnaify-backup"
+		mv "$gamedir/$file" "$gamedir/fnaify-backup/"
+	fi
+done
+debug_echo " done."
+
+# if necessary, replace FNA.dll
+fna_replace=""
+lastdir=""
+if [ $fna_warning -eq 1 ]; then
+	if [ "x$interaction" = "xi" ] ; then
+		echo "\nWARNING: version of FNA.dll potentially incompatble!"
+		echo "Fetch FNA 17.12 from GitHub, compile, and replace bundled FNA.dll?"
+		echo "FNA is distributed under Microsoft Public License. The license"
+		echo "can be viewed here:"
+		echo "https://github.com/FNA-XNA/FNA/blob/master/licenses/LICENSE"
+		echo -n "Proceed with replacing FNA with version 17.12 (recommended)? [y/n] "
+		until [ "$fna_replace" = "y" -o "$fna_replace" = "n" ]; do
+			read fna_replace
 		done
+	elif [ "x$interaction" = "xy" ] ; then
+		fna_replace="y"
+	else
+		fna_replace="n"
 	fi
-	echo ""
-	exit 1
-fi
-echo "SUCCESS"
-if [ -n "$FNAIFY_DEBUG" ]
-then
-	printdash 40
+
+	if [ "$fna_replace" = "y" ]; then
+		install_fna 17.12
+	fi
 fi
 
-####
-# replace all occurences of 'linux' in .config files (dllmap) with 'openbsd'
-#    (this won't be needed after fna 18.01+ rolled out)
-
-echo ""
-echo "Adjusting config files for OpenBSD..."
-
-# create backup .linux files of the original .config files
-# (unless this has already been done; then don't overwrite)
-if [ -n "$FNAIFY_DEBUG" ]
-then
-	echo -n "\t(creating copy of original config files with suffix '.linux')... "
+if [ $nlog_warning -eq 1 ]; then
+	echo "\nWARNING: version of NLog.dll potentially incompatible with mono!"
+	echo "If the game doesn't run, try running 'fnaify -i' (or 'fnaify -y').\n"
 fi
+
+check_remove_steamworks
+
 IFS="
 "
-for file in $(ls "$gamedir" | grep "\.config$")
-do
-	if [[ ! -e "$gamedir/$file.linux" ]]
-	then
-		cp -p "$gamedir/$file" "$gamedir/$file.linux"
-	fi
+for xfile in $(cd "$gamedir" && find . -maxdepth 1 -type f -iname "*.exe" | cut -f 2 -d "/"); do
+	exefile="$exefile$xfile:"
+	nexefile=$((nexefile + 1))
 done
 IFS=$SAVEIFS
-if [ -n "$FNAIFY_DEBUG" ]
-then
-	echo "done."
-fi
+selectexe
 
-# now replace all terms in *.config
-IFS="
-"
-for file in $(ls "$gamedir" | grep "\.config$")
-do
-	# someone may be able to provide a more compact solution for this section
-	# remove "./" at the beginning of any target="..."
-	sed -i -E 's/(.*target=")\.\/(.*)$/\1\2/g' "$gamedir/$file"
-	# remove directory lib{,64} at the start of any target="..."
-	sed -i -E 's/(.*target=")lib(64)?\/(.*)$/\1\3/g' "$gamedir/$file"
-	sed -i 's/os="linux/os="openbsd/g' "$gamedir/$file"
-	# remove suffix numbers
-	sed -i -E 's/(target="lib.*.so)[\.0-9]*(.*)$/\1\2/g' "$gamedir/$file"
-	# fix SDL2 naming by removing the '-2.0'
-	sed -i -E 's/(target="libSDL2.*)-2\.0(\.so.*)$/\1\2/g' "$gamedir/$file"
-	# FIXME: find out where 'dll=' is used with .so and how often
-	# 	(there was an example with libfreetype in this place somewhere)
-	sed -i -E 's/(dll="lib[a-zA-Z]*\.so)[\.0-9]*(.*)$/\1\2/g' "$gamedir/$file"
-done
-IFS=$SAVEIFS
-if [ -n "$FNAIFY_DEBUG" ]
-then
-	echo "Config files adjusted."
-fi
-
-# Move interfering mono files out of the way
-if [ -n "$FNAIFY_DEBUG" ]
-then
-	echo -n "Moving some bundled dll files into linux-files subfolder... "
-fi
-i=1
-while [[ i -le ${#monofilearray[*]} ]]
-do
-	if [[ -e "$gamedir/${monofilearray[i]}" ]]
-	then
-		if [[ ! -e "$gamedir/linux-files" ]]
-		then
-			mkdir "$gamedir/linux-files"
-		fi
-		mv "$gamedir/${monofilearray[i]}" "$gamedir/linux-files"
-	fi
-	let i=i+1
-done
-if [ -n "$FNAIFY_DEBUG" ]
-then
-	echo " done."
-fi
-
-###
-# copy wrapper script template into the game folder, set correct .exe in script, and set to executable
-
-if [[ ${#exefile[*]} -gt 1 ]]
-then
-	i=0
-	while [[ ++i -le ${#exefile[*]} ]]
-	#for i in {1..${#exefile[*]}}
-	do
-		echo "$i: ${exefile[i]}"
-	done
-	echo -n "Enter number of .exe file to choose for wrapper script: "
-	# FIXME: this breaks with error when whitespace in input
-	while [[ $input -lt 1 || $input -gt ${#exefile[*]} ]]
-	do
-		read input
-	done
-	selectexe="${exefile[$input]}"
-elif
-then
-	selectexe="${exefile[1]}"
-else
-	echo "ERROR: no .exe file found"
-	echo ""
-	exit 1
-fi
-
-echo "Replacing launcher script with OpenBSD variant..."
-# if not exists, make backup of original script for linux
-if [ -n "$FNAIFY_DEBUG" ]
-then
-	echo -n "\t(creating copy of original launcher script with suffix '.linux')... "
-fi
-if [ ! -e "$fullscriptpath.linux" ]
-then
+echo "Replacing launch script with BSD version..."
+if [ \( -e "$fullscriptpath" \) -a \( ! -e "$fullscriptpath.linux" \) ]; then
+	debug_echo -n "\t(creating copy of original launcher script with suffix '.linux')... "
 	cp -p "$fullscriptpath" "$fullscriptpath.linux"
+	debug_echo "done."
 fi
-if [ -n "$FNAIFY_DEBUG" ]
-then
-	echo "done."
+
+if $(ls "$gamedir" | grep -iqm 1 hacknet); then
+	debug_echo "Setting flag '-disableweb' for HackNet"
+	exe_flags="-disableweb"
 fi
-cp "$fnaifydir/wrapper.template" "$fullscriptpath"
-if [[ $scriptfile = "Hacknet" ]]
-then
-	sed -i "s/<WINDOWS_EXECUTABLE>/\"$selectexe\" -disableweb/g" "$fullscriptpath"
-elif [ $scriptfile = "Wizorb" ]
-then
-	sed -i "s/<WINDOWS_EXECUTABLE>/\"$selectexe\"/g" "$fullscriptpath"
-	sed -i "s/LD_LIBRARY_PATH=\/usr\/local\/lib/LD_LIBRARY_PATH=\/usr\/local\/lib MONO_IOMAP=all/g" "$fullscriptpath"
-else
-	sed -i "s/<WINDOWS_EXECUTABLE>/\"$selectexe\"/g" "$fullscriptpath"
+if $(ls "$gamedir" | grep -iqm 1 wizorb); then
+	debug_echo "Setting 'MONO_IOMAP=all' for WizOrb"
+	exe_env="${exe_env}MONO_IOMAP=all "
 fi
-chmod +x "$fullscriptpath"
-if [ -n "$FNAIFY_DEBUG" ]
-then
-	echo "Launcher script replaced."
-	echo ""
-fi
-if [ -n "$FNAIFY_DEBUG" ]
-then
-	echo "SETUP COMPLETE"
-	printdash 14
-fi
-echo ""
-echo "You should now be able to start the game by running:"
-echo ""
-echo "\$ ./$scriptfile"
-echo ""
+
+create_wrapper
+debug_echo "Launcher script replaced.\n"
+finish_fnaify

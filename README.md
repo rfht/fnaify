@@ -1,23 +1,19 @@
-# Note: This repository is out of date. Development is now hosted on my CVS repo.
-#       Find the current repository here: https://thfr.info/cgi-bin/cvsweb/projects/fnaify
+fnaify 2.0-beta
+===============
 
-
-
-
-NOTE: beta version
-
-fnaify
-======
-
-created 2017-12-27
-by Thomas Frohwein (thfr)
+created 2017-12-27 by Thomas Frohwein (thfr)
+FreeBSD fixes 2018 by Mariusz Zaborski (oshogbo@)
 
 Script to get FNA-based games ready to run on OpenBSD
 
-FNA is a reimplementation of the Microsoft XNA Game Studio 4.0 Refresh libraries.
-Thanks to the great work by Ethan Lee (flibitijibibo) games using FNA are
-highly portable and can even run on OpenBSD. 
-Please refer to https://fna-xna.github.io/ for more information about FNA
+FNA is a reimplementation of the Microsoft XNA Game Studio 4.0 Refresh
+libraries. Thanks to the great work by Ethan Lee (flibitijibibo) games
+using FNA are highly portable and can even run on OpenBSD. 
+Please refer to https://fna-xna.github.io/ for more information about
+FNA.
+
+Support for XNA games was added in June 2019 by using FNA and its XNA ABI
+bridge.
 
 Requirements:
 -------------
@@ -27,71 +23,116 @@ Requirements:
   *BSD platforms have been rolled out.
   You can check with [sdl2plat](https://github.com/thfrwn/sdl2plat)
   which platform is returned by SDL_GetPlatform.
-- mono: package available for -current, but not for 6.2 or 6.3. However, a
-  version of mono with a few bugs can likely be built from the ports tree, by
-  removing the line starting with `BROKEN`
+- mono (can be obtained via packages)
 - game-specific libraries, like theoraplay, mojoshader, ... fnaify
   should abort and tell you which libraries need to be installed if
   some of them can't be found.
+- XNA games and games using FNA more recent than October 2018 need
+  [FAudio](https://github.com/FNA-XNA/FAudio).
 
 Usage:
 ------
 
-`sh /path/to/fnaify <[/path/to/]launchscript>`
+`fnaify [-vh] [-d <dependency dirs>] [<gamedir>]`
 
-For verbose output, set the environment variable FNAIFY_DEBUG to anything.
+`-d`:	replace directories for finding dependencies
+	NOTE: separate multiple entries with ':' (default:
+	/usr/local/share/fnaify-libs:/usr/local/lib:/usr/X11R6/lib)
+`-m`:	add directories to MONO_PATH (automatically adds
+	/usr/local/share/steamstubs if present)
+`-h`:	display usage information
+`-v`:	enable verbose output
 
-Status:
--------
+<gamedir> is optional and defaults to $PWD if not specified.
 
-The following games have been reported to work with this script:
+Compatibility:
+--------------
 
-* The Adventures of Shuggy (needs different FNA.dll than the bundled one)
-* Apotheon (needs a different FNA.dll than the bundled one)
-* Atom Zombie Smasher (needs [AZSNotSFML](https://github.com/flibitijibibo/AZSNotSFML))
-* A Virus Named TOM
+List of games known to work with fnaify. Main testing done on OpenBSD.
+
+### FNA
+
+* The Adventures of Shuggy
+* Apotheon (buggy, unfortunately)
 * Bleed
 * Bleed 2
-* Brushwood Buddies (needs a different FNA.dll than the bundled one)
+* Brushwood Buddies
 * Capsized
-* Curse of the Crescent Isle DX (needs different FNA.dll than the bundled one)
+* Chasm
+* CometStriker
+* Cryptark
+* Curse of the Crescent Isle DX
 * Dust: An Elysian Tail
 * Escape Goat
 * Escape Goat 2
-* FEZ - **currently with game-breaking bugs, under investigation**
+* FEZ
+* Fist Puncher
+* Flinthook
 * Gateways
-* HackNet (only runs with -disableweb which is automaticall set by fnaify)
-* Hidden In Plain Sight
+* HackNet
 * Hyphen
+* Jon Shafer's At the Gates
+* Mercenary Kings
+* MidBoss (needs [SDL_image_compact](https://github.com/FNA-XNA/SDL_image_compact))
 * Overdriven Reloaded
 * Owlboy
 * Paladin
 * Press X to Not Die
-* Rex Rocket (needs a different FNA.dll than the bundled one) - **currently not launching, under investigation**
+* Rex Rocket
 * Rogue Legacy
+* Salt and Sanctuary
 * Shipwreck
 * Skulls of the Shogun
-* Soulcaster 1
-* Soulcaster 2
-* Stardew Valley (recommend data size limit of 2G, see [issue #25](https://github.com/thfrwn/fnaify/issues/25))
+* Soulcaster 1 & 2
+* SpeedRunners
+* Super Rad Raygun
+* Timespinner
 * TowerFall: Ascension
-* Wizorb (needs a different FNA.dll than the bundled one)
-* Wyv and Keep (needs a different FNA.dll than the bundled one)
+* A Virus Named TOM (bug on saving)
+* Wizorb
+* Wyv and Keep
 
-Special Case: Axiom Verge
--------------------------
+### XNA
 
-Axiom Verge's DRM-free version is the physical Collector's Edition
-(GameTrust/indiebox) on optical disc, but it only includes the Windows/XNA
-version. In order to run it on OpenBSD,
-[XnaToFna](https://github.com/0x0ade/XnaToFna) is needed. Instructions on how to
-set it up are being worked on.
+* Breath of Death VII
+* Chaos Heart
+* Cthulhu Saves the World
+* LaserCat
+* Ninja Warrior
+* One Finger Death Punch (needs libCSteamworks.so stub)
+* Penny Arcade's On the Rain-Slick Precipice of Darkness 3
+* Penny Arcade's On the Rain-Slick Precipice of Darkness 4
+* Super Amazing Wagon Adventure
+* Unholy Heights (bug: no audio)
+* The Useful Dead
 
-DRM-free Games
---------------
+### MonoGame
 
-Very helpful because there is no Steam client for OpenBSD:
+* Stardew Valley
 
-List of DRM-free FNA games (and related) [here](https://github.com/thfrwn/fnaify/blob/master/drm-free.md)
+### Other
 
-List of DRM-free XNA games [here](https://github.com/thfrwn/fnaify/blob/master/drm-free-xna.md)
+* Atom Zombie Smasher (needs
+  [AZSNotSFML](https://github.com/flibitijibibo/AZSNotSFML))
+
+Caveats
+-------
+
+* It is recommended to obtain copies of the FNA games that are DRM-free
+  and can run without the Steam client.
+  [Steamworks-nosteam](https://github.com/rfht/Steamworks.NET-nosteam)
+  can sometimes be used to work around a missing Steam client.
+* Some FNA games use non-free libraries like FMOD/FMODStudio that are
+  not available on OpenBSD. Such games are generally not listed in the
+  compatibility list above.
+
+Release History
+---------------
+
+1.3:	Add prompt to download and replace FNA.dll if incompatible version is found.
+	Detect `/usr/local/share/steamstubs` directory and use Steamworks.NET.dll
+	stub if present.
+1.2:	FreeBSD portability fixes, account for more special cases (MidBoss, Adventures of
+	Shuggy, Atom Zombie Smasher), add directory path to plug in additional libraries
+1.1:	fix bug selecting .exe by separating input variables
+1.0:	initial release
