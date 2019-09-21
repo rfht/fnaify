@@ -221,6 +221,24 @@ The
 .Nm
 utility was originally created in December 2017 by
 .An Thomas Frohwein Aq Mt thfr@openbsd.org
+.Sh RELEASE HISTORY
+.Bl -tag -width Ds
+.It 2.0
+Add support for XNA games. Introduce modes
+.Fl i | y
+to facilitate adding in needed assemblies/libraries.
+.It 1.3
+Add prompt to download and replace FNA.dll if incompatible version is
+found. Detect steamstubs directory and use Steamworks stubs if present.
+.It 1.2
+FreeBSD portability fixes, account for more special cases (MidBoss,
+Adventures of Shuggy, Atom Zombie Smasher), add directory path to plug
+in additional libraries.
+.It 1.1
+Fix bug selecting .exe by separating input variables.
+.It 1.0
+Initial release.
+.El
 .Sh AUTHORS
 .An -nosplit
 .An Thomas Frohwein Aq Mt thfr@openbsd.org

@@ -1,143 +1,223 @@
-fnaify 2.0-beta
-===============
+FNAIFY(1) - General Commands Manual
 
-created 2017-12-27 by Thomas Frohwein (thfr)
-FreeBSD fixes 2018 by Mariusz Zaborski (oshogbo@)
+# NAME
 
-Script to get FNA-based games ready to run on OpenBSD
+**fnaify** - script to get FNA-based games ready to run on OpenBSD
 
-FNA is a reimplementation of the Microsoft XNA Game Studio 4.0 Refresh
-libraries. Thanks to the great work by Ethan Lee (flibitijibibo) games
-using FNA are highly portable and can even run on OpenBSD. 
-Please refer to https://fna-xna.github.io/ for more information about
-FNA.
+# SYNOPSIS
 
-Support for XNA games was added in June 2019 by using FNA and its XNA ABI
-bridge.
+**fnaify**
+\[**-i**&nbsp;|&nbsp;**-y**]
+\[**-hv**]
+\[**-d**&nbsp;*depdir*]
+\[**-m**&nbsp;*monopath*]
+\[*gamedir*]
 
-Requirements:
--------------
+# DESCRIPTION
 
-- SDL_GetPlatform to recognize OS. OpenBSD's SDL2 upgrade to 2.0.7
-  achieves this by returning "Linux" until FNA patches to recognize
-  *BSD platforms have been rolled out.
-  You can check with [sdl2plat](https://github.com/thfrwn/sdl2plat)
-  which platform is returned by SDL_GetPlatform.
-- mono (can be obtained via packages)
-- game-specific libraries, like theoraplay, mojoshader, ... fnaify
-  should abort and tell you which libraries need to be installed if
-  some of them can't be found.
-- XNA games and games using FNA more recent than October 2018 need
-  [FAudio](https://github.com/FNA-XNA/FAudio).
+**fnaify**
+sets up games based on the FNA engine to operate with OpenBSD-native
+libraries and its mono(1) runtime.
 
-Usage:
-------
+As of version 2.0,
+**fnaify**
+has been extended to attempt configuring XNA games as well.
+**fnaify**
+can be run in 3 basic modes regarding the addition of missing libraries
+\- restrictive, interactive, and permissive.
 
-`fnaify [-vh] [-d <dependency dirs>] [<gamedir>]`
+The arguments are as follows:
 
-`-d`:	replace directories for finding dependencies
-	NOTE: separate multiple entries with ':' (default:
-	/usr/local/share/fnaify-libs:/usr/local/lib:/usr/X11R6/lib)
-`-m`:	add directories to MONO_PATH (automatically adds
-	/usr/local/share/steamstubs if present)
-`-h`:	display usage information
-`-v`:	enable verbose output
-`-i`:	interactive mode (prompt for missing deps)
-`-y`:	non-interactive; answer yes to all prompts
+**-i** | **-y**
 
-<gamedir> is optional and defaults to $PWD if not specified.
+> The mode determines how
+> **fnaify**
+> handles situations where compatibility problems are identified that can
+> be addressed with drop-in DLL replacements, or where an option needs to
+> be selected.
+> With
+> **-i**
+> ,
+> **fnaify**
+> runs in interactive mode, meaning the user will be prompted in every
+> case.
+> With
+> **-y**
+> ,
+> **fnaify**
+> runs in permissive mode (
+> **-y**
+> for
+> "yes"
+> to all). This means that any suggested drop-in DLLs will be installed,
+> and if different options are possible (like picking among several .exe
+> files for the launch script), the first one will be selected
+> automatically.
+> If neither
+> **-i**
+> nor
+> **-y**
+> is specified,
+> **fnaify**
+> runs in restrictive mode, that is no drop-in DLLs will be installed.
 
-Compatibility:
---------------
+**-d** *depdir*
 
-List of games known to work with fnaify. Main testing done on OpenBSD.
+> Add
+> *depdir*
+> to the directories to search for native library dependencies. A
+> directory specified this way will be searched
+> *before*
+> the default locations (
+> */usr/local/lib*
+> etc.).
 
-### FNA
+**-m** *monopath*
 
-* The Adventures of Shuggy
-* Apotheon (buggy, unfortunately)
-* Bleed
-* Bleed 2
-* Brushwood Buddies
-* Capsized
-* Chasm
-* CometStriker
-* Cryptark
-* Curse of the Crescent Isle DX
-* Dust: An Elysian Tail
-* Escape Goat
-* Escape Goat 2
-* FEZ
-* Fist Puncher
-* Flinthook
-* Gateways
-* HackNet
-* Hyphen
-* Jon Shafer's At the Gates
-* Mercenary Kings
-* MidBoss (needs [SDL_image_compact](https://github.com/FNA-XNA/SDL_image_compact))
-* Overdriven Reloaded
-* Owlboy
-* Paladin
-* Press X to Not Die
-* Rex Rocket
-* Rogue Legacy
-* Salt and Sanctuary
-* Shipwreck
-* Skulls of the Shogun
-* Soulcaster 1 & 2
-* SpeedRunners
-* Super Rad Raygun
-* Timespinner
-* TowerFall: Ascension
-* A Virus Named TOM (bug on saving)
-* Wizorb
-* Wyv and Keep
+> Add
+> *monopath*
+> to the directories the mono(1) runtime will search for DLLs.
 
-### XNA
+**-h**
 
-* Breath of Death VII
-* Chaos Heart
-* Cthulhu Saves the World
-* LaserCat
-* Ninja Warrior
-* One Finger Death Punch (needs libCSteamworks.so stub)
-* Penny Arcade's On the Rain-Slick Precipice of Darkness 3
-* Penny Arcade's On the Rain-Slick Precipice of Darkness 4
-* Super Amazing Wagon Adventure
-* Unholy Heights (bug: no audio)
-* The Useful Dead
+> Prints help text.
 
-### MonoGame
+**-v**
 
-* Dad Quest
-* Stardew Valley
+> Verbose mode.
 
-### Other
+*gamedir*
 
-* Atom Zombie Smasher (needs
-  [AZSNotSFML](https://github.com/flibitijibibo/AZSNotSFML))
+> Optional. Path to the game directory to process. If not specified, the current working directory will be used.
 
-Caveats
--------
+# SUPPORTED GAMES
 
-* It is recommended to obtain copies of the FNA games that are DRM-free
-  and can run without the Steam client.
-  [Steamworks-nosteam](https://github.com/rfht/Steamworks.NET-nosteam)
-  can sometimes be used to work around a missing Steam client.
-* Some FNA games use non-free libraries like FMOD/FMODStudio that are
-  not available on OpenBSD. Such games are generally not listed in the
-  compatibility list above.
+The Adventures of Shuggy  
+Apotheon  
+Bleed  
+Bleed 2  
+Breath of Death VII  
+Brushwood Buddies  
+Capsized  
+Chaos Heart  
+Charlie Murder  
+Chasm  
+CometStriker  
+Cryptark  
+Cthulhu Saves the World  
+Curse of the Crescent Isle DX  
+Dad Quest  
+Dead Pixels II  
+The Dishwasher: Vampire Smile  
+Dust: An Elysian Tail  
+Escape Goat  
+Escape Goat 2  
+FEZ  
+Fist Puncher  
+Flinthook  
+Flotilla  
+Gateways  
+Growing Pains  
+HackNet  
+Hive  
+Hyphen  
+Jon Shafer's At the Gates  
+LaserCat  
+Mercenary Kings  
+Ninja Warrior  
+One Finger Death Punch  
+Overdriven Reloaded  
+Owlboy  
+Paladin  
+Penny Arcade's On the Rain-Slick Precipice of Darkness 3  
+Penny Arcade's On the Rain-Slick Precipice of Darkness 4  
+Press X to Not Die  
+Rex Rocket  
+Rogue Legacy  
+Salt and Sanctuary  
+Shipwreck  
+Skulls of the Shogun  
+Soulcaster 1 & 2  
+SpeedRunners  
+Stardew Valley  
+Sumico  
+Super Amazing Wagon Adventure  
+Super Rad Raygun  
+Timespinner  
+TowerFall: Ascension  
+Unexplored  
+Unholy Heights (no audio)  
+The Useful Dead  
+Wizorb  
+Wyv and Keep
 
-Release History
----------------
+# FILES
 
-```
-1.3:	Add prompt to download and replace FNA.dll if incompatible version is found.
-	Detect `/usr/local/share/steamstubs` directory and use Steamworks.NET.dll
-	stub if present.
-1.2:	FreeBSD portability fixes, account for more special cases (MidBoss, Adventures of
-	Shuggy, Atom Zombie Smasher), add directory path to plug in additional libraries
-1.1:	fix bug selecting .exe by separating input variables
-1.0:	initial release
-```
+*~/.config/fnaify/fnaify.dllmap.config*
+
+> Configuration file to map DLLs to native libraries, based on OpenBSD
+> library naming.
+
+# EXIT STATUS
+
+**fnaify**
+returns 1 if an error occurred with the arguments of files provided,
+otherwise 0.
+
+# EXAMPLES
+
+Run in permissive mode, suitable to set up most supported games
+automatically.
+
+	$ fnaify -y path/to/game/directory
+
+Run in interactive mode.
+**fnaify**
+will prompt the user if any additional DLLs are recommended, or if a
+file needs to be selected for the launch script.
+
+	$ fnaify -i path/to/game/directory
+
+# SEE ALSO
+
+mono(1)
+
+# HISTORY
+
+The
+**fnaify**
+utility was originally created in December 2017 by
+Thomas Frohwein &lt;[thfr@openbsd.org](mailto:thfr@openbsd.org)&gt;
+
+# RELEASE HISTORY
+
+2\.0
+
+> Add support for XNA games. Introduce modes
+> **-i** | **-y**
+> to facilitate adding in needed assemblies/libraries.
+
+1\.3
+
+> Add prompt to download and replace FNA.dll if incompatible version is
+> found. Detect steamstubs directory and use Steamworks stubs if present.
+
+1\.2
+
+> FreeBSD portability fixes, account for more special cases (MidBoss,
+> Adventures of Shuggy, Atom Zombie Smasher), add directory path to plug
+> in additional libraries.
+
+1\.1
+
+> Fix bug selecting .exe by separating input variables.
+
+1\.0
+
+> Initial release.
+
+# AUTHORS
+
+Thomas Frohwein &lt;[thfr@openbsd.org](mailto:thfr@openbsd.org)&gt;
+
+OpenBSD 6.6 - September 21, 2019
