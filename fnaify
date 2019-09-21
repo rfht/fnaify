@@ -19,25 +19,13 @@
 #########################################################################
 
 # TODO:
-# - make output formatting more consistent
-# - mention /tmp/fnaify*.log in finish_fnaify() ? and/or README
-# - figure out why Theora conversion doesn't work with One Finger Death Punch
-# - add flag to force "yes" on prompt ('-y')
-# - add mention of pulled-in directories and libs to README
-# - man page?
 # - fix FIXMEs
-# - only add steamworks-nosteam to $monopath if Steamworks.NET.dll found in $gamedir
 # - fix x86/ x64/ directories in .config of Dad Quest
-# - universal log for fnaify somewhere, including output from ffmpeg and xbuild
-# - replace sed for .config files with using MONO_CONFIG= or mono --config
-#   -> check how to handle different libSDL2_image_compact for MidBoss
 # - add CLI option to specify a non-default mono-config(5) file
-# - flags: -i for interactive mode (about downloading FNA etc, pick launch script),
-#   -y for yes to all questions (non-interactive), -n for no (== default)
-# - hook up fnaify.dllmap.config
 # - delete dirs in /tmp from extracted distfiles? (NLog etc)
 # - check_nlog now only looks at major version number; is there a better way?
 #   (it reports only major in 'monodis --assembly': 3.0.0.0, 4.0.0.0)
+# - -y doesn't pick the right .exe with Super Rad Raygun
 
 USAGE="Usage: `basename $0` [-vh] [i|y] [-d <dependency dirs>] [-m <monopath>] [<gamedir>]\n\
 \n\
@@ -259,7 +247,7 @@ selectexe()
 		else
 			# FIXME: for now just pick the first .exe. Come up with
 			#        better heuristic (match directory or launch
-			#        script name; pick shortest-name .exe ... ?
+			#        script name; pick .exe with shortest name ... ?
 			my_exe="$(echo $exefile | cut -f 1 -d ':')"
 		fi
 	elif [ $nexefile -eq 1 ]; then
@@ -312,6 +300,14 @@ finish_fnaify()
 	fi
 	echo "To run the game in $gamedir, use\n"
 	echo "./${scriptfile}\n"
+	if [ $fna_warning -eq 1 ]; then
+		echo "\nWARNING: version of FNA.dll potentially incompatible!"
+		echo "If the game doesn't run, try running 'fnaify -i' (or 'fnaify -y').\n"
+	fi
+	if [ $nlog_warning -eq 1 ]; then
+		echo "\nWARNING: version of NLog.dll potentially incompatible!"
+		echo "If the game doesn't run, try running 'fnaify -i' (or 'fnaify -y').\n"
+	fi
 	exit 0
 }
 
@@ -373,7 +369,7 @@ check_nlog()
 		debug_echo -n "major: $nlogmajor, "
 		debug_echo "minor: $nlogminor"
 		if [ \( $nlogmajor -lt 4 \) -a \( "x$interaction" = "xi" \) ] ; then
-			echo -n "\nInstall NLog 4.6.5 from www.nuget.org? [y/n]"
+			echo -n "\nInstall NLog 4.6.5 from www.nuget.org? [y/n] "
 			response=
 			until [ \( "x$response" = "xy" \) -o \( "x$response" = "xn" \) ]
 			do
@@ -383,9 +379,6 @@ check_nlog()
 			response="y"
 		else
 			response="n"
-			if [ $nlogmajor -lt 4 ] ; then
-				nlog_warning=1
-			fi
 		fi
 		if [ "x$response" = "xy" ] ; then
 			debug_echo "Moving old NLog.dll out of the way"
@@ -400,6 +393,8 @@ check_nlog()
 			unzip nlog.4.6.5.nupkg > /dev/null
 			cp lib/net45/NLog.dll "$gamedir/"
 			cd "$lastdir"
+		elif [ $nlogmajor -lt 4 ] ; then
+			nlog_warning=1
 		fi
 	fi
 }
@@ -824,12 +819,8 @@ if [ $fna_warning -eq 1 ]; then
 
 	if [ "$fna_replace" = "y" ]; then
 		install_fna 17.12
+		fna_warning=0
 	fi
-fi
-
-if [ $nlog_warning -eq 1 ]; then
-	echo "\nWARNING: version of NLog.dll potentially incompatible with mono!"
-	echo "If the game doesn't run, try running 'fnaify -i' (or 'fnaify -y').\n"
 fi
 
 check_remove_steamworks
