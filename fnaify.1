@@ -1,0 +1,226 @@
+.Dd $Mdocdate: September 21 2019 $
+.Dt FNAIFY 1
+.Os
+.Sh NAME
+.Nm fnaify
+.Nd script to get FNA-based games ready to run on OpenBSD
+.Sh SYNOPSIS
+.Nm
+.Op Fl i | y
+.Op Fl hv
+.Op Fl d Ar depdir
+.Op Fl m Ar monopath
+.Op Ar gamedir
+.Sh DESCRIPTION
+.Nm
+sets up games based on the FNA engine to operate with OpenBSD-native
+libraries and its mono(1) runtime.
+.Pp
+As of version 2.0,
+.Nm
+has been extended to attempt configuring XNA games as well.
+.Nm
+can be run in 3 basic modes regarding the addition of missing libraries
+- restrictive, interactive, and permissive.
+.Pp
+The arguments are as follows:
+.Bl -tag -width Ds
+.It Fl i | y
+The mode determines how
+.Nm
+handles situations where compatibility problems are identified that can
+be addressed with drop-in DLL replacements, or where an option needs to
+be selected.
+With
+.Fl i
+,
+.Nm
+runs in interactive mode, meaning the user will be prompted in every
+case.
+With
+.Fl y
+,
+.Nm
+runs in permissive mode (
+.Fl y
+for
+.Qq yes
+to all). This means that any suggested drop-in DLLs will be installed,
+and if different options are possible (like picking among several .exe
+files for the launch script), the first one will be selected
+automatically.
+If neither
+.Fl i
+nor
+.Fl y
+is specified,
+.Nm
+runs in restrictive mode, that is no drop-in DLLs will be installed.
+.It Fl d Ar depdir
+Add
+.Ar depdir
+to the directories to search for native library dependencies. A
+directory specified this way will be searched
+.Em before
+the default locations (
+.Pa /usr/local/lib
+etc.).
+.It Fl m Ar monopath
+Add
+.Ar monopath
+to the directories the mono(1) runtime will search for DLLs.
+.It Fl h
+Prints help text.
+.It Fl v
+Verbose mode.
+.It Ar gamedir
+Optional. Path to the game directory to process. If not specified, the current working directory will be used.
+.El
+.Sh SUPPORTED GAMES
+The Adventures of Shuggy
+.br
+Apotheon
+.br
+Bleed
+.br
+Bleed 2
+.br
+Breath of Death VII
+.br
+Brushwood Buddies
+.br
+Capsized
+.br
+Chaos Heart
+.br
+Charlie Murder
+.br
+Chasm
+.br
+CometStriker
+.br
+Cryptark
+.br
+Cthulhu Saves the World
+.br
+Curse of the Crescent Isle DX
+.br
+Dad Quest
+.br
+Dead Pixels II
+.br
+The Dishwasher: Vampire Smile
+.br
+Dust: An Elysian Tail
+.br
+Escape Goat
+.br
+Escape Goat 2
+.br
+FEZ
+.br
+Fist Puncher
+.br
+Flinthook
+.br
+Flotilla
+.br
+Gateways
+.br
+Growing Pains
+.br
+HackNet
+.br
+Hive
+.br
+Hyphen
+.br
+Jon Shafer's At the Gates
+.br
+LaserCat
+.br
+Mercenary Kings
+.br
+Ninja Warrior
+.br
+One Finger Death Punch
+.br
+Overdriven Reloaded
+.br
+Owlboy
+.br
+Paladin
+.br
+Penny Arcade's On the Rain-Slick Precipice of Darkness 3
+.br
+Penny Arcade's On the Rain-Slick Precipice of Darkness 4
+.br
+Press X to Not Die
+.br
+Rex Rocket
+.br
+Rogue Legacy
+.br
+Salt and Sanctuary
+.br
+Shipwreck
+.br
+Skulls of the Shogun
+.br
+Soulcaster 1 & 2
+.br
+SpeedRunners
+.br
+Stardew Valley
+.br
+Sumico
+.br
+Super Amazing Wagon Adventure
+.br
+Super Rad Raygun
+.br
+Timespinner
+.br
+TowerFall: Ascension
+.br
+Unexplored
+.br
+Unholy Heights (no audio)
+.br
+The Useful Dead
+.br
+Wizorb
+.br
+Wyv and Keep
+.Sh FILES
+.Bl -tag -width Ds
+.It Pa ~/.config/fnaify/fnaify.dllmap.config
+Configuration file to map DLLs to native libraries, based on OpenBSD
+library naming.
+.El
+.Sh EXIT STATUS
+.Nm
+returns 1 if an error occurred with the arguments of files provided,
+otherwise 0.
+.Sh EXAMPLES
+Run in permissive mode, suitable to set up most supported games
+automatically.
+.Pp
+.Dl $ fnaify -y path/to/game/directory
+.Pp
+Run in interactive mode.
+.Nm
+will prompt the user if any additional DLLs are recommended, or if a
+file needs to be selected for the launch script.
+.Pp
+.Dl $ fnaify -i path/to/game/directory
+.Sh SEE ALSO
+.Xr mono 1
+.Sh HISTORY
+The
+.Nm
+utility was originally created in December 2017 by
+.An Thomas Frohwein Aq Mt thfr@openbsd.org
+.Sh AUTHORS
+.An -nosplit
+.An Thomas Frohwein Aq Mt thfr@openbsd.org
