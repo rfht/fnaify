@@ -20,12 +20,10 @@
 
 # TODO:
 # - fix FIXMEs
-# - fix x86/ x64/ directories in .config of Dad Quest
 # - add CLI option to specify a non-default mono-config(5) file
 # - delete dirs in /tmp from extracted distfiles? (NLog etc)
 # - check_nlog now only looks at major version number; is there a better way?
 #   (it reports only major in 'monodis --assembly': 3.0.0.0, 4.0.0.0)
-# - -y doesn't pick the right .exe with Super Rad Raygun
 
 USAGE="Usage: `basename $0` [-vh] [i|y] [-d <dependency dirs>] [-m <monopath>] [<gamedir>]\n\
 \n\
@@ -406,7 +404,7 @@ xnasetup()
 	nexefile=0
 	IFS='
 '
-	for assembly in $(cd "${gamedir}" && find . -maxdepth 1 -type f | grep -E ".*\.exe$" | cut -f 2 -d "/"); do
+	for assembly in $(cd "${gamedir}" && find . -maxdepth 1 -type f | grep -E ".*\.exe$" | cut -f 2 -d "/" | sort); do
 		debug_echo "Checking $assembly for XNA"
 		monodis --assemblyref "${gamedir}/$assembly" 2>&1 \
 			| grep -iqm 1 "Microsoft.Xna.Framework"
