@@ -21,7 +21,6 @@
 # TODO:
 # - fix FIXMEs
 # - add CLI option to specify a non-default mono-config(5) file
-# - delete dirs in /tmp from extracted distfiles? (NLog etc)
 # - check_nlog now only looks at major version number; is there a better way?
 #   (it reports only major in 'monodis --assembly': 3.0.0.0, 4.0.0.0)
 
@@ -391,6 +390,7 @@ check_nlog()
 			unzip nlog.4.6.5.nupkg > /dev/null
 			cp lib/net45/NLog.dll "$gamedir/"
 			cd "$lastdir"
+			rm -rf /tmp/nlog
 		elif [ $nlogmajor -lt 4 ] ; then
 			nlog_warning=1
 		fi
@@ -534,6 +534,7 @@ else
 			echo "done."
 			cp /tmp/AZSNotSFML/atomstb/libatomstb.so "$gamedir/"
 			cd "$lastdir"
+			rm -rf /tmp/AZSNotSFML
 		fi
 	else
 		check_nlog
