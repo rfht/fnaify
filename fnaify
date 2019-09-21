@@ -567,7 +567,7 @@ scriptfilearray="" # files that are possible launchscripts
 sfile=""
 IFS="
 "
-for sfile in $(cd "$gamedir" && find . -maxdepth 1 -type f | grep -Ev "\.[^/]|mono.*config$" | cut -f 2 -d "/"); do
+for sfile in $(cd "$gamedir" && find . -maxdepth 1 -type f | grep -Ev "\.[^/]|mono.*config$" | cut -f 2 -d "/" | sort); do
 	debug_echo "\tfound candidate for launch script file: $sfile"
 	if [ -z "${scriptfilearray}" ]; then
 		scriptfilearray="$sfile"
@@ -826,7 +826,7 @@ check_remove_steamworks
 
 IFS="
 "
-for xfile in $(cd "$gamedir" && find . -maxdepth 1 -type f -iname "*.exe" | cut -f 2 -d "/"); do
+for xfile in $(cd "$gamedir" && find . -maxdepth 1 -type f -iname "*.exe" | cut -f 2 -d "/" | sort); do
 	exefile="$exefile$xfile:"
 	nexefile=$((nexefile + 1))
 done
