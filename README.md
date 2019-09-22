@@ -17,14 +17,16 @@ FNAIFY(1) - General Commands Manual
 
 **fnaify**
 sets up games based on the FNA engine to operate with OpenBSD-native
-libraries and its mono(1) runtime.
+libraries and its
+mono(1)
+runtime.
 
 As of version 2.0,
 **fnaify**
 has been extended to attempt configuring XNA games as well.
 **fnaify**
-can be run in 3 basic modes regarding the addition of missing libraries
-\- restrictive, interactive, and permissive.
+can be run in 3 basic modes regarding the addition of missing libraries:
+restrictive, interactive, and permissive.
 
 The arguments are as follows:
 
@@ -36,20 +38,20 @@ The arguments are as follows:
 > be addressed with drop-in DLL replacements, or where an option needs to
 > be selected.
 > With
-> **-i**
-> ,
+> **-i**,
 > **fnaify**
 > runs in interactive mode, meaning the user will be prompted in every
 > case.
 > With
-> **-y**
-> ,
+> **-y**,
 > **fnaify**
-> runs in permissive mode (
-> **-y**
+> runs in permissive mode
+> (**-y**
 > for
 > "yes"
-> to all). This means that any suggested drop-in DLLs will be installed,
+> to all)
+> .
+> This means that any suggested drop-in DLLs will be installed,
 > and if different options are possible (like picking among several .exe
 > files for the launch script), the first one will be selected
 > automatically.
@@ -65,18 +67,19 @@ The arguments are as follows:
 
 > Add
 > *depdir*
-> to the directories to search for native library dependencies. A
-> directory specified this way will be searched
+> to the directories to search for native library dependencies.
+> A directory specified this way will be searched
 > *before*
-> the default locations (
-> */usr/local/lib*
-> etc.).
+> the default locations
+> (*/usr/local/lib* etc.).
 
 **-m** *monopath*
 
 > Add
 > *monopath*
-> to the directories the mono(1) runtime will search for DLLs.
+> to the directories the
+> mono(1)
+> runtime will search for DLLs.
 
 **-h**
 
@@ -88,7 +91,9 @@ The arguments are as follows:
 
 *gamedir*
 
-> Optional. Path to the game directory to process. If not specified, the current working directory will be used.
+> Optional.
+> Path to the game directory to process.
+> If not specified, the current working directory will be used.
 
 # SUPPORTED GAMES
 
@@ -193,14 +198,17 @@ Thomas Frohwein &lt;[thfr@openbsd.org](mailto:thfr@openbsd.org)&gt;
 
 2\.0
 
-> Add support for XNA games. Introduce modes
+> Add support for XNA games.
+> Introduce modes
 > **-i** | **-y**
 > to facilitate adding in needed assemblies/libraries.
 
 1\.3
 
-> Add prompt to download and replace FNA.dll if incompatible version is
-> found. Detect steamstubs directory and use Steamworks stubs if present.
+> Add prompt to download and replace
+> *FNA.dll*
+> if incompatible version is found.
+> Detect steamstubs directory and use Steamworks stubs if present.
 
 1\.2
 
