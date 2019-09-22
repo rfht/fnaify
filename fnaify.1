@@ -34,20 +34,20 @@ handles situations where compatibility problems are identified that can
 be addressed with drop-in DLL replacements, or where an option needs to
 be selected.
 With
-.Fl i
-,
+.Fl i ,
 .Nm
 runs in interactive mode, meaning the user will be prompted in every
 case.
 With
-.Fl y
-,
+.Fl y ,
 .Nm
-runs in permissive mode (
+runs in permissive mode
+.Po
 .Fl y
 for
 .Qq yes
-to all).
+to all
+.Pc .
 This means that any suggested drop-in DLLs will be installed,
 and if different options are possible (like picking among several .exe
 files for the launch script), the first one will be selected
@@ -65,9 +65,8 @@ Add
 to the directories to search for native library dependencies.
 A directory specified this way will be searched
 .Em before
-the default locations (
-.Pa /usr/local/lib
-etc.).
+the default locations
+.Pq Pa /usr/local/lib No etc. .
 .It Fl m Ar monopath
 Add
 .Ar monopath
