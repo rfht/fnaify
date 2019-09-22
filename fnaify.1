@@ -45,7 +45,8 @@ runs in permissive mode (
 .Fl y
 for
 .Qq yes
-to all). This means that any suggested drop-in DLLs will be installed,
+to all).
+This means that any suggested drop-in DLLs will be installed,
 and if different options are possible (like picking among several .exe
 files for the launch script), the first one will be selected
 automatically.
@@ -59,8 +60,8 @@ runs in restrictive mode, that is no drop-in DLLs will be installed.
 .It Fl d Ar depdir
 Add
 .Ar depdir
-to the directories to search for native library dependencies. A
-directory specified this way will be searched
+to the directories to search for native library dependencies.
+A directory specified this way will be searched
 .Em before
 the default locations (
 .Pa /usr/local/lib
@@ -74,7 +75,9 @@ Prints help text.
 .It Fl v
 Verbose mode.
 .It Ar gamedir
-Optional. Path to the game directory to process. If not specified, the current working directory will be used.
+Optional.
+Path to the game directory to process.
+If not specified, the current working directory will be used.
 .El
 .Sh SUPPORTED GAMES
 The Adventures of Shuggy
@@ -224,12 +227,13 @@ utility was originally created in December 2017 by
 .Sh RELEASE HISTORY
 .Bl -tag -width Ds
 .It 2.0
-Add support for XNA games. Introduce modes
+Add support for XNA games.
+Introduce modes
 .Fl i | y
 to facilitate adding in needed assemblies/libraries.
 .It 1.3
-Add prompt to download and replace FNA.dll if incompatible version is
-found. Detect steamstubs directory and use Steamworks stubs if present.
+Add prompt to download and replace FNA.dll if incompatible version is found.
+Detect steamstubs directory and use Steamworks stubs if present.
 .It 1.2
 FreeBSD portability fixes, account for more special cases (MidBoss,
 Adventures of Shuggy, Atom Zombie Smasher), add directory path to plug
