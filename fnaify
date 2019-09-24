@@ -23,6 +23,7 @@
 # - add CLI option to specify a non-default mono-config(5) file
 # - check_nlog now only looks at major version number; is there a better way?
 #   (it reports only major in 'monodis --assembly': 3.0.0.0, 4.0.0.0)
+# - fix whitespace issue seen with 'Battlepaths V1.8.vshost.exe.config'
 
 USAGE="Usage: `basename $0` [-vh] [-i|-y] [-d <dependency dirs>] [-m <monopath>] [<gamedir>]\n\
 \n\
@@ -84,7 +85,8 @@ fna_warning=0
 nlog_warning=0
 
 # array of lib names to ignore for the configuration checking
-ignoredarray="libCSteamworks.so
+ignoredarray="FarseerPhysics.Portable.xml
+libCSteamworks.so
 libsteam_api.so
 libcef.so
 libXNAWebRenderer.so
@@ -98,7 +100,8 @@ libfmodstudio.so
 libtiny_jpeg.so
 libGalaxy64.so
 libGalaxyCSharpGlue.so
-libGalaxy.so"
+libGalaxy.so
+steam_appid.txt"
 
 # array of mono files that need to be removed from the game folder
 monofilearray="System.dll
