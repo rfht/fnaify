@@ -129,6 +129,7 @@ Hyphen
 Jon Shafer's At the Gates  
 LaserCat  
 Mercenary Kings  
+Mount Your Friends  
 Ninja Warrior  
 One Finger Death Punch  
 Overdriven Reloaded  
@@ -147,7 +148,9 @@ SpeedRunners
 Stardew Valley  
 Sumico  
 Super Amazing Wagon Adventure  
+Super Blood Hockey  
 Super Rad Raygun  
+Sword of the Stars: The Pit  
 Timespinner  
 TowerFall: Ascension  
 Unexplored  
@@ -228,4 +231,4 @@ Thomas Frohwein &lt;[thfr@openbsd.org](mailto:thfr@openbsd.org)&gt;
 
 Thomas Frohwein &lt;[thfr@openbsd.org](mailto:thfr@openbsd.org)&gt;
 
-OpenBSD 6.6 - September 21, 2019
+OpenBSD 6.6 - September 24, 2019
