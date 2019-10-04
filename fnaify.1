@@ -8,6 +8,7 @@
 .Nm
 .Op Fl i | y
 .Op Fl hv
+.Op Fl c Ar configfile
 .Op Fl d Ar depdir
 .Op Fl m Ar monopath
 .Op Ar gamedir
@@ -59,6 +60,24 @@ nor
 is specified,
 .Nm
 runs in restrictive mode, that is no drop-in DLLs will be installed.
+.It Fl c Ar configfile
+Optional. Use
+.Ar configfile
+for the configuration of
+.Xr mono 1 .
+This sets up dllmap/dllentry settings to use the correct libraries. See
+.Xr mono-config 5
+for details. If this option is omitted, 
+.Nm
+looks first for
+.Pa /usr/local/share/fnaify/fnaify.dllmap.config
+and then for
+.Pa ~/.config/fnaify/fnaify.dllmap.config .
+If neither one is found,
+.Nm
+creates
+.Pa ~/.config/fnaify/fnaify.dllmap.config
+with default settings.
 .It Fl d Ar depdir
 Add
 .Ar depdir
@@ -229,9 +248,10 @@ Wyv and Keep
 .El
 .Sh FILES
 .Bl -tag -width Ds
+.It Pa /usr/local/share/fnaify/fnaify.dllmap.config
+Default configuration file to map DLLs to native libraries.
 .It Pa ~/.config/fnaify/fnaify.dllmap.config
-Configuration file to map DLLs to native libraries, based on OpenBSD
-library naming.
+Alternative configuration file.
 .El
 .Sh EXIT STATUS
 .Nm
@@ -250,12 +270,13 @@ file needs to be selected for the launch script.
 .Pp
 .Dl $ fnaify -i path/to/game/directory
 .Sh SEE ALSO
-.Xr mono 1
+.Xr mono 1 ,
+.Xr mono-config 5
 .Sh HISTORY
 The
 .Nm
 utility was originally created in December 2017 by
-.An Thomas Frohwein Aq Mt thfr@openbsd.org
+.An Thomas Frohwein Aq Mt thfr@openbsd.org .
 .Sh RELEASE HISTORY
 .Bl -tag -width Ds
 .It 2.0
