@@ -192,13 +192,13 @@ Wyv and Keep
 
 # FILES
 
-*~/.config/fnaify/fnaify.dllmap.config*
-
-> User directory configuration file to map DLLs to native libraries.
-
 */usr/local/share/fnaify/fnaify.dllmap.config*
 
-> Alternative configuration file.
+> Default configuration file to map DLLs to native libraries.
+
+*~/.config/fnaify/fnaify.dllmap.config*
+
+> User directory configuration file. Takes precedence if it exists.
 
 # EXIT STATUS
 
