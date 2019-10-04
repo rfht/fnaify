@@ -100,7 +100,7 @@ if [ -z "$monoconfig" ] ; then
 	if [ -f "$HOME/.config/fnaify/fnaify.dllmap.config" ] ; then
 		monoconfig="$HOME/.config/fnaify/fnaify.dllmap.config"
 		# check for outdated config file
-		if [ -n "$(echo "$monoconfig" | grep -m 1 "LoadLibrary")" ] ; then
+		if [ "x$(echo "$monoconfig" | grep -m 1 "LoadLibrary")" = "x" ] ; then
 			echo "WARNING: $monoconfig appears to be out of date. It is strongly recommended to remove it and re-run `basename $0`."
 		fi
 	else
