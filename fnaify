@@ -97,14 +97,18 @@ debug_echo()
 }
 
 if [ -z "$monoconfig" ] ; then
-	if [ -f "/usr/local/share/fnaify/fnaify.dllmap.config" ] ; then
-		monoconfig="/usr/local/share/fnaify/fnaify.dllmap.config"
-	else	# in this case use config in ~/.config/fnaify/fnaify.dllmap.config
+	if [ -f "$HOME/.config/fnaify/fnaify.dllmap.config" ] ; then
 		monoconfig="$HOME/.config/fnaify/fnaify.dllmap.config"
-
-		# if ~/.config/fnaify/fnaify.dllmap.config doesn't exist, create it
-		if [ ! -e "$monoconfig" ] ; then
-			debug_echo 'creating ~/.config/fnaify/fnaify.dllmap.config'
+		# check for outdated config file
+		if [ -n "$(echo "$monoconfig" | grep -m 1 "LoadLibrary")" ] ; then
+			echo "WARNING: $monoconfig appears to be out of date. It is strongly recommended to remove it and re-run `basename $0`."
+		fi
+	else
+		if [ -f "/usr/local/share/fnaify/fnaify.dllmap.config" ] ; then
+			monoconfig="/usr/local/share/fnaify/fnaify.dllmap.config"
+		else	# in this case create ~/.config/fnaify/fnaify.dllmap.config
+			monoconfig="$HOME/.config/fnaify/fnaify.dllmap.config"
+			debug_echo "creating $monoconfig"
 			mkdir -p ~/.config/fnaify
 			cat <<EOF > "$monoconfig"
 <?xml version="1.0" encoding="utf-8"?>
