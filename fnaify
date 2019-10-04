@@ -24,6 +24,15 @@
 # - check_nlog now only looks at major version number; is there a better way?
 #   (it reports only major in 'monodis --assembly': 3.0.0.0, 4.0.0.0)
 # - fix whitespace issue seen with 'Battlepaths V1.8.vshost.exe.config'
+# - figure out how to do selection between AJ1.exe and AJ2.exe for Apple Jack
+# - add the following to dllmap file for some XNA games like Amazing Princess
+#   Sarah:
+#   <?xml version="1.0" encoding="utf-8"?>
+#   <configuration>
+#       <dllmap dll="kernel32">
+#           <dllentry dll="ld.so" name="LoadLibrary" target="dlopen"/>
+#       </dllmap>
+#   </configuration>
 
 USAGE="Usage: `basename $0` [-vh] [-i|-y] [-d <dependency dirs>] [-m <monopath>] [<gamedir>]\n\
 \n\
