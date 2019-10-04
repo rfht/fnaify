@@ -234,6 +234,10 @@ Thomas Frohwein &lt;[thfr@openbsd.org](mailto:thfr@openbsd.org)&gt;.
 
 # RELEASE HISTORY
 
+2\.1
+
+> Support for additional XNA games.
+
 2\.0
 
 > Add support for XNA games.
