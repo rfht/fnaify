@@ -75,9 +75,9 @@ The arguments are as follows:
 > for details. If this option is omitted,
 > **fnaify**
 > looks first for
-> */usr/local/share/fnaify/fnaify.dllmap.config*
+> *~/.config/fnaify/fnaify.dllmap.config*
 > and then for
-> *~/.config/fnaify/fnaify.dllmap.config*.
+> */usr/local/share/fnaify/fnaify.dllmap.config*.
 > If neither one is found,
 > **fnaify**
 > creates
@@ -192,11 +192,11 @@ Wyv and Keep
 
 # FILES
 
-*/usr/local/share/fnaify/fnaify.dllmap.config*
-
-> Default configuration file to map DLLs to native libraries.
-
 *~/.config/fnaify/fnaify.dllmap.config*
+
+> User directory configuration file to map DLLs to native libraries.
+
+*/usr/local/share/fnaify/fnaify.dllmap.config*
 
 > Alternative configuration file.
 

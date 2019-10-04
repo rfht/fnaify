@@ -70,9 +70,9 @@ This sets up dllmap/dllentry settings to use the correct libraries. See
 for details. If this option is omitted, 
 .Nm
 looks first for
-.Pa /usr/local/share/fnaify/fnaify.dllmap.config
+.Pa ~/.config/fnaify/fnaify.dllmap.config
 and then for
-.Pa ~/.config/fnaify/fnaify.dllmap.config .
+.Pa /usr/local/share/fnaify/fnaify.dllmap.config .
 If neither one is found,
 .Nm
 creates
@@ -248,9 +248,9 @@ Wyv and Keep
 .El
 .Sh FILES
 .Bl -tag -width Ds
-.It Pa /usr/local/share/fnaify/fnaify.dllmap.config
-Default configuration file to map DLLs to native libraries.
 .It Pa ~/.config/fnaify/fnaify.dllmap.config
+User directory configuration file to map DLLs to native libraries.
+.It Pa /usr/local/share/fnaify/fnaify.dllmap.config
 Alternative configuration file.
 .El
 .Sh EXIT STATUS
