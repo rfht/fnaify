@@ -84,6 +84,18 @@ while [ $# -gt 0 ]; do
 done
 cd "$gamedir"
 
+debug_echo()
+{
+	if [ -z "$FNAIFY_DEBUG" ]; then
+		return
+	fi
+	if [ "${1}" = '-n' ]; then
+		printf "$2"
+	else
+		printf "$1\n"
+	fi
+}
+
 if [ -z "$monoconfig" ] ; then
 	if [ -f "/usr/local/share/fnaify/fnaify.dllmap.config" ] ; then
 		monoconfig="/usr/local/share/fnaify/fnaify.dllmap.config"
@@ -205,18 +217,6 @@ needlibarray="" # array that will hold the names of needed libraries
 exefile=
 nexefile=0
 my_exe=""	# the .exe selected for the launch script
-
-debug_echo()
-{
-	if [ -z "$FNAIFY_DEBUG" ]; then
-		return
-	fi
-	if [ "${1}" = '-n' ]; then
-		printf "$2"
-	else
-		printf "$1\n"
-	fi
-}
 
 exe_flags=""
 exe_env=""
