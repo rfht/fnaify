@@ -9,6 +9,7 @@ FNAIFY(1) - General Commands Manual
 **fnaify**
 \[**-i**&nbsp;|&nbsp;**-y**]
 \[**-hv**]
+\[**-c**&nbsp;*configfile*]
 \[**-d**&nbsp;*depdir*]
 \[**-m**&nbsp;*monopath*]
 \[*gamedir*]
@@ -62,6 +63,26 @@ The arguments are as follows:
 > is specified,
 > **fnaify**
 > runs in restrictive mode, that is no drop-in DLLs will be installed.
+
+**-c** *configfile*
+
+> Optional. Use
+> *configfile*
+> for the configuration of
+> mono(1).
+> This sets up dllmap/dllentry settings to use the correct libraries. See
+> mono-config(5)
+> for details. If this option is omitted,
+> **fnaify**
+> looks first for
+> */usr/local/share/fnaify/fnaify.dllmap.config*
+> and then for
+> *~/.config/fnaify/fnaify.dllmap.config*.
+> If neither one is found,
+> **fnaify**
+> creates
+> *~/.config/fnaify/fnaify.dllmap.config*
+> with default settings.
 
 **-d** *depdir*
 
@@ -171,10 +192,13 @@ Wyv and Keep
 
 # FILES
 
+*/usr/local/share/fnaify/fnaify.dllmap.config*
+
+> Default configuration file to map DLLs to native libraries.
+
 *~/.config/fnaify/fnaify.dllmap.config*
 
-> Configuration file to map DLLs to native libraries, based on OpenBSD
-> library naming.
+> Alternative configuration file.
 
 # EXIT STATUS
 
@@ -198,14 +222,15 @@ file needs to be selected for the launch script.
 
 # SEE ALSO
 
-mono(1)
+mono(1),
+mono-config(5)
 
 # HISTORY
 
 The
 **fnaify**
 utility was originally created in December 2017 by
-Thomas Frohwein &lt;[thfr@openbsd.org](mailto:thfr@openbsd.org)&gt;
+Thomas Frohwein &lt;[thfr@openbsd.org](mailto:thfr@openbsd.org)&gt;.
 
 # RELEASE HISTORY
 
