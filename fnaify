@@ -34,6 +34,10 @@
 #           <dllentry dll="ld.so" name="LoadLibrary" target="dlopen"/>
 #       </dllmap>
 #   </configuration>
+# - update USAGE
+# - add -c to man page
+# - find strategy to keep included fnaify.dllmap.config and the automatically created
+#   one in sync
 
 USAGE="Usage: `basename $0` [-vh] [-i|-y] [-d <dependency dirs>] [-m <monopath>] [<gamedir>]\n\
 \n\
@@ -50,17 +54,17 @@ USAGE="Usage: `basename $0` [-vh] [-i|-y] [-d <dependency dirs>] [-m <monopath>]
 <gamedir> is optional and defaults to \$PWD if not specified.\
 "
 
-netstub_commit=e7d890e0ede0caa9e76ef37af6070344e3ab0abf
-libatomstb_commit=f8291c591d04ac304c4f5324163bc83287de77b7
+depdir="/usr/local/lib:/usr/X11R6/lib"	# /usr/X11R6/lib is location of libfreetype.so on OpenBSD
 gamedir="$PWD"
+interaction=n	# y|n|i: yes to all, no to all, interactive
+libatomstb_commit=f8291c591d04ac304c4f5324163bc83287de77b7
+licenses=
+monoconfig=
+monopath="${MONO_PATH}:"
+netstub_commit=e7d890e0ede0caa9e76ef37af6070344e3ab0abf
 newline='
 '
-licenses=
 scriptfile=
-interaction=n	# y|n|i: yes to all, no to all, interactive
-monopath="${MONO_PATH}:"
-# /usr/X11R6/lib is location of libfreetype.so on OpenBSD
-depdir="/usr/local/lib:/usr/X11R6/lib"
 
 if [ -d "/usr/local/lib/steamworks-nosteam" ] ; then
 	monopath="${monopath}/usr/local/lib/steamworks-nosteam:"
@@ -75,6 +79,7 @@ fi
 
 while [ $# -gt 0 ]; do
 	case "$1" in
+		-c) monoconfig="$2"; shift;;
 		-d) depdir="$2"; shift;;
 		-h) echo "$USAGE"; exit 0;;
 		-i) interaction=i;;
@@ -87,6 +92,70 @@ while [ $# -gt 0 ]; do
 	shift
 done
 cd "$gamedir"
+
+if [ -z "$monoconfig" ] ; then
+	if [ -f "/usr/local/share/fnaify/fnaify.dllmap.config" ] ; then
+		monoconfig="/usr/local/share/fnaify/fnaify.dllmap.config"
+	else	# in this case use config in ~/.config/fnaify/fnaify.dllmap.config
+		monoconfig="$HOME/.config/fnaify/fnaify.dllmap.config"
+
+		# if ~/.config/fnaify/fnaify.dllmap.config doesn't exist, create it
+		if [ ! -e "$monoconfig" ] ; then
+			debug_echo 'creating ~/.config/fnaify/fnaify.dllmap.config'
+			mkdir -p ~/.config/fnaify
+			cat <<EOF > "$monoconfig"
+<?xml version="1.0" encoding="utf-8"?>
+<!-- mono config file for fnaify dllmaps -->
+<configuration>
+	<dllmap dll="FAudio" target="libFAudio.so"/>
+	<dllmap dll="MojoShader.dll" target="libmojoshader.so"/>
+	<dllmap dll="SDL2.dll" target="libSDL2.so"/>
+	<!-- MidBoss needs libSDL2_image_compact.so -->
+	<dllmap dll="SDL2_image.dll" target="libSDL2_image.so"/>
+	<dllmap dll="SDL2_mixer.dll" target="libSDL2_mixer.so"/>
+	<dllmap dll="SDL2_ttf.dll" target="libSDL2_ttf.so"/>
+	<dllmap dll="SteamworksNative.dll" target="libSteamworksNative.so"/>
+	<dllmap dll="freetype6" target="libfreetype.so" />
+	<dllmap dll="freetype6.dll" target="libfreetype.so" />
+	<dllmap dll="libtheorafile.dll" target="libtheorafile.so"/>
+	<dllmap dll="libtheoraplay.dll" target="libtheoraplay.so"/>
+	<dllmap dll="libvorbisfile.dll" target="libvorbisfile.so"/>
+	<dllmap dll="openal32.dll" target="libopenal.so"/>
+	<dllmap dll="soft_oal.dll" target="libopenal.so"/>
+
+	<!-- Atom Zombie Smasher -->
+	<dllmap dll="msvcr100.dll" target="libc.so"/>
+
+	<!-- Terraria, Solaroids -->
+	<dllmap dll="gdiplus.dll" target="libgdiplus.so"/>
+
+	<!-- MidBoss -->
+	<dllmap dll="i:cygwin1.dll" target="libc.so"/>
+	<dllmap dll="libc" target="libc.so"/>
+	<dllmap dll="intl" target="libc.so"/>
+	<dllmap dll="libintl" target="libc.so"/>
+	<dllmap dll="i:libxslt.dll" target="libxslt.so"/>
+	<dllmap dll="i:odbc32.dll" target="libodbc.so"/>
+	<dllmap dll="oci" target="libclntsh.so"/>
+	<dllmap dll="db2cli" target="libdb2_36.so"/>
+	<dllmap dll="MonoPosixHelper" target="libMonoPosixHelper.so"/>
+	<dllmap dll="i:msvcrt" target="libc.so"/>
+	<dllmap dll="i:msvcrt.dll" target="libc.so"/>
+	<dllmap dll="sqlite" target="libsqlite.so"/>
+	<dllmap dll="sqlite3" target="libsqlite3.so"/>
+	<dllmap dll="libX11" target="libX11.so"/>
+	<dllmap dll="libcairo-2.dll" target="libcairo.so"/>
+	<dllmap dll="libcups" target="libcups.so"/>
+
+	<!-- Nuclex.Input (Dead Pixels, Amazing Princess Sarah, Akane the Kunoichi -->
+	<dllmap dll="kernel32">
+		<dllentry dll="ld.so" name="LoadLibrary" target="dlopen"/>
+	</dllmap>
+</configuration>
+EOF
+		fi
+	fi
+fi
 
 # Variables and Functions
 
@@ -293,7 +362,7 @@ create_wrapper()
 
 cd "\`dirname "\$0"\`" # Move to the game's location in case it was invoked from elsewhere
 
-LD_LIBRARY_PATH="$(echo "$depdir" | sed -E 's/:$//')" MONO_PATH="$(echo "$monopath" | sed -E 's/:$//' | sed -E 's/^://')" MONO_CONFIG="$HOME/.config/fnaify/fnaify.dllmap.config" $exe_env exec "$FNAIFY_MONO" "$(echo "$my_exe" | tr -d '\:')" $exe_flags \$*
+LD_LIBRARY_PATH="$(echo "$depdir" | sed -E 's/:$//')" MONO_PATH="$(echo "$monopath" | sed -E 's/:$//' | sed -E 's/^://')" MONO_CONFIG="$monoconfig" $exe_env exec "$FNAIFY_MONO" "$(echo "$my_exe" | tr -d '\:')" $exe_flags \$*
 EOF
 
 	chmod +x "$fullscriptpath"
@@ -721,59 +790,6 @@ if [ -n "${missinglibs}" ]; then
 	exit 1
 #else
 	#printdash $(echo "Result of configuration testing: SUCCESS")
-fi
-
-# FIXME: rather put this file into /usr/local/share/fnaify/
-# if ~/.config/fnaify/fnaify.dllmap.config doesn't exist, create it
-if [ ! -e "~/.config/fnaify/fnaify.dllmap.config" ] ; then
-	debug_echo 'creating ~/.config/fnaify/fnaify.dllmap.config'
-	mkdir -p ~/.config/fnaify
-	cat <<EOF > ~/.config/fnaify/fnaify.dllmap.config
-<?xml version="1.0" encoding="utf-8"?>
-<!-- mono config file for fnaify dllmaps -->
-<configuration>
-	<dllmap dll="FAudio" target="libFAudio.so"/>
-	<dllmap dll="MojoShader.dll" target="libmojoshader.so"/>
-	<dllmap dll="SDL2.dll" target="libSDL2.so"/>
-	<!-- MidBoss needs libSDL2_image_compact.so -->
-	<dllmap dll="SDL2_image.dll" target="libSDL2_image.so"/>
-	<dllmap dll="SDL2_mixer.dll" target="libSDL2_mixer.so"/>
-	<dllmap dll="SDL2_ttf.dll" target="libSDL2_ttf.so"/>
-	<dllmap dll="SteamworksNative.dll" target="libSteamworksNative.so"/>
-	<dllmap dll="freetype6" target="libfreetype.so" />
-	<dllmap dll="freetype6.dll" target="libfreetype.so" />
-	<dllmap dll="libtheorafile.dll" target="libtheorafile.so"/>
-	<dllmap dll="libtheoraplay.dll" target="libtheoraplay.so"/>
-	<dllmap dll="libvorbisfile.dll" target="libvorbisfile.so"/>
-	<dllmap dll="openal32.dll" target="libopenal.so"/>
-	<dllmap dll="soft_oal.dll" target="libopenal.so"/>
-
-	<!-- Atom Zombie Smasher -->
-	<dllmap dll="msvcr100.dll" target="libc.so"/>
-
-	<!-- Terraria, Solaroids -->
-	<dllmap dll="gdiplus.dll" target="libgdiplus.so"/>
-
-	<!-- MidBoss (monoconfig) -->
-	<dllmap dll="i:cygwin1.dll" target="libc.so" />
-	<dllmap dll="libc" target="libc.so" />
-	<dllmap dll="intl" target="libc.so" />
-	<dllmap dll="libintl" target="libc.so" />
-	<dllmap dll="i:libxslt.dll" target="libxslt.so" />
-	<dllmap dll="i:odbc32.dll" target="libodbc.so" />
-	<dllmap dll="oci" target="libclntsh.so" />
-	<dllmap dll="db2cli" target="libdb2_36.so" />
-	<dllmap dll="MonoPosixHelper" target="libMonoPosixHelper.so" />
-	<dllmap dll="i:msvcrt" target="libc.so" />
-	<dllmap dll="i:msvcrt.dll" target="libc.so" />
-	<dllmap dll="sqlite" target="libsqlite.so" />
-	<dllmap dll="sqlite3" target="libsqlite3.so" />
-	<dllmap dll="libX11" target="libX11.so" />
-	<dllmap dll="libcairo-2.dll" target="libcairo.so" />
-	<dllmap dll="libcups" target="libcups.so" />
-
-</configuration>
-EOF
 fi
 
 # identify all .config files that do dllmap and move out of the way
