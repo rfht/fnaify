@@ -23,7 +23,8 @@
 # - add CLI option to specify a non-default mono-config(5) file
 # - check_nlog now only looks at major version number; is there a better way?
 #   (it reports only major in 'monodis --assembly': 3.0.0.0, 4.0.0.0)
-# - fix whitespace issue seen with 'Battlepaths V1.8.vshost.exe.config'
+# - fix whitespace issue seen with 'Battlepaths V1.8.vshost.exe.config', and Super
+#   Daryl Deluxe
 # - figure out how to do selection between AJ1.exe and AJ2.exe for Apple Jack
 # - add the following to dllmap file for some XNA games like Amazing Princess
 #   Sarah:

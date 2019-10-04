@@ -2,7 +2,7 @@ FNAIFY(1) - General Commands Manual
 
 # NAME
 
-**fnaify** - script to get FNA-based games ready to run on OpenBSD
+**fnaify** - run FNA/XNA games on OpenBSD
 
 # SYNOPSIS
 
@@ -98,7 +98,10 @@ The arguments are as follows:
 # SUPPORTED GAMES
 
 The Adventures of Shuggy  
+Akane the Kunoichi  
+Amazing Princess Sarah  
 Apotheon  
+Apple Jack 1&2  
 Bleed  
 Bleed 2  
 Breath of Death VII  
@@ -112,16 +115,21 @@ Cryptark
 Cthulhu Saves the World  
 Curse of the Crescent Isle DX  
 Dad Quest  
+Dead Pixels  
 Dead Pixels II  
 The Dishwasher: Vampire Smile  
+Draw a Stickman: EPIC  
 Dust: An Elysian Tail  
 Escape Goat  
 Escape Goat 2  
+Explosionade  
 FEZ  
 Fist Puncher  
 Flinthook  
 Flotilla  
+Game Type  
 Gateways  
+Grand Class Melee 2  
 Growing Pains  
 HackNet  
 Hive  
@@ -137,6 +145,7 @@ Owlboy
 Paladin  
 Penny Arcade's On the Rain-Slick Precipice of Darkness 3  
 Penny Arcade's On the Rain-Slick Precipice of Darkness 4  
+Phoenix Force  
 Press X to Not Die  
 Rex Rocket  
 Rogue Legacy  
@@ -156,6 +165,7 @@ TowerFall: Ascension
 Unexplored  
 Unholy Heights (no audio)  
 The Useful Dead  
+Weapon of Choice  
 Wizorb  
 Wyv and Keep
 
@@ -231,4 +241,4 @@ Thomas Frohwein &lt;[thfr@openbsd.org](mailto:thfr@openbsd.org)&gt;
 
 Thomas Frohwein &lt;[thfr@openbsd.org](mailto:thfr@openbsd.org)&gt;
 
-OpenBSD 6.6 - September 24, 2019
+OpenBSD 6.6 - October 4, 2019
