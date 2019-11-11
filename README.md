@@ -181,6 +181,7 @@ Super Amazing Wagon Adventure
 Super Blood Hockey  
 Super Rad Raygun  
 Sword of the Stars: The Pit  
+Terraria  
 Timespinner  
 TowerFall: Ascension  
 Unexplored  

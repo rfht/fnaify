@@ -864,13 +864,30 @@ if [ \( -e "$fullscriptpath" \) -a \( ! -e "$fullscriptpath.linux" \) ]; then
 	debug_echo "done."
 fi
 
+# Quirks for the runtime invocation of some games
+
+# Hacknet
 if $(ls "$gamedir" | grep -iqm 1 hacknet); then
 	debug_echo "Setting flag '-disableweb' for HackNet"
 	exe_flags="-disableweb"
 fi
+
+# WizOrb
 if $(ls "$gamedir" | grep -iqm 1 wizorb); then
 	debug_echo "Setting 'MONO_IOMAP=all' for WizOrb"
 	exe_env="${exe_env}MONO_IOMAP=all "
+fi
+
+# Terraria
+if $(ls "$gamedir" | grep -iqm 1 terraria); then
+	debug_echo "Setting 'MONO_FORCE_COMPAT' for Terraria"
+	exe_env="${exe_env}MONO_FORCE_COMPAT=1 "
+fi
+
+# Sword of the Stars: The Pit
+if $(ls "$gamedir" | grep -qm 1 ThePit); then
+	debug_echo "Setting 'MONO_FORCE_COMPAT' for Sword of the Stars: The Pit"
+	exe_env="${exe_env}MONO_FORCE_COMPAT=1 "
 fi
 
 create_wrapper
