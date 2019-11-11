@@ -890,6 +890,12 @@ if $(ls "$gamedir" | grep -qm 1 ThePit); then
 	exe_env="${exe_env}MONO_FORCE_COMPAT=1 "
 fi
 
+# Blueberry Garden
+if $(ls "$gamedir" | grep -qm 1 Blueberry.exe); then
+	debug_echo "Setting 'MONO_FORCE_COMPAT' for Blueberry Garden"
+	exe_env="${exe_env}MONO_FORCE_COMPAT=1 "
+fi
+
 create_wrapper
 debug_echo "Launcher script replaced.\n"
 finish_fnaify
