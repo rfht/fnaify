@@ -237,7 +237,7 @@ Thomas Frohwein &lt;[thfr@openbsd.org](mailto:thfr@openbsd.org)&gt;.
 
 2\.1
 
-> Support for additional XNA games.
+> Support for additional XNA games. Add MONO\_FORCE\_COMPAT quirk.
 
 2\.0
 
@@ -271,4 +271,4 @@ Thomas Frohwein &lt;[thfr@openbsd.org](mailto:thfr@openbsd.org)&gt;.
 
 Thomas Frohwein &lt;[thfr@openbsd.org](mailto:thfr@openbsd.org)&gt;
 
-OpenBSD 6.6 - October 4, 2019
+OpenBSD 6.6 - November 11, 2019
