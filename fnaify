@@ -4,7 +4,7 @@
 # fnaify 2.1								#
 # ===============							#
 #									#
-# Script to get FNA-based games ready to run on BSD			#
+# Run FNA/XNA games on OpenBSD						#
 #									#
 # created 2017-12-27 by Thomas Frohwein (thfr)				#
 # portability fixes by Mariusz Zaborski (oshogbo)			#
@@ -25,10 +25,6 @@
 # - fix whitespace issue seen with 'Battlepaths V1.8.vshost.exe.config', and Super
 #   Daryl Deluxe
 # - figure out how to do selection between AJ1.exe and AJ2.exe for Apple Jack
-# - update USAGE
-# - add -c to man page
-# - find strategy to keep included fnaify.dllmap.config and the automatically created
-#   one in sync
 
 USAGE="\nUsage: `basename $0` [-i|-y] [-hv] [-c <configfile>] [-d <depdir>] [-m <monopath>] [<gamedir>]\n\
 \n\
