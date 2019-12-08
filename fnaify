@@ -100,7 +100,7 @@ if [ -z "$monoconfig" ] ; then
 	if [ -f "$HOME/.config/fnaify/fnaify.dllmap.config" ] ; then
 		monoconfig="$HOME/.config/fnaify/fnaify.dllmap.config"
 		# check for outdated config file
-		if [ "x$(echo "$monoconfig" | grep -m 1 "LoadLibrary")" = "x" ] ; then
+		if [ "x$(cat "$monoconfig" | grep -m 1 "LoadLibrary")" = "x" ] ; then
 			echo "WARNING: $monoconfig appears to be out of date. It is strongly recommended to remove it and re-run `basename $0`."
 		fi
 	else
@@ -171,40 +171,29 @@ fna_warning=0
 nlog_warning=0
 
 # array of lib names to ignore for the configuration checking
-ignoredarray="FarseerPhysics.Portable.xml
-libCSteamworks.so
-libsteam_api.so
-libcef.so
-libXNAWebRenderer.so
-libSteamWrapper.so
-libParisSteam.so
-steamwrapper.so
+ignoredarray="
+FarseerPhysics.Portable.xml
 libCommunityExpressSW.so
-libXNAFileDialog.so
-libfmod.so
-libfmodstudio.so
-libtiny_jpeg.so
+libCSteamworks.so
 libGalaxy64.so
 libGalaxyCSharpGlue.so
 libGalaxy.so
-steam_appid.txt"
+libParisSteam.so
+libSkiaSharp.so
+libSteamWrapper.so
+libXNAFileDialog.so
+libXNAWebRenderer.so
+libsteam_api.so
+libcef.so
+libfmod.so
+libfmodstudio.so
+libtiny_jpeg.so
+steamwrapper.so
+steam_appid.txt
+"
 
 # array of mono files that need to be removed from the game folder
-monofilearray="System.dll
-Mono.Posix.dll
-Mono.Security.dll
-System.Configuration.dll
-System.Core.dll
-System.Data.dll
-System.Xml.dll
-System.Security.dll
-System.Runtime.Serialization.dll
-mscorlib.dll
-System.Drawing.dll
-monoconfig
-System.Xml.Linq.dll
-WindowsBase.dll
-monomachineconfig
+monofilearray="
 I18N.CJK.dll
 I18N.MidEast.dll
 I18N.Other.dll
@@ -213,7 +202,23 @@ I18N.West.dll
 I18N.dll
 Microsoft.CSharp.dll
 Mono.CSharp.dll
-System.ServiceModel.dll"
+Mono.Posix.dll
+Mono.Security.dll
+System.Configuration.dll
+System.Core.dll
+System.Data.dll
+System.Drawing.dll
+System.Runtime.Serialization.dll
+System.Security.dll
+System.ServiceModel.dll
+System.Xml.Linq.dll
+System.Xml.dll
+System.dll
+WindowsBase.dll
+monoconfig
+monomachineconfig
+mscorlib.dll
+"
 
 needlibarray="" # array that will hold the names of needed libraries
 
