@@ -12,4 +12,6 @@ readme: fnaify.1
 
 .PHONY: uninstall
 uninstall:
+	rm -f $(DESTDIR)$(PREFIX)/bin/fnaify
 	rm -f $(DESTDIR)$(PREFIX)/share/fnaify/fnaify.dllmap.config
+	rm -f $(DESTDIR)$(PREFIX)/man/man1/fnaify.1
