@@ -236,6 +236,10 @@ Thomas Frohwein &lt;[thfr@openbsd.org](mailto:thfr@openbsd.org)&gt;.
 
 # RELEASE HISTORY
 
+2\.2
+
+> Fix config for mono 6. Add support for libcestub.
+
 2\.1
 
 > Support for additional XNA games. Add MONO\_FORCE\_COMPAT quirk.
@@ -272,4 +276,4 @@ Thomas Frohwein &lt;[thfr@openbsd.org](mailto:thfr@openbsd.org)&gt;.
 
 Thomas Frohwein &lt;[thfr@openbsd.org](mailto:thfr@openbsd.org)&gt;
 
-OpenBSD 6.6 - November 11, 2019
+OpenBSD 6.7 - March 7, 2020
