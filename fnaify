@@ -25,6 +25,7 @@
 # - fix whitespace issue seen with 'Battlepaths V1.8.vshost.exe.config', and Super
 #   Daryl Deluxe
 # - figure out how to do selection between AJ1.exe and AJ2.exe for Apple Jack
+# - fails to detect XNA in Streets of Fury EX because of whitespace; resolved after renaming .exe
 
 USAGE="\nUsage: `basename $0` [-i|-y] [-hv] [-c <configfile>] [-d <depdir>] [-m <monopath>] [<gamedir>]\n\
 \n\
