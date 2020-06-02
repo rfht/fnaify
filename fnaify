@@ -26,7 +26,6 @@
 #   Daryl Deluxe
 # - figure out how to do selection between AJ1.exe and AJ2.exe for Apple Jack
 # - fails to detect XNA in Streets of Fury EX because of whitespace; resolved after renaming .exe
-# - add check for ulimit -d, at least for Stardew Valley
 # - sync dllmap file with the creator in the main script
 # - test if System.Numerics.dll and System.Windows.Forms.dll can/should also be removed from gamedir
 # - Cryptark now needs newer FNA.dll (works with 19.9 instead of 17.9)
@@ -367,6 +366,9 @@ create_wrapper()
 
 # fnaify wrapper script for launching FNA games on BSD
 
+echo -n "NOTE: if game should unexpectedly fail to start, make sure datasize limit is high enough. "
+echo "AT LEAST 2G are recommended for most games. See ksh(1) for ulimit command documentation"
+
 cd "\`dirname "\$0"\`" # Move to the game's location in case it was invoked from elsewhere
 
 LD_LIBRARY_PATH="$(echo "$depdir" | sed -E 's/:$//')" MONO_PATH="$(echo "$monopath" | sed -E 's/:$//' | sed -E 's/^://')" MONO_CONFIG="$monoconfig" $exe_env exec "$FNAIFY_MONO" "$(echo "$my_exe" | tr -d '\:')" $exe_flags \$*
@@ -594,6 +596,7 @@ else
 	# Molek-Syntez
 	# Exapunks
 	# Opus Magnum (Lightning.exe)
+	# Shenzhen I/O (crashes when writing in the editor System.InvalidOperationException)
 	if [ -n "$(ls "$gamedir" | grep -im 1 "atomzombiesmasher")" ] ; then
 		debug_echo "Atom Zombie Smasher requires libatomstb.so"
 		# FIXME: check for "libatomstb.so*" in depdirs
@@ -633,6 +636,7 @@ else
 		-o \( -n "$(ls "$gamedir" | grep -im 1 "molek-syntez.exe")" \) \
 		-o \( -n "$(ls "$gamedir" | grep -im 1 "exapunks.exe")" \) \
 		-o \( -n "$(ls "$gamedir" | grep -im 1 "lightning.exe")" \) \
+		-o \( -n "$(ls "$gamedir" | grep -im 1 "shenzhen.exe")" \) \
 		] ; then
 		debug_echo "\nCompatible game without XNA/FNA framework file found."
 		debug_echo 'Creating $HOME/Desktop directory which is needed for some Zachtronics games'
@@ -823,6 +827,7 @@ for config_file in $(ls "$gamedir" | grep "\.config$"); do
 done
 
 # FIXME: leave this out if not importing libSDL2_image_compact??
+# TODO: may not be needed with additions to fnaify.dllmap.config
 # if MidBoss, add a FNA.dll.config to overwrite libSDL2_image_compact
 #if [ $MidBoss -eq 1 ]; then
 	#debug_echo 'creating FNA.dll.config for MidBoss'
