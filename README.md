@@ -141,8 +141,10 @@ Dead Pixels II
 The Dishwasher: Vampire Smile  
 Draw a Stickman: EPIC  
 Dust: An Elysian Tail  
+Eliza  
 Escape Goat  
 Escape Goat 2  
+EXAPUNKS  
 Explosionade  
 FEZ  
 Fist Puncher  
@@ -159,9 +161,11 @@ Jon Shafer's At the Gates
 LaserCat  
 Little Racers STREET  
 Mercenary Kings  
+Molek-Syntez  
 Mount Your Friends  
 Ninja Warrior  
 One Finger Death Punch  
+Opus Magnum  
 Overdriven Reloaded  
 Owlboy  
 Paladin  
@@ -201,6 +205,7 @@ Wyv and Keep
 *~/.config/fnaify/fnaify.dllmap.config*
 
 > User directory configuration file. Takes precedence if it exists.
+> Make sure to keep it up-to-date!
 
 # EXIT STATUS
 
@@ -235,6 +240,10 @@ utility was originally created in December 2017 by
 Thomas Frohwein &lt;[thfr@openbsd.org](mailto:thfr@openbsd.org)&gt;.
 
 # RELEASE HISTORY
+
+2\.3
+
+> Add support for several Zachtronics games. Add libstubborn use to dllmap.
 
 2\.2
 
@@ -276,4 +285,4 @@ Thomas Frohwein &lt;[thfr@openbsd.org](mailto:thfr@openbsd.org)&gt;.
 
 Thomas Frohwein &lt;[thfr@openbsd.org](mailto:thfr@openbsd.org)&gt;
 
-OpenBSD 6.7 - March 7, 2020
+OpenBSD 6.7 - April 12, 2020

@@ -1,4 +1,4 @@
-.Dd $Mdocdate: April 12 2020 $
+.Dd $Mdocdate: June 2 2020 $
 .Dt FNAIFY 1
 .Os
 .Sh NAME
@@ -150,9 +150,13 @@ Draw a Stickman: EPIC
 .It
 Dust: An Elysian Tail
 .It
+Eliza
+.It
 Escape Goat
 .It
 Escape Goat 2
+.It
+EXAPUNKS
 .It
 Explosionade
 .It
@@ -186,11 +190,15 @@ Little Racers STREET
 .It
 Mercenary Kings
 .It
+Molek-Syntez
+.It
 Mount Your Friends
 .It
 Ninja Warrior
 .It
 One Finger Death Punch
+.It
+Opus Magnum
 .It
 Overdriven Reloaded
 .It
@@ -256,6 +264,7 @@ Wyv and Keep
 Default configuration file to map DLLs to native libraries.
 .It Pa ~/.config/fnaify/fnaify.dllmap.config
 User directory configuration file. Takes precedence if it exists.
+Make sure to keep it up-to-date!
 .El
 .Sh EXIT STATUS
 .Nm
@@ -283,6 +292,8 @@ utility was originally created in December 2017 by
 .An Thomas Frohwein Aq Mt thfr@openbsd.org .
 .Sh RELEASE HISTORY
 .Bl -tag -width Ds
+.It 2.3
+Add support for several Zachtronics games. Add libstubborn use to dllmap.
 .It 2.2
 Fix config for mono 6. Add support for libcestub.
 .It 2.1
