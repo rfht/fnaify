@@ -1,7 +1,7 @@
 #!/usr/bin/env ksh
 
 #########################################################################
-# fnaify 2.2								#
+# fnaify 2.3								#
 # ===============							#
 #									#
 # Run FNA/XNA games on OpenBSD						#
@@ -26,6 +26,10 @@
 #   Daryl Deluxe
 # - figure out how to do selection between AJ1.exe and AJ2.exe for Apple Jack
 # - fails to detect XNA in Streets of Fury EX because of whitespace; resolved after renaming .exe
+# - add check for ulimit -d, at least for Stardew Valley
+# - sync dllmap file with the creator in the main script
+# - test if System.Numerics.dll and System.Windows.Forms.dll can/should also be removed from gamedir
+# - Cryptark now needs newer FNA.dll (works with 19.9 instead of 17.9)
 
 USAGE="\nUsage: `basename $0` [-i|-y] [-hv] [-c <configfile>] [-d <depdir>] [-m <monopath>] [<gamedir>]\n\
 \n\
@@ -205,9 +209,15 @@ System.Configuration.dll
 System.Core.dll
 System.Data.dll
 System.Drawing.dll
+System.Numerics.dll
 System.Runtime.Serialization.dll
 System.Security.dll
 System.ServiceModel.dll
+System.Web.Extensions.dll
+System.Web.Http.dll
+System.Web.Services.dll
+System.Web.dll
+System.Windows.Forms.dll
 System.Xml.Linq.dll
 System.Xml.dll
 System.dll
@@ -578,9 +588,13 @@ if [ -e "$gamedir/FNA.dll" ]; then
 elif [ -e "$gamedir/MonoGame.Framework.dll" ]; then
 	debug_echo "\tFound MonoGame.Framework.dll"
 else
-	# Atom Zombie Smasher is the only compatible game without framework files
-	ls "$gamedir" | grep -iqm 1 "atomzombiesmasher"
-	if [ $? -eq 0 ]; then
+	# games without framework files:
+	# Atom Zombie Smasher
+	# Eliza
+	# Molek-Syntez
+	# Exapunks
+	# Opus Magnum (Lightning.exe)
+	if [ -n "$(ls "$gamedir" | grep -im 1 "atomzombiesmasher")" ] ; then
 		debug_echo "Atom Zombie Smasher requires libatomstb.so"
 		# FIXME: check for "libatomstb.so*" in depdirs
 		#        only proceed if not found
@@ -615,6 +629,14 @@ else
 			cd "$lastdir"
 			rm -rf /tmp/AZSNotSFML
 		fi
+	elif [ \( -n "$(ls "$gamedir" | grep -im 1 "eliza.exe")" \) \
+		-o \( -n "$(ls "$gamedir" | grep -im 1 "molek-syntez.exe")" \) \
+		-o \( -n "$(ls "$gamedir" | grep -im 1 "exapunks.exe")" \) \
+		-o \( -n "$(ls "$gamedir" | grep -im 1 "lightning.exe")" \) \
+		] ; then
+		debug_echo "\nCompatible game without XNA/FNA framework file found."
+		debug_echo 'Creating $HOME/Desktop directory which is needed for some Zachtronics games'
+		mkdir -p "$HOME/Desktop"
 	else
 		check_nlog
 		xnasetup	# check if this is an XNA game and set up in that case
