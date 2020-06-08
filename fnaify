@@ -208,6 +208,9 @@ System.Configuration.dll
 System.Core.dll
 System.Data.dll
 System.Drawing.dll
+System.IO.Compression.FileSystem.dll
+System.IO.Compression.dll
+System.Net.dll
 System.Numerics.dll
 System.Runtime.Serialization.dll
 System.Security.dll
@@ -221,6 +224,8 @@ System.Xml.Linq.dll
 System.Xml.dll
 System.dll
 WindowsBase.dll
+libMonoPosixHelper.so.x86
+libMonoPosixHelper.so.x86_64
 monoconfig
 monomachineconfig
 mscorlib.dll
@@ -276,8 +281,7 @@ trunklibnam() # truncate library name
 {
 	libnam="$1"
 	libnam="$(echo "$libnam" | sed -n -E "s/[\.0-9]*$//p")"
-	libnam="$(echo "$libnam" | sed -E "s/(libSDL2[^-]*)-2\.0(\.so.*)/\1\2/")"
-	echo "$libnam"
+	echo "$libnam" | sed -E "s/(libSDL2[^-]*)-2\.0(\.so.*)/\1\2/"
 }
 
 libraryname()
@@ -309,6 +313,63 @@ libraryname()
 			fi
 		done
 		debug_echo "Done with library directory $gamedir/$version"
+	fi
+}
+
+# function to find the latest present library. Return -1 if none found.
+# $1 is the basename of the library without the version suffix (e.g. /usr/lib/libc.so)
+# it will return the filename of the latest library version (e.g. /usr/lib/libc.so.96.0)
+latest_syslib()
+{
+	if [ -z "$1" ] ; then
+		return 1
+	fi
+	find "$(dirname $1)" -maxdepth 1 -name "$(basename $1)*" | tail -1
+}
+
+symlink_mg_libs()
+{
+	mg_subdirs="x64
+x86"
+	debug_echo "\nChecking for MonoGame x64/x86 dir to create symlinks"
+
+	
+	if [ \( ! -e "$gamedir/x64" \) -a \( ! -e "$gamedir/x86" \) ]; then
+		debug_echo "\nCouldn't find directories x64 or x86 in $gamedir"
+	else
+		for d in ${mg_subdirs[@]} ; do
+			debug_echo "\nProcessing library directory $gamedir/$d"
+			for file in $(ls "$gamedir/$d"); do
+				# sort out libs that need to be ignored
+				validlib $file
+				if [ $? -eq 1 ]; then
+					debug_echo "\tignored file: $file"
+					continue
+				fi
+				debug_echo "\tfound library file: $file. Replacing with symlink..."
+				trunk=$(trunklibnam "$file")
+				rm "$gamedir/$d/$file"
+				debug_echo -n "\t\tchecking for location of $trunk... "
+				if [ -n "$(latest_syslib /usr/local/lib/$trunk)" ] ; then
+					debug_echo "found in /usr/local/lib!"
+					trunkpath="/usr/local/lib/$trunk"
+				elif [ -n "$(latest_syslib /usr/X11R6/lib/$trunk)" ] ; then
+					debug_echo "found in /usr/X11R6/lib!"
+					trunkpath="/usr/X11R6/lib/$trunk"
+				elif [ -n "$(latest_syslib /usr/lib/$trunk)" ] ; then
+					debug_echo "found in /usr/lib!"
+					trunkpath="/usr/lib/$trunk"
+				else
+					debug_echo "NOT FOUND!!"
+					trunkpath=
+					echo "\n\t - ERROR: couldn't find system lib for $file"
+				fi
+				ln -s "$(latest_syslib "$trunkpath")" "$gamedir/$d/$file"
+			done
+			debug_echo "Done with library directory $gamedir/$d"
+		done
+		debug_echo "\nCreating libdl.so.2 symlink\n"
+		ln -s "$(latest_syslib /usr/lib/libc.so)" "$gamedir/libdl.so.2"
 	fi
 }
 
@@ -366,10 +427,36 @@ create_wrapper()
 
 # fnaify wrapper script for launching FNA games on BSD
 
+latest_syslib()
+{
+	if [ -z "\$1" ] ; then
+		return 1
+	fi
+	find "\$(dirname \$1)" -maxdepth 1 -name "\$(basename \$1)*" | tail -1
+}
+
+trunklibnam()
+{
+	libnam="\$1"
+	echo "\$libnam" | sed -n -E "s/[\.0-9]*$//p"
+}
+
 echo -n "NOTE: if game should unexpectedly fail to start, make sure datasize limit is high enough. "
 echo "AT LEAST 2G are recommended for most games. See ksh(1) for ulimit command documentation"
 
 cd "\`dirname "\$0"\`" # Move to the game's location in case it was invoked from elsewhere
+
+# check if broken symlinks exist in the game directory
+for l in \$(find . x64 x86 -maxdepth 1 -type l); do
+	if [ ! -e "\$l" ] ; then
+		newl="\$(latest_syslib "\$(trunklibnam "\$(readlink \$l)")")"
+		if [ -z "\$newl" ] ; then
+			echo "ERROR: Missing library for \$l. Expect trouble."
+		else
+			ln -fs "\$newl" "\$l"
+		fi
+	fi
+done
 
 LD_LIBRARY_PATH="$(echo "$depdir" | sed -E 's/:$//')" MONO_PATH="$(echo "$monopath" | sed -E 's/:$//' | sed -E 's/^://')" MONO_CONFIG="$monoconfig" $exe_env exec "$FNAIFY_MONO" "$(echo "$my_exe" | tr -d '\:')" $exe_flags \$*
 EOF
@@ -742,6 +829,8 @@ fi
 
 libraryname "lib64"
 libraryname "lib"
+libraryname "x64"
+libraryname "x86"
 
 debug_echo "Obtaining library names from the following config files"
 if [ $nconfigfilesarray -lt 1 ]; then
@@ -876,6 +965,8 @@ if [ $fna_warning -eq 1 ]; then
 fi
 
 check_remove_steamworks
+
+symlink_mg_libs
 
 IFS="
 "

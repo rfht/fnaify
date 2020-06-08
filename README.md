@@ -163,6 +163,7 @@ Little Racers STREET
 Mercenary Kings  
 Molek-Syntez  
 Mount Your Friends  
+NeuroVoider  
 Ninja Warrior  
 One Finger Death Punch  
 Opus Magnum  
@@ -285,4 +286,4 @@ Thomas Frohwein &lt;[thfr@openbsd.org](mailto:thfr@openbsd.org)&gt;.
 
 Thomas Frohwein &lt;[thfr@openbsd.org](mailto:thfr@openbsd.org)&gt;
 
-OpenBSD 6.7 - April 12, 2020
+OpenBSD 6.7 - June 2, 2020
