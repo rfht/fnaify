@@ -244,7 +244,8 @@ Thomas Frohwein &lt;[thfr@openbsd.org](mailto:thfr@openbsd.org)&gt;.
 
 2\.3
 
-> Add support for several Zachtronics games. Add libstubborn use to dllmap.
+> Support for several Zachtronics games. Add libstubborn use to dllmap.
+> Symlinking for MonoGame, e.g. NeuroVoider.
 
 2\.2
 
@@ -286,4 +287,4 @@ Thomas Frohwein &lt;[thfr@openbsd.org](mailto:thfr@openbsd.org)&gt;.
 
 Thomas Frohwein &lt;[thfr@openbsd.org](mailto:thfr@openbsd.org)&gt;
 
-OpenBSD 6.7 - June 2, 2020
+OpenBSD 6.7 - June 8, 2020
