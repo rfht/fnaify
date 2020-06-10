@@ -447,7 +447,7 @@ echo "AT LEAST 2G are recommended for most games. See ksh(1) for ulimit command 
 cd "\`dirname "\$0"\`" # Move to the game's location in case it was invoked from elsewhere
 
 # check if broken symlinks exist in the game directory
-for l in \$(find . x64 x86 -maxdepth 1 -type l); do
+for l in \$(find . -maxdepth 2 -type l); do
 	if [ ! -e "\$l" ] ; then
 		newl="\$(latest_syslib "\$(trunklibnam "\$(readlink \$l)")")"
 		if [ -z "\$newl" ] ; then
@@ -685,39 +685,42 @@ else
 	# Opus Magnum (Lightning.exe)
 	# Shenzhen I/O (crashes when writing in the editor System.InvalidOperationException)
 	if [ -n "$(ls "$gamedir" | grep -im 1 "atomzombiesmasher")" ] ; then
-		debug_echo "Atom Zombie Smasher requires libatomstb.so"
-		# FIXME: check for "libatomstb.so*" in depdirs
-		#        only proceed if not found
-		if [ "x$interaction" = "xi" ] ; then
-			echo -n "Compile and install libatomstb.so in game directory? [y/n]"
-			response=
-			until [ \( "x$response" = "xy" \) -o \( "x$response" = "xn" \) ]
-			do
-				read response
-			done
-		elif [ "x$interaction" = "xy" ] ; then
-			response="y"
+		debug_echo "\nAtom Zombie Smasher requires libatomstb.so"
+		if $(ls $(echo "$depdir" | tr -s ':' ' ') | grep -q "$needlib")
+		then
+			debug_echo "\tfound libatomstb library"
 		else
-			response="n"
-		fi
+			if [ "x$interaction" = "xi" ] ; then
+				echo -n "Compile and install libatomstb.so in game directory? [y/n]"
+				response=
+				until [ \( "x$response" = "xy" \) -o \( "x$response" = "xn" \) ]
+				do
+					read response
+				done
+			elif [ "x$interaction" = "xy" ] ; then
+				response="y"
+			else
+				response="n"
+			fi
 
-		if [ "x$response" = "xy" ] ; then
-			lastdir="$PWD"
-			cd /tmp/
-			echo "\nInstalling libatomstb.so ..."
-			licenses="${licenses}libatomstb:\thttps://github.com/flibitijibibo/AZSNotSFML/blob/master/NotSFML.cs${newline}"
-			ftp -V https://github.com/flibitijibibo/AZSNotSFML/archive/$libatomstb_commit.tar.gz
-			tar zxf $libatomstb_commit.tar.gz
-			mv AZSNotSFML-$libatomstb_commit AZSNotSFML
-			echo -n "compiling libatomstb.so. This may take a moment... "
-			cc -O2 -pipe -c -fpic -I/usr/include/sys \
-				-o AZSNotSFML/atomstb/atomstb.o AZSNotSFML/atomstb/atomstb.c
-			cc -shared -o AZSNotSFML/atomstb/libatomstb.so \
-				AZSNotSFML/atomstb/atomstb.o
-			echo "done."
-			cp /tmp/AZSNotSFML/atomstb/libatomstb.so "$gamedir/"
-			cd "$lastdir"
-			rm -rf /tmp/AZSNotSFML
+			if [ "x$response" = "xy" ] ; then
+				lastdir="$PWD"
+				cd /tmp/
+				echo "\nInstalling libatomstb.so ..."
+				licenses="${licenses}libatomstb:\thttps://github.com/flibitijibibo/AZSNotSFML/blob/master/NotSFML.cs${newline}"
+				ftp -V https://github.com/flibitijibibo/AZSNotSFML/archive/$libatomstb_commit.tar.gz
+				tar zxf $libatomstb_commit.tar.gz
+				mv AZSNotSFML-$libatomstb_commit AZSNotSFML
+				echo -n "compiling libatomstb.so. This may take a moment... "
+				cc -O2 -pipe -c -fpic -I/usr/include/sys \
+					-o AZSNotSFML/atomstb/atomstb.o AZSNotSFML/atomstb/atomstb.c
+				cc -shared -o AZSNotSFML/atomstb/libatomstb.so \
+					AZSNotSFML/atomstb/atomstb.o
+				echo "done."
+				cp /tmp/AZSNotSFML/atomstb/libatomstb.so "$gamedir/"
+				cd "$lastdir"
+				rm -rf /tmp/AZSNotSFML
+			fi
 		fi
 	elif [ \( -n "$(ls "$gamedir" | grep -im 1 "eliza.exe")" \) \
 		-o \( -n "$(ls "$gamedir" | grep -im 1 "molek-syntez.exe")" \) \
@@ -824,7 +827,6 @@ ls "$gamedir" | grep -iqm 1 "midboss"
 if [ $? -eq 0 ]; then
 	MidBoss=1
 	needlibarray="${needlibarray}libSDL2_image_compact.so "
-	# FIXME: add option to compile https://github.com/FNA-XNA/SDL_image_compact ??
 fi
 
 libraryname "lib64"
@@ -915,18 +917,16 @@ for config_file in $(ls "$gamedir" | grep "\.config$"); do
 	fi
 done
 
-# FIXME: leave this out if not importing libSDL2_image_compact??
-# TODO: may not be needed with additions to fnaify.dllmap.config
 # if MidBoss, add a FNA.dll.config to overwrite libSDL2_image_compact
-#if [ $MidBoss -eq 1 ]; then
-	#debug_echo 'creating FNA.dll.config for MidBoss'
-	#cat <<EOF > "$gamedir/FNA.dll.config"
-#<?xml version="1.0" encoding="utf-8"?>
-#<configuration>
-	#<dllmap dll="SDL2_image.dll" os="openbsd,freebsd,netbsd" target="libSDL2_image_compact.so"/>
-#</configuration>
-#EOF
-#fi
+if [ $MidBoss -eq 1 ]; then
+	debug_echo 'creating FNA.dll.config for MidBoss'
+	cat <<EOF > "$gamedir/FNA.dll.config"
+<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+	<dllmap dll="SDL2_image.dll" target="libSDL2_image_compact.so"/>
+</configuration>
+EOF
+fi
 
 debug_echo "Moving some bundled dll files into fnaify-backup subfolder... "
 for file in $monofilearray; do
