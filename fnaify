@@ -27,8 +27,8 @@
 # - figure out how to do selection between AJ1.exe and AJ2.exe for Apple Jack
 # - fails to detect XNA in Streets of Fury EX because of whitespace; resolved after renaming .exe
 # - sync dllmap file with the creator in the main script
-# - test if System.Numerics.dll and System.Windows.Forms.dll can/should also be removed from gamedir
 # - Cryptark now needs newer FNA.dll (works with 19.9 instead of 17.9)
+# - update the creator for dllmap file; based on fnaify.dllmap.config
 
 USAGE="\nUsage: `basename $0` [-i|-y] [-hv] [-c <configfile>] [-d <depdir>] [-m <monopath>] [<gamedir>]\n\
 \n\
@@ -1001,6 +1001,12 @@ fi
 # Terraria
 if $(ls "$gamedir" | grep -iqm 1 terraria); then
 	debug_echo "Setting 'MONO_FORCE_COMPAT' for Terraria"
+	exe_env="${exe_env}MONO_FORCE_COMPAT=1 "
+fi
+
+# Shenzhen I/O
+if $(ls "$gamedir" | grep -iqm 1 shenzhen); then
+	debug_echo "Setting 'MONO_FORCE_COMPAT' for Shenzhen I/O"
 	exe_env="${exe_env}MONO_FORCE_COMPAT=1 "
 fi
 

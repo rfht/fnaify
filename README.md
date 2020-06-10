@@ -177,6 +177,7 @@ Press X to Not Die
 Rex Rocket  
 Rogue Legacy  
 Salt and Sanctuary  
+Shenzhen I/O  
 Shipwreck  
 Skulls of the Shogun  
 Soulcaster 1 & 2  
