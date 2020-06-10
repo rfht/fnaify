@@ -29,6 +29,10 @@ has been extended to attempt configuring XNA games as well.
 can be run in 3 basic modes regarding the addition of missing libraries:
 restrictive, interactive, and permissive.
 
+All games require additional libraries from ports, like SDL2. Some of
+them can be found in fnaify-extralibs package, like libatomstb or
+libfmod\_SDL.
+
 The arguments are as follows:
 
 **-i** | **-y**
@@ -123,11 +127,13 @@ Akane the Kunoichi
 Amazing Princess Sarah  
 Apotheon  
 Apple Jack 1&2  
+Atom Zombie Smasher  
 Bleed  
 Bleed 2  
 Breath of Death VII  
 Brushwood Buddies  
 Capsized  
+Celeste (no audio)  
 Chaos Heart  
 Charlie Murder  
 Chasm  
@@ -161,6 +167,7 @@ Jon Shafer's At the Gates
 LaserCat  
 Little Racers STREET  
 Mercenary Kings  
+MidBoss  
 Molek-Syntez  
 Mount Your Friends  
 NeuroVoider  
@@ -288,4 +295,4 @@ Thomas Frohwein &lt;[thfr@openbsd.org](mailto:thfr@openbsd.org)&gt;.
 
 Thomas Frohwein &lt;[thfr@openbsd.org](mailto:thfr@openbsd.org)&gt;
 
-OpenBSD 6.7 - June 8, 2020
+OpenBSD 6.7 - June 10, 2020
