@@ -26,6 +26,7 @@
 #   Daryl Deluxe
 # - figure out how to do selection between AJ1.exe and AJ2.exe for Apple Jack
 # - fails to detect XNA in Streets of Fury EX because of whitespace; resolved after renaming .exe
+# - sync dllmap file with the creator in the main script
 # - Cryptark now needs newer FNA.dll (works with 19.9 instead of 17.9)
 # - update the creator for dllmap file; based on fnaify.dllmap.config
 
@@ -99,7 +100,7 @@ if [ -z "$monoconfig" ] ; then
 	if [ -f "$HOME/.config/fnaify/fnaify.dllmap.config" ] ; then
 		monoconfig="$HOME/.config/fnaify/fnaify.dllmap.config"
 		# check for outdated config file
-		if [ "x$(cat "$monoconfig" | grep -m 1 "libstubborn")" = "x" ] ; then
+		if [ "x$(cat "$monoconfig" | grep -m 1 "LoadLibrary")" = "x" ] ; then
 			echo "WARNING: $monoconfig appears to be out of date. It is strongly recommended to remove it and re-run `basename $0`."
 		fi
 	else
