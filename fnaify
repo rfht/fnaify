@@ -649,6 +649,38 @@ xnasetup()
 	finish_fnaify
 }
 
+iomap()
+{
+	if [ "$1" == "DeadPixels" ] ; then
+		ln -s Sprites Content/sprites
+		ln -s Effects Content/Sprites/effects
+		ln -s Splash Content/Sprites/splash
+		ln -s Items ./Content/Sprites/InGame/items
+		ln -s Grenades ./Content/Sprites/InGame/grenades
+		ln -s Hud ./Content/Sprites/InGame/hud
+		ln -s insideBuildings Content/Sprites/InGame/InsideBuildings
+		ln -s Character Content/Sprites/InGame/character
+		ln -s City Content/Sprites/InGame/city
+		ln -s Traders Content/Sprites/InGame/traders
+		ln -s Zombies Content/Sprites/InGame/zombies
+		ln -s Objects Content/Sprites/InGame/objects
+		ln -s Other Content/Sprites/InGame/other
+		ln -s GunShots Content/Sprites/InGame/gunShots
+		ln -s Buttons Content/Sprites/buttons
+		ln -s Menu Content/Sprites/menu
+		ln -s Cursor Content/Sprites/cursor
+		ln -s Achievements Content/Sprites/achievements
+		ln -s Credits Content/Sprites/credits
+		ln -s Font Content/Sprites/font
+		ln -s preview Content/Sprites/Preview
+		ln -s preview Content/Sprites/Menu/Preview
+		ln -s PsxButtons Content/Sprites/buttons/psxButtons
+	else
+		echo "ERROR: invalid or no parameter for iomap()"
+		exit 1
+	fi
+}
+
 # End of Variables and Functions
 
 debug_echo "Dependency directory string: $depdir"
@@ -986,22 +1018,22 @@ fi
 
 # Quirks for the runtime invocation of some games
 
+# Blueberry Garden
+if $(ls "$gamedir" | grep -qm 1 Blueberry.exe); then
+	debug_echo "Setting 'MONO_FORCE_COMPAT' for Blueberry Garden"
+	exe_env="${exe_env}MONO_FORCE_COMPAT=1 "
+fi
+
+# Dead Pixesl
+if $(ls "$gamedir" | grep -qm 1 "Dead Pixels.exe"); then
+	debug_echo "Create symlinks to replace MONO_IOMAP for Dead Pixels"
+	iomap DeadPixels
+fi
+
 # Hacknet
 if $(ls "$gamedir" | grep -iqm 1 hacknet); then
 	debug_echo "Setting flag '-disableweb' for HackNet"
 	exe_flags="-disableweb"
-fi
-
-# WizOrb
-if $(ls "$gamedir" | grep -iqm 1 wizorb); then
-	debug_echo "Setting 'MONO_IOMAP=all' for WizOrb"
-	exe_env="${exe_env}MONO_IOMAP=all "
-fi
-
-# Terraria
-if $(ls "$gamedir" | grep -iqm 1 terraria); then
-	debug_echo "Setting 'MONO_FORCE_COMPAT' for Terraria"
-	exe_env="${exe_env}MONO_FORCE_COMPAT=1 "
 fi
 
 # Shenzhen I/O
@@ -1016,10 +1048,16 @@ if $(ls "$gamedir" | grep -qm 1 ThePit); then
 	exe_env="${exe_env}MONO_FORCE_COMPAT=1 "
 fi
 
-# Blueberry Garden
-if $(ls "$gamedir" | grep -qm 1 Blueberry.exe); then
-	debug_echo "Setting 'MONO_FORCE_COMPAT' for Blueberry Garden"
+# Terraria
+if $(ls "$gamedir" | grep -iqm 1 terraria); then
+	debug_echo "Setting 'MONO_FORCE_COMPAT' for Terraria"
 	exe_env="${exe_env}MONO_FORCE_COMPAT=1 "
+fi
+
+# WizOrb
+if $(ls "$gamedir" | grep -iqm 1 wizorb); then
+	debug_echo "Setting 'MONO_IOMAP=all' for WizOrb"
+	exe_env="${exe_env}MONO_IOMAP=all "
 fi
 
 create_wrapper
