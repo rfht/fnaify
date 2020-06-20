@@ -466,9 +466,50 @@ EOF
 
 finish_fnaify()
 {
-	#echo ""
-	#printdash $(echo "SETUP COMPLETE")
-	#echo ""
+	# Quirks for the runtime invocation of some games
+
+	# Blueberry Garden
+	if $(ls "$gamedir" | grep -qm 1 Blueberry.exe); then
+		debug_echo "Setting 'MONO_FORCE_COMPAT' for Blueberry Garden"
+		exe_env="${exe_env}MONO_FORCE_COMPAT=1 "
+	fi
+
+	# Dead Pixesl
+	if [ -n "$(ls "$gamedir" | grep -m 1 "Dead Pixels.exe")" ] ; then
+		debug_echo "Create symlinks to replace MONO_IOMAP for Dead Pixels"
+		iomap DeadPixels
+	fi
+
+	# Hacknet
+	if $(ls "$gamedir" | grep -iqm 1 hacknet); then
+		debug_echo "Setting flag '-disableweb' for HackNet"
+		exe_flags="-disableweb"
+	fi
+
+	# Shenzhen I/O
+	if $(ls "$gamedir" | grep -iqm 1 shenzhen); then
+		debug_echo "Setting 'MONO_FORCE_COMPAT' for Shenzhen I/O"
+		exe_env="${exe_env}MONO_FORCE_COMPAT=1 "
+	fi
+
+	# Sword of the Stars: The Pit
+	if $(ls "$gamedir" | grep -qm 1 ThePit); then
+		debug_echo "Setting 'MONO_FORCE_COMPAT' for Sword of the Stars: The Pit"
+		exe_env="${exe_env}MONO_FORCE_COMPAT=1 "
+	fi
+
+	# Terraria
+	if $(ls "$gamedir" | grep -iqm 1 terraria); then
+		debug_echo "Setting 'MONO_FORCE_COMPAT' for Terraria"
+		exe_env="${exe_env}MONO_FORCE_COMPAT=1 "
+	fi
+
+	# WizOrb
+	if $(ls "$gamedir" | grep -iqm 1 wizorb); then
+		debug_echo "Setting 'MONO_IOMAP=all' for WizOrb"
+		exe_env="${exe_env}MONO_IOMAP=all "
+	fi
+
 	if [ -n "${licenses}" ]; then
 		echo "Installed modules are under the following license(s):\n"
 		echo "${licenses}"
@@ -1015,51 +1056,6 @@ if [ \( -e "$fullscriptpath" \) -a \( ! -e "$fullscriptpath.linux" \) ]; then
 	cp -p "$fullscriptpath" "$fullscriptpath.linux"
 	debug_echo "done."
 fi
-
-# Quirks for the runtime invocation of some games
-
-# Blueberry Garden
-if $(ls "$gamedir" | grep -qm 1 Blueberry.exe); then
-	debug_echo "Setting 'MONO_FORCE_COMPAT' for Blueberry Garden"
-	exe_env="${exe_env}MONO_FORCE_COMPAT=1 "
-fi
-
-# Dead Pixesl
-if $(ls "$gamedir" | grep -qm 1 "Dead Pixels.exe"); then
-	debug_echo "Create symlinks to replace MONO_IOMAP for Dead Pixels"
-	iomap DeadPixels
-fi
-
-# Hacknet
-if $(ls "$gamedir" | grep -iqm 1 hacknet); then
-	debug_echo "Setting flag '-disableweb' for HackNet"
-	exe_flags="-disableweb"
-fi
-
-# Shenzhen I/O
-if $(ls "$gamedir" | grep -iqm 1 shenzhen); then
-	debug_echo "Setting 'MONO_FORCE_COMPAT' for Shenzhen I/O"
-	exe_env="${exe_env}MONO_FORCE_COMPAT=1 "
-fi
-
-# Sword of the Stars: The Pit
-if $(ls "$gamedir" | grep -qm 1 ThePit); then
-	debug_echo "Setting 'MONO_FORCE_COMPAT' for Sword of the Stars: The Pit"
-	exe_env="${exe_env}MONO_FORCE_COMPAT=1 "
-fi
-
-# Terraria
-if $(ls "$gamedir" | grep -iqm 1 terraria); then
-	debug_echo "Setting 'MONO_FORCE_COMPAT' for Terraria"
-	exe_env="${exe_env}MONO_FORCE_COMPAT=1 "
-fi
-
-# WizOrb
-if $(ls "$gamedir" | grep -iqm 1 wizorb); then
-	debug_echo "Setting 'MONO_IOMAP=all' for WizOrb"
-	exe_env="${exe_env}MONO_IOMAP=all "
-fi
-
 create_wrapper
 debug_echo "Launcher script replaced.\n"
 finish_fnaify
