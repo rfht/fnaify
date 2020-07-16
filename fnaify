@@ -715,6 +715,8 @@ iomap()
 		ln -s preview Content/Sprites/Preview
 		ln -s preview Content/Sprites/Menu/Preview
 		ln -s PsxButtons Content/Sprites/buttons/psxButtons
+		ln -s Cutscene Content/Sprites/CutScene
+		ln -s buildings Content/Sprites/InGame/City/Buildings
 	else
 		echo "ERROR: invalid or no parameter for iomap()"
 		exit 1
@@ -755,7 +757,8 @@ else
 	# Molek-Syntez
 	# Exapunks
 	# Opus Magnum (Lightning.exe)
-	# Shenzhen I/O (crashes when writing in the editor System.InvalidOperationException)
+	# Shenzhen I/O
+	# SpaceChem (64bit and fullscreen update from 2020-07-15)
 	if [ -n "$(ls "$gamedir" | grep -im 1 "atomzombiesmasher")" ] ; then
 		debug_echo "\nAtom Zombie Smasher requires libatomstb.so"
 		if $(ls $(echo "$depdir" | tr -s ':' ' ') | grep -q "$needlib")
@@ -799,6 +802,7 @@ else
 		-o \( -n "$(ls "$gamedir" | grep -im 1 "exapunks.exe")" \) \
 		-o \( -n "$(ls "$gamedir" | grep -im 1 "lightning.exe")" \) \
 		-o \( -n "$(ls "$gamedir" | grep -im 1 "shenzhen.exe")" \) \
+		-o \( -n "$(ls "$gamedir" | grep -im 1 "spacechem.exe")" \) \
 		] ; then
 		debug_echo "\nCompatible game without XNA/FNA framework file found."
 		debug_echo 'Creating $HOME/Desktop directory which is needed for some Zachtronics games'

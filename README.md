@@ -188,6 +188,7 @@ Shenzhen I/O
 Shipwreck  
 Skulls of the Shogun  
 Soulcaster 1 & 2  
+SpaceChem  
 SpeedRunners  
 Stardew Valley  
 Sumico  
