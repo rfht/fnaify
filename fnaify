@@ -467,6 +467,12 @@ finish_fnaify()
 {
 	# Quirks for the runtime invocation of some games
 
+	# Apple Jack 1&2
+	if [ -n "$(ls "$gamedir" | grep -m 1 "AJ1.exe")" ] ; then
+		debug_echo "Create symlinks to replace MONO_IOMAP for Apple Jack 1&2"
+		iomap AppleJack
+	fi
+
 	# Blueberry Garden
 	if $(ls "$gamedir" | grep -qm 1 Blueberry.exe); then
 		debug_echo "Setting 'MONO_FORCE_COMPAT' for Blueberry Garden"
@@ -717,6 +723,11 @@ iomap()
 		ln -s PsxButtons Content/Sprites/buttons/psxButtons
 		ln -s Cutscene Content/Sprites/CutScene
 		ln -s buildings Content/Sprites/InGame/City/Buildings
+	elif [ "$1" == "AppleJack" ] ; then
+		ln -s j_rip.xnb Content/AJ1/j_Rip.xnb
+		ln -s j_rip.xnb Content/AJ2/j_Rip.xnb
+		ln -s Owlturnneo2.xnb Content/AJ1/owlturnneo2.xnb
+		ln -s Owlturnneo2.xnb Content/AJ2/owlturnneo2.xnb
 	else
 		echo "ERROR: invalid or no parameter for iomap()"
 		exit 1
