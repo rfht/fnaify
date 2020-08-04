@@ -479,6 +479,12 @@ finish_fnaify()
 		exe_env="${exe_env}MONO_FORCE_COMPAT=1 "
 	fi
 
+	# Cthulhu Saves the World (CSTW)
+	if [ -n "$(ls "$gamedir" | grep -m 1 "CSTW.exe")" ] ; then
+		debug_echo "Create symlinks to replace MONO_IOMAP for Cthulhu Saves the World"
+		iomap CSTW
+	fi
+
 	# Dead Pixesl
 	if [ -n "$(ls "$gamedir" | grep -m 1 "Dead Pixels.exe")" ] ; then
 		debug_echo "Create symlinks to replace MONO_IOMAP for Dead Pixels"
@@ -495,6 +501,12 @@ finish_fnaify()
 	if $(ls "$gamedir" | grep -iqm 1 shenzhen); then
 		debug_echo "Setting 'MONO_FORCE_COMPAT' for Shenzhen I/O"
 		exe_env="${exe_env}MONO_FORCE_COMPAT=1 "
+	fi
+
+	# ScourgeBringer
+	if $(ls "$gamedir" | grep -iqm 1 scourgebringer); then
+		debug_echo "Setting flag '-noSound' for ScourgeBringer"
+		exe_flags="-noSound"
 	fi
 
 	# Sword of the Stars: The Pit
@@ -701,9 +713,9 @@ iomap()
 		ln -s Sprites Content/sprites
 		ln -s Effects Content/Sprites/effects
 		ln -s Splash Content/Sprites/splash
-		ln -s Items ./Content/Sprites/InGame/items
-		ln -s Grenades ./Content/Sprites/InGame/grenades
-		ln -s Hud ./Content/Sprites/InGame/hud
+		ln -s Items Content/Sprites/InGame/items
+		ln -s Grenades Content/Sprites/InGame/grenades
+		ln -s Hud Content/Sprites/InGame/hud
 		ln -s insideBuildings Content/Sprites/InGame/InsideBuildings
 		ln -s Character Content/Sprites/InGame/character
 		ln -s City Content/Sprites/InGame/city
@@ -723,11 +735,19 @@ iomap()
 		ln -s PsxButtons Content/Sprites/buttons/psxButtons
 		ln -s Cutscene Content/Sprites/CutScene
 		ln -s buildings Content/Sprites/InGame/City/Buildings
+		ln -s mainbackground.xnb Content/ConfigSprites/mainBackground.xnb
+		ln -s largeCuts.xnb Content/Sprites/effects/largecuts.xnb
+		ln -s smallCuts.xnb Content/Sprites/effects/smallcuts.xnb
+		ln -s effects Content/Sprites/Effects
+		ln -s cuemark.xnb Content/Sprites/effects/cueMark.xnb
+		ln -s Static.xnb Content/Sprites/Menu/Preview/static.xnb
 	elif [ "$1" == "AppleJack" ] ; then
 		ln -s j_rip.xnb Content/AJ1/j_Rip.xnb
 		ln -s j_rip.xnb Content/AJ2/j_Rip.xnb
 		ln -s Owlturnneo2.xnb Content/AJ1/owlturnneo2.xnb
 		ln -s Owlturnneo2.xnb Content/AJ2/owlturnneo2.xnb
+	elif [ "$1" == "CSTW" ] ; then
+		ln -s paws_Happy.xnb Content/Portrait/Paws/Paws_Happy.xnb
 	else
 		echo "ERROR: invalid or no parameter for iomap()"
 		exit 1
