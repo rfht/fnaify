@@ -419,50 +419,6 @@ check_remove_steamworks()
 	fi
 }
 
-create_wrapper()
-{
-	cat <<EOF > "$fullscriptpath"
-#!/bin/sh
-
-# fnaify wrapper script for launching FNA games on BSD
-
-latest_syslib()
-{
-	if [ -z "\$1" ] ; then
-		return 1
-	fi
-	find "\$(dirname \$1)" -maxdepth 1 -name "\$(basename \$1)*" | tail -1
-}
-
-trunklibnam()
-{
-	libnam="\$1"
-	echo "\$libnam" | sed -n -E "s/[\.0-9]*$//p"
-}
-
-echo -n "NOTE: if game should unexpectedly fail to start, make sure datasize limit is high enough. "
-echo "AT LEAST 2G are recommended for most games. See ksh(1) for ulimit command documentation"
-
-cd "\`dirname "\$0"\`" # Move to the game's location in case it was invoked from elsewhere
-
-# check if broken symlinks exist in the game directory
-for l in \$(find . -maxdepth 2 -type l); do
-	if [ ! -e "\$l" ] ; then
-		newl="\$(latest_syslib "\$(trunklibnam "\$(readlink \$l)")")"
-		if [ -z "\$newl" ] ; then
-			echo "ERROR: Missing library for \$l. Expect trouble."
-		else
-			ln -fs "\$newl" "\$l"
-		fi
-	fi
-done
-
-LD_LIBRARY_PATH="$(echo "$depdir" | sed -E 's/:$//')" MONO_PATH="$(echo "$monopath" | sed -E 's/:$//' | sed -E 's/^://')" MONO_CONFIG="$monoconfig" $exe_env exec "$FNAIFY_MONO" "$(echo "$my_exe" | tr -d '\:')" $exe_flags \$*
-EOF
-
-	chmod +x "$fullscriptpath"
-}
-
 finish_fnaify()
 {
 	# Quirks for the runtime invocation of some games
@@ -489,6 +445,12 @@ finish_fnaify()
 	if [ -n "$(ls "$gamedir" | grep -m 1 "Dead Pixels.exe")" ] ; then
 		debug_echo "Create symlinks to replace MONO_IOMAP for Dead Pixels"
 		iomap DeadPixels
+	fi
+
+	# Grand Class Melee 2 (GCM2)
+	if [ -n "$(ls "$gamedir" | grep -m 1 "Grand Class Melee.exe")" ] ; then
+		debug_echo "Create symlinks to replace MONO_IOMAP for Grand Class Melee 2"
+		iomap GCM2
 	fi
 
 	# Hacknet
@@ -522,11 +484,14 @@ finish_fnaify()
 		exe_env="${exe_env}MONO_FORCE_COMPAT=1 "
 	fi
 
-	# WizOrb
-	if $(ls "$gamedir" | grep -iqm 1 wizorb); then
-		debug_echo "Setting 'MONO_IOMAP=all' for WizOrb"
-		exe_env="${exe_env}MONO_IOMAP=all "
+	echo "Replacing launch script with BSD version..."
+	if [ \( -e "$fullscriptpath" \) -a \( ! -e "$fullscriptpath.linux" \) ]; then
+		debug_echo -n "\t(creating copy of original launcher script with suffix '.linux')... "
+		cp -p "$fullscriptpath" "$fullscriptpath.linux"
+		debug_echo "done."
 	fi
+	create_wrapper
+	debug_echo "Launcher script replaced.\n"
 
 	if [ -n "${licenses}" ]; then
 		echo "Installed modules are under the following license(s):\n"
@@ -701,10 +666,8 @@ xnasetup()
 	selectexe
 	check_remove_steamworks
 	debug_echo "creating launch script"
-	exe_env="${exe_env}MONO_IOMAP=all "
 	scriptfile="run_game.sh"
 	fullscriptpath="$gamedir/$scriptfile"
-	create_wrapper
 	finish_fnaify
 }
 
@@ -751,10 +714,86 @@ iomap()
 		ln -sf paws_Happy.xnb Content/Portrait/Paws/Paws_Happy.xnb
 	elif [ "$1" == "SOTSTP" ] ; then
 		ln -sf UI Content/ui
+	elif [ "$1" == "GCM2" ] ; then
+		ln -sf water.xnb Content/Sounds/Water.xnb
+		ln -sf grass.xnb Content/Sounds/Grass.xnb
+		ln -sf move.xnb Content/Sounds/Move.xnb
+		ln -sf select.xnb Content/Sounds/Select.xnb
+		ln -sf back.xnb Content/Sounds/Back.xnb
+		ln -sf squire_base.xnb Content/Textures/Players/Squire_base.xnb
+		ln -sf squire_greyscale.xnb Content/Textures/Players/Squire_greyscale.xnb
+		ln -sf militia_base.xnb Content/Textures/Players/Militia_base.xnb
+		ln -sf militia_greyscale.xnb Content/Textures/Players/Militia_greyscale.xnb
+		ln -sf apprentice_base.xnb Content/Textures/Players/Apprentice_base.xnb
+		ln -sf apprentice_greyscale.xnb Content/Textures/Players/Apprentice_greyscale.xnb
+		ln -sf savant_base.xnb Content/Textures/Players/Savant_base.xnb
+		ln -sf savant_greyscale.xnb Content/Textures/Players/Savant_greyscale.xnb
+		ln -sf sword.xnb Content/Textures/Weapons/Sword.xnb
+		ln -sf arrow.xnb Content/Sounds/Arrow.xnb
+		ln -sf scorch.xnb Content/Sounds/Scorch.xnb
+		ln -sf bigspeed.xnb Content/Sounds/Bigspeed.xnb
+		ln -sf frame_ingame_left_ruin.xnb Content/Textures/Menu/frame_ingame_left_Ruin.xnb
+		ln -sf frame_ingame_left_mire.xnb Content/Textures/Menu/frame_ingame_left_Mire.xnb
+		ln -sf frame_ingame_right_ruin.xnb Content/Textures/Menu/frame_ingame_right_Ruin.xnb
+		ln -sf frame_ingame_left_wood.xnb Content/Textures/Menu/frame_ingame_left_Wood.xnb
+		ln -sf ruin_leaf.xnb Content/Textures/Terrain/Ruin_leaf.xnb
+		ln -sf frame_ingame_right_wood.xnb Content/Textures/Menu/frame_ingame_right_Wood.xnb
+		ln -sf bigblow1.xnb Content/Sounds/Bigblow1.xnb
+		ln -sf ruin_grassmove.xnb Content/Textures/Terrain/Ruin_grassmove.xnb
+		ln -sf wood_leaf.xnb Content/Textures/Terrain/Wood_leaf.xnb
+		ln -sf ruin_watermove.xnb Content/Textures/Terrain/Ruin_watermove.xnb
+		ln -sf castshort.xnb Content/Sounds/Castshort.xnb
+		ln -sf frame_ingame_right_mire.xnb Content/Textures/Menu/frame_ingame_right_Mire.xnb
+		ln -sf frame_ingame_left_dune.xnb Content/Textures/Menu/frame_ingame_left_Dune.xnb
+		ln -sf sword1.xnb Content/Sounds/Sword1.xnb
 	else
 		echo "ERROR: invalid or no parameter for iomap()"
 		exit 1
 	fi
+}
+
+create_wrapper()
+{
+	cat <<EOF > "$fullscriptpath"
+#!/bin/sh
+
+# fnaify wrapper script for launching FNA games on BSD
+
+latest_syslib()
+{
+	if [ -z "\$1" ] ; then
+		return 1
+	fi
+	find "\$(dirname \$1)" -maxdepth 1 -name "\$(basename \$1)*" | tail -1
+}
+
+trunklibnam()
+{
+	libnam="\$1"
+	echo "\$libnam" | sed -n -E "s/[\.0-9]*$//p"
+}
+
+echo -n "NOTE: if game should unexpectedly fail to start, make sure datasize limit is high enough. "
+echo "AT LEAST 2G are recommended for most games. See ksh(1) for ulimit command documentation"
+
+cd "\`dirname "\$0"\`" # Move to the game's location in case it was invoked from elsewhere
+
+# check if broken symlinks exist in the game directory
+for l in \$(find . -maxdepth 2 -type l); do
+	if [ ! -e "\$l" ] ; then
+		newl="\$(latest_syslib "\$(trunklibnam "\$(readlink \$l)")")"
+		if [ -z "\$newl" ] ; then
+			echo "ERROR: Missing library for \$l. Expect trouble."
+		else
+			ln -fs "\$newl" "\$l"
+		fi
+	fi
+done
+
+LD_LIBRARY_PATH="$(echo "$depdir" | sed -E 's/:$//')" MONO_PATH="$(echo "$monopath" | sed -E 's/:$//' | sed -E 's/^://')" MONO_CONFIG="$monoconfig" $exe_env exec "$FNAIFY_MONO" "$(echo "$my_exe" | tr -d '\:')" $exe_flags \$*
+EOF
+
+	chmod +x "$fullscriptpath"
 }
 
 # End of Variables and Functions
@@ -1087,12 +1126,4 @@ done
 IFS=$SAVEIFS
 selectexe
 
-echo "Replacing launch script with BSD version..."
-if [ \( -e "$fullscriptpath" \) -a \( ! -e "$fullscriptpath.linux" \) ]; then
-	debug_echo -n "\t(creating copy of original launcher script with suffix '.linux')... "
-	cp -p "$fullscriptpath" "$fullscriptpath.linux"
-	debug_echo "done."
-fi
-create_wrapper
-debug_echo "Launcher script replaced.\n"
 finish_fnaify
