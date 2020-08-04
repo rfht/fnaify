@@ -509,10 +509,11 @@ finish_fnaify()
 		exe_flags="-noSound"
 	fi
 
-	# Sword of the Stars: The Pit
+	# Sword of the Stars: The Pit (SOTSTP)
 	if $(ls "$gamedir" | grep -qm 1 ThePit); then
 		debug_echo "Setting 'MONO_FORCE_COMPAT' for Sword of the Stars: The Pit"
 		exe_env="${exe_env}MONO_FORCE_COMPAT=1 "
+		iomap SOTSTP
 	fi
 
 	# Terraria
@@ -710,44 +711,46 @@ xnasetup()
 iomap()
 {
 	if [ "$1" == "DeadPixels" ] ; then
-		ln -s Sprites Content/sprites
-		ln -s Effects Content/Sprites/effects
-		ln -s Splash Content/Sprites/splash
-		ln -s Items Content/Sprites/InGame/items
-		ln -s Grenades Content/Sprites/InGame/grenades
-		ln -s Hud Content/Sprites/InGame/hud
-		ln -s insideBuildings Content/Sprites/InGame/InsideBuildings
-		ln -s Character Content/Sprites/InGame/character
-		ln -s City Content/Sprites/InGame/city
-		ln -s Traders Content/Sprites/InGame/traders
-		ln -s Zombies Content/Sprites/InGame/zombies
-		ln -s Objects Content/Sprites/InGame/objects
-		ln -s Other Content/Sprites/InGame/other
-		ln -s GunShots Content/Sprites/InGame/gunShots
-		ln -s Buttons Content/Sprites/buttons
-		ln -s Menu Content/Sprites/menu
-		ln -s Cursor Content/Sprites/cursor
-		ln -s Achievements Content/Sprites/achievements
-		ln -s Credits Content/Sprites/credits
-		ln -s Font Content/Sprites/font
-		ln -s preview Content/Sprites/Preview
-		ln -s preview Content/Sprites/Menu/Preview
-		ln -s PsxButtons Content/Sprites/buttons/psxButtons
-		ln -s Cutscene Content/Sprites/CutScene
-		ln -s buildings Content/Sprites/InGame/City/Buildings
-		ln -s mainbackground.xnb Content/ConfigSprites/mainBackground.xnb
-		ln -s largeCuts.xnb Content/Sprites/effects/largecuts.xnb
-		ln -s smallCuts.xnb Content/Sprites/effects/smallcuts.xnb
-		ln -s effects Content/Sprites/Effects
-		ln -s cuemark.xnb Content/Sprites/effects/cueMark.xnb
-		ln -s Static.xnb Content/Sprites/Menu/Preview/static.xnb
+		ln -sf Sprites Content/sprites
+		ln -sf Effects Content/Sprites/effects
+		ln -sf Splash Content/Sprites/splash
+		ln -sf Items Content/Sprites/InGame/items
+		ln -sf Grenades Content/Sprites/InGame/grenades
+		ln -sf Hud Content/Sprites/InGame/hud
+		ln -sf insideBuildings Content/Sprites/InGame/InsideBuildings
+		ln -sf Character Content/Sprites/InGame/character
+		ln -sf City Content/Sprites/InGame/city
+		ln -sf Traders Content/Sprites/InGame/traders
+		ln -sf Zombies Content/Sprites/InGame/zombies
+		ln -sf Objects Content/Sprites/InGame/objects
+		ln -sf Other Content/Sprites/InGame/other
+		ln -sf GunShots Content/Sprites/InGame/gunShots
+		ln -sf Buttons Content/Sprites/buttons
+		ln -sf Menu Content/Sprites/menu
+		ln -sf Cursor Content/Sprites/cursor
+		ln -sf Achievements Content/Sprites/achievements
+		ln -sf Credits Content/Sprites/credits
+		ln -sf Font Content/Sprites/font
+		ln -sf preview Content/Sprites/Preview
+		ln -sf preview Content/Sprites/Menu/Preview
+		ln -sf PsxButtons Content/Sprites/buttons/psxButtons
+		ln -sf Cutscene Content/Sprites/CutScene
+		ln -sf buildings Content/Sprites/InGame/City/Buildings
+		ln -sf mainbackground.xnb Content/ConfigSprites/mainBackground.xnb
+		ln -sf largeCuts.xnb Content/Sprites/effects/largecuts.xnb
+		ln -sf smallCuts.xnb Content/Sprites/effects/smallcuts.xnb
+		ln -sf effects Content/Sprites/Effects
+		ln -sf cuemark.xnb Content/Sprites/effects/cueMark.xnb
+		ln -sf Static.xnb Content/Sprites/Menu/Preview/static.xnb
 	elif [ "$1" == "AppleJack" ] ; then
-		ln -s j_rip.xnb Content/AJ1/j_Rip.xnb
-		ln -s j_rip.xnb Content/AJ2/j_Rip.xnb
-		ln -s Owlturnneo2.xnb Content/AJ1/owlturnneo2.xnb
-		ln -s Owlturnneo2.xnb Content/AJ2/owlturnneo2.xnb
+		ln -sf j_rip.xnb Content/AJ1/j_Rip.xnb
+		ln -sf j_rip.xnb Content/AJ2/j_Rip.xnb
+		ln -sf Owlturnneo2.xnb Content/AJ1/owlturnneo2.xnb
+		ln -sf Owlturnneo2.xnb Content/AJ2/owlturnneo2.xnb
 	elif [ "$1" == "CSTW" ] ; then
-		ln -s paws_Happy.xnb Content/Portrait/Paws/Paws_Happy.xnb
+		ln -sf paws_Happy.xnb Content/Portrait/Paws/Paws_Happy.xnb
+	elif [ "$1" == "SOTSTP" ] ; then
+		ln -sf UI Content/ui
 	else
 		echo "ERROR: invalid or no parameter for iomap()"
 		exit 1
