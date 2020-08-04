@@ -128,12 +128,13 @@ Amazing Princess Sarah
 Apotheon  
 Apple Jack 1&2  
 Atom Zombie Smasher  
+Before the Echo  
 Bleed  
 Bleed 2  
 Breath of Death VII  
 Brushwood Buddies  
 Capsized  
-Celeste (no audio)  
+Celeste (no audio) \[!]  
 Chaos Heart  
 Charlie Murder  
 Chasm  
@@ -142,8 +143,8 @@ Cryptark
 Cthulhu Saves the World  
 Curse of the Crescent Isle DX  
 Dad Quest  
-Dead Pixels  
-Dead Pixels II  
+Dead Pixels \[!]  
+Dead Pixels II \[!]  
 The Dishwasher: Vampire Smile  
 Draw a Stickman: EPIC  
 Dust: An Elysian Tail  
@@ -151,17 +152,17 @@ Eliza
 Escape Goat  
 Escape Goat 2  
 EXAPUNKS  
-Explosionade  
+Explosionade \[!]  
 FEZ  
 Fist Puncher  
 Flinthook  
 Flotilla  
-Game Type  
+Game Type \[!]  
 Gateways  
-Grand Class Melee 2  
+Grand Class Melee 2 \[!]  
 Growing Pains  
 HackNet  
-Hive  
+Hive \[!] - sometimes doesn't start up  
 Hyphen  
 Jon Shafer's At the Gates  
 LaserCat  
@@ -296,4 +297,4 @@ Thomas Frohwein &lt;[thfr@openbsd.org](mailto:thfr@openbsd.org)&gt;.
 
 Thomas Frohwein &lt;[thfr@openbsd.org](mailto:thfr@openbsd.org)&gt;
 
-OpenBSD 6.7 - June 10, 2020
+OpenBSD 6.7 - August 4, 2020
