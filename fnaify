@@ -999,14 +999,14 @@ debug_echo "Identified the following file as the launch script: ${scriptfile}\n"
 # path and file variable definitions
 fullscriptpath="$gamedir/$scriptfile"
 
-configfilesarray="" # files in gamedir ending in '.config'
+set -A configfilesarray		# empties array
 nconfigfilesarray=0
 debug_echo "Identifying config files..."
 IFS="
 "
 for cfile in $(ls "$gamedir" | grep "\.config$"); do
 	debug_echo "\tfound config file: $cfile"
-	configfilesarray="$configfilesarray$cfile "
+	configfilesarray[$((${#configfilesarray[*]} + 1))]="$cfile"
 	nconfigfilesarray=$((nconfigfilesarray + 1))
 done
 IFS=$SAVEIFS
@@ -1034,7 +1034,10 @@ if [ $nconfigfilesarray -lt 1 ]; then
 	debug_echo "No config files found."
 else
 	cfile=""
-	for cfile in $configfilesarray; do
+	IFS="
+"
+	for cfile in ${configfilesarray[@]}; do
+		IFS=$SAVEIFS
 		debug_echo "\t$cfile"
 		linuxlines=$(grep "os\=\"linux" "$gamedir/$cfile")
 		for libstring in $(echo "$linuxlines" | sed -n -E "s/.*target=\"([^\"]+).*/\1/p"); do
@@ -1106,7 +1109,10 @@ debug_echo 'moving .config files with dllmap out of the way'
 if [ ! -d "$gamedir/fnaify-backup" ] ; then	# FIXME: is this check needed?
 	mkdir -p "$gamedir/fnaify-backup"
 fi
-for config_file in $(ls "$gamedir" | grep "\.config$"); do
+IFS="
+"
+for config_file in ${configfilesarray[@]}; do
+	IFS=$SAVEIFS
 	if $(grep -q "dllmap" "$config_file"); then
 		mv "$config_file" "$gamedir/fnaify-backup/"
 	fi
