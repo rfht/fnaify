@@ -64,6 +64,125 @@ if [ -d "/usr/local/share/fnaify-libs" ]; then
 	depdir="/usr/local/share/fnaify-libs:$depdir"
 fi
 
+#list of exefiles and their number
+exefile=
+nexefile=0
+my_exe=""	# the .exe selected for the launch script
+
+exe_flags=""
+exe_env=""
+
+debug_echo()
+{
+	if [ -z "$FNAIFY_DEBUG" ]; then
+		return
+	fi
+	if [ "${1}" = '-n' ]; then
+		printf "$2"
+	else
+		printf "$1\n"
+	fi
+}
+
+selectexe()
+{
+	# find correct .exe file for the wrapper script
+	if [ $nexefile -gt 1 ]; then
+		if [ "x$interaction" = "xi" ] ; then
+			i=1
+			while [ $i -le $nexefile ]; do
+				echo "$i: $(echo $exefile | cut -f $i -d ':')"
+				i=$((i + 1))
+			done
+			input_exe=0
+			while [ \( $(echo "$input_exe" | wc -c) -gt 2 \) -o \( -z "$(echo "$input_exe" | grep [1-9])" \) -o \( $input_exe -gt $((i - 1)) \) ]; do
+				echo -n "Enter number of .exe file to choose for wrapper script: "
+				read input_exe
+			done
+			# NOTE: this only works for up to 9 candidate files
+			my_exe="$(echo $exefile | cut -f $input_exe -d ':')"
+		else
+			# FIXME: for now just pick the first .exe. Come up with
+			#        better heuristic (match directory or launch
+			#        script name; pick .exe with shortest name ... ?
+			my_exe="$(echo $exefile | cut -f 1 -d ':')"
+		fi
+	elif [ $nexefile -eq 1 ]; then
+		my_exe="$exefile"
+	else
+		echo "ERROR: no .exe file found\n"
+		exit 1
+	fi
+	my_exe="$(echo "$my_exe" | sed -E "s/[ \t]$//")" # trim trailing whitespace
+}
+
+run()
+{
+	monoconfig=/usr/local/share/fnaify/fnaify.dllmap.config
+
+	while getopts c:d:hm:v o; do
+		case "$o" in
+			c) monoconfig="$2" ;;
+			d) depdir="$2" ;;
+			h) echo "$USAGE"; exit 0;;
+			m) monopath="$2" ;;
+			v) FNAIFY_DEBUG=1 ;;
+			--) break ;;
+		esac
+	done
+	shift $(($OPTIND-1))
+	if [ -n "$1" ] ; then
+		if [ $# -gt 1 ] ; then
+			echo "ERROR: too many arguments"
+			echo "$USAGE"
+			exit 1
+		fi
+		gamedir=$(readlink -f "$1")
+	fi
+
+	debug_echo "gamedir: $gamedir"
+	cd "$gamedir"
+	debug_echo "Mode: run"
+
+	debug_echo "Checking mono runtime"
+	if [ -z "$FNAIFY_MONO" ]; then
+		FNAIFY_MONO="mono"
+	fi
+	"$FNAIFY_MONO" --version 2>/dev/null >/dev/null
+	if [ "$?" -gt 0 ]; then
+		echo "error calling mono - aborting... Please make sure that mono is in path or set it in FNAIFY_MONO environment variable!"
+		exit 1
+	fi
+
+	IFS="
+	"
+	for xfile in $(cd "$gamedir" && find . -maxdepth 1 -type f -iname "*.exe" | cut -f 2 -d "/" | sort); do
+		exefile="$exefile$xfile:"
+		nexefile=$((nexefile + 1))
+	done
+	IFS=$SAVEIFS
+	selectexe
+
+	# Quirks for the runtime invocation of some games
+	case "$my_exe" in
+		Blueberry.exe|Shenzhen.exe|ThePit.exe|Terraria.exe)
+			exe_env="${exe_env}MONO_FORCE_COMPAT=1 "					;;
+		Hacknet.exe)				exe_flags="${exe_flags}-disableweb "		;;
+		ScourgeBringer.exe)			exe_flags="${exe_flags}-noSound "		;;
+	esac
+
+	set -x
+	LD_LIBRARY_PATH="$(echo "$depdir" | sed -E 's/:$//')" MONO_PATH="$(echo "$monopath" | sed -E 's/:$//' | sed -E 's/^://')" MONO_CONFIG="$monoconfig" $exe_env exec "$FNAIFY_MONO" "$(echo "$my_exe" | tr -d '\:')" $exe_flags \$*
+	set +x
+
+	exit
+}
+
+if [ "$1" == "run" ] ; then
+	shift
+	run $@
+fi
+
 while getopts c:d:him:vy o; do
 	case "$o" in
 		c) monoconfig="$2" ;;
@@ -86,20 +205,8 @@ if [ -n "$1" ] ; then
 	gamedir=$(readlink -f "$1")
 fi
 
-echo "gamedir: $gamedir"
+debug_echo "gamedir: $gamedir"
 cd "$gamedir"
-
-debug_echo()
-{
-	if [ -z "$FNAIFY_DEBUG" ]; then
-		return
-	fi
-	if [ "${1}" = '-n' ]; then
-		printf "$2"
-	else
-		printf "$1\n"
-	fi
-}
 
 if [ -z "$monoconfig" ] ; then
 	if [ -f "$HOME/.config/fnaify/fnaify.dllmap.config" ] ; then
@@ -238,14 +345,6 @@ mscorlib.dll
 
 needlibarray="" # array that will hold the names of needed libraries
 
-#list of exefiles and their number
-exefile=
-nexefile=0
-my_exe=""	# the .exe selected for the launch script
-
-exe_flags=""
-exe_env=""
-
 printdash()
 {
 	if [ -z "$*" ]; then
@@ -378,38 +477,6 @@ x86"
 	fi
 }
 
-selectexe()
-{
-	# find correct .exe file for the wrapper script
-	if [ $nexefile -gt 1 ]; then
-		if [ "x$interaction" = "xi" ] ; then
-			i=1
-			while [ $i -le $nexefile ]; do
-				echo "$i: $(echo $exefile | cut -f $i -d ':')"
-				i=$((i + 1))
-			done
-			input_exe=0
-			while [ \( $(echo "$input_exe" | wc -c) -gt 2 \) -o \( -z "$(echo "$input_exe" | grep [1-9])" \) -o \( $input_exe -gt $((i - 1)) \) ]; do
-				echo -n "Enter number of .exe file to choose for wrapper script: "
-				read input_exe
-			done
-			# NOTE: this only works for up to 9 candidate files
-			my_exe="$(echo $exefile | cut -f $input_exe -d ':')"
-		else
-			# FIXME: for now just pick the first .exe. Come up with
-			#        better heuristic (match directory or launch
-			#        script name; pick .exe with shortest name ... ?
-			my_exe="$(echo $exefile | cut -f 1 -d ':')"
-		fi
-	elif [ $nexefile -eq 1 ]; then
-		my_exe="$exefile"
-	else
-		echo "ERROR: no .exe file found\n"
-		exit 1
-	fi
-	my_exe="$(echo "$my_exe" | sed -E "s/[ \t]$//")" # trim trailing whitespace
-}
-
 # check if Steamworks.NET.dll is present, move it away if stub is in $monopath
 check_remove_steamworks()
 {
@@ -428,6 +495,10 @@ check_remove_steamworks()
 finish_fnaify()
 {
 	# Quirks for the runtime invocation of some games
+
+	##########################################################
+	# OBSOLETE; look at run() for the place to add to/modify #
+	##########################################################
 
 	# Apple Jack 1&2
 	if [ -n "$(ls "$gamedir" | grep -m 1 "AJ1.exe")" ] ; then
@@ -1175,6 +1246,13 @@ check_remove_steamworks
 
 symlink_mg_libs
 
+IFS="
+"
+for xfile in $(cd "$gamedir" && find . -maxdepth 1 -type f -iname "*.exe" | cut -f 2 -d "/" | sort); do
+	exefile="$exefile$xfile:"
+	nexefile=$((nexefile + 1))
+done
+IFS=$SAVEIFS
 IFS="
 "
 for xfile in $(cd "$gamedir" && find . -maxdepth 1 -type f -iname "*.exe" | cut -f 2 -d "/" | sort); do
