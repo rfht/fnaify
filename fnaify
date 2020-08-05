@@ -465,6 +465,12 @@ finish_fnaify()
 		iomap LaserCat
 	fi
 
+	# Mount Your Friends
+	if [ -n "$(ls "$gamedir" | grep -m 1 "MountYourFriends.exe")" ] ; then
+		debug_echo "Create symlinks to replace MONO_IOMAP for Mount Your Friends"
+		iomap MountYourFriends
+	fi
+
 	# Shenzhen I/O
 	if $(ls "$gamedir" | grep -iqm 1 shenzhen); then
 		debug_echo "Setting 'MONO_FORCE_COMPAT' for Shenzhen I/O"
@@ -754,6 +760,18 @@ iomap()
 		ln -sf sword1.xnb Content/Sounds/Sword1.xnb
 	elif [ "$1" == "LaserCat" ] ; then
 		ln -sf audio Content/Audio
+	elif [ "$1" == "MountYourFriends" ] ; then
+		ln -sf menuBg.xnb Content/images/menubg.xnb
+		ln -sf humanClean.xnb Content/images/humanclean.xnb
+		ln -sf humanCleanNorm.xnb Content/images/humancleannorm.xnb
+		ln -sf menuMarker.xnb Content/images/menumarker.xnb
+		ln -sf stegersaurusLogo.xnb Content/images/backdrops/stegersauruslogo.xnb
+		ln -sf UIComponents.xnb Content/images/uicomponents.xnb
+		ln -sf restrictedArea.xnb Content/images/restrictedarea.xnb
+		ln -sf goatSheet.xnb Content/images/goatsheet.xnb
+		ln -sf BP3_SSTRIP_64.xnb Content/images/bp3_sstrip_64.xnb
+		ln -sf BP3_SSTRIP_32.xnb Content/images/bp3_sstrip_32.xnb
+		ln -sf keySheet.xnb Content/images/keysheet.xnb
 	else
 		echo "ERROR: invalid or no parameter for iomap()"
 		exit 1

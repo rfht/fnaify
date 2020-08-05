@@ -170,7 +170,7 @@ Little Racers STREET
 Mercenary Kings  
 MidBoss  
 Molek-Syntez  
-Mount Your Friends \[!]  
+Mount Your Friends  
 NeuroVoider  
 Ninja Warrior  
 One Finger Death Punch \[!]  
