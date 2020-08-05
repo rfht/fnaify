@@ -477,6 +477,12 @@ finish_fnaify()
 		iomap OFDP
 	fi
 
+	# Phoenix Force
+	if [ -n "$(ls "$gamedir" | grep -m 1 "PhoenixForce")" ] ; then
+		debug_echo "Create symlinks to replace MONO_IOMAP for Phoenix Force"
+		iomap PhoenixForce
+	fi
+
 	# Shenzhen I/O
 	if $(ls "$gamedir" | grep -iqm 1 shenzhen); then
 		debug_echo "Setting 'MONO_FORCE_COMPAT' for Shenzhen I/O"
@@ -782,6 +788,10 @@ iomap()
 		ln -sf font2.xnb Content/Font2.xnb
 		ln -sf font5.xnb Content/Font5.xnb
 		ln -sf font6.xnb Content/Font6.xnb
+	elif [ "$1" == "PhoenixForce" ] ; then
+		ln -sf LIfeBar.xnb Content/1.4/Boss/lifeBar.xnb
+		ln -sf firewavexml.xml Content/1.4/Player/fireWavexml.xml
+		ln -sf firewave.xnb Content/1.4/Player/fireWave.xnb
 	else
 		echo "ERROR: invalid or no parameter for iomap()"
 		exit 1

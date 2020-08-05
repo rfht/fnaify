@@ -180,7 +180,7 @@ Owlboy
 Paladin  
 Penny Arcade's On the Rain-Slick Precipice of Darkness 3  
 Penny Arcade's On the Rain-Slick Precipice of Darkness 4  
-Phoenix Force \[!]  
+Phoenix Force  
 Press X to Not Die \[!]  
 Rex Rocket  
 Rogue Legacy  
