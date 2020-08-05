@@ -174,7 +174,7 @@ Mount Your Friends
 NeuroVoider  
 Ninja Warrior  
 One Finger Death Punch  
-Opus Magnum \[!]  
+Opus Magnum  
 Overdriven Reloaded  
 Owlboy  
 Paladin  
