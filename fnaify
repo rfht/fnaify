@@ -459,6 +459,12 @@ finish_fnaify()
 		exe_flags="${exe_flags}-disableweb "
 	fi
 
+	# LaserCat
+	if [ -n "$(ls "$gamedir" | grep -m 1 "LaserCat.exe")" ] ; then
+		debug_echo "Create symlinks to replace MONO_IOMAP for LaserCat"
+		iomap LaserCat
+	fi
+
 	# Shenzhen I/O
 	if $(ls "$gamedir" | grep -iqm 1 shenzhen); then
 		debug_echo "Setting 'MONO_FORCE_COMPAT' for Shenzhen I/O"
@@ -746,6 +752,8 @@ iomap()
 		ln -sf frame_ingame_right_mire.xnb Content/Textures/Menu/frame_ingame_right_Mire.xnb
 		ln -sf frame_ingame_left_dune.xnb Content/Textures/Menu/frame_ingame_left_Dune.xnb
 		ln -sf sword1.xnb Content/Sounds/Sword1.xnb
+	elif [ "$1" == "LaserCat" ] ; then
+		ln -sf audio Content/Audio
 	else
 		echo "ERROR: invalid or no parameter for iomap()"
 		exit 1

@@ -128,7 +128,7 @@ Amazing Princess Sarah
 Apotheon  
 Apple Jack 1&2  
 Atom Zombie Smasher  
-Before the Echo  
+Before the Echo \[!]  
 Bleed  
 Bleed 2  
 Breath of Death VII  
@@ -170,18 +170,18 @@ Little Racers STREET
 Mercenary Kings  
 MidBoss  
 Molek-Syntez  
-Mount Your Friends  
+Mount Your Friends \[!]  
 NeuroVoider  
 Ninja Warrior  
-One Finger Death Punch  
-Opus Magnum  
+One Finger Death Punch \[!]  
+Opus Magnum \[!]  
 Overdriven Reloaded  
 Owlboy  
 Paladin  
 Penny Arcade's On the Rain-Slick Precipice of Darkness 3  
 Penny Arcade's On the Rain-Slick Precipice of Darkness 4  
-Phoenix Force  
-Press X to Not Die  
+Phoenix Force \[!]  
+Press X to Not Die \[!]  
 Rex Rocket  
 Rogue Legacy  
 Salt and Sanctuary  
@@ -297,4 +297,4 @@ Thomas Frohwein &lt;[thfr@openbsd.org](mailto:thfr@openbsd.org)&gt;.
 
 Thomas Frohwein &lt;[thfr@openbsd.org](mailto:thfr@openbsd.org)&gt;
 
-OpenBSD 6.7 - August 4, 2020
+OpenBSD 6.7 - August 5, 2020
