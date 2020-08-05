@@ -456,7 +456,7 @@ finish_fnaify()
 	# Hacknet
 	if $(ls "$gamedir" | grep -iqm 1 hacknet); then
 		debug_echo "Setting flag '-disableweb' for HackNet"
-		exe_flags="-disableweb"
+		exe_flags="${exe_flags}-disableweb "
 	fi
 
 	# Shenzhen I/O
@@ -468,7 +468,7 @@ finish_fnaify()
 	# ScourgeBringer
 	if $(ls "$gamedir" | grep -iqm 1 scourgebringer); then
 		debug_echo "Setting flag '-noSound' for ScourgeBringer"
-		exe_flags="-noSound"
+		exe_flags="${exe_flags}-noSound "
 	fi
 
 	# Sword of the Stars: The Pit (SOTSTP)
