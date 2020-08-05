@@ -471,6 +471,12 @@ finish_fnaify()
 		iomap MountYourFriends
 	fi
 
+	# One Finger Death Punch (OFDP)
+	if [ -n "$(ls "$gamedir" | grep -m 1 "One Finger Death Punch.exe")" ] ; then
+		debug_echo "Create symlinks to replace MONO_IOMAP for One Finger Death Punch"
+		iomap OFDP
+	fi
+
 	# Shenzhen I/O
 	if $(ls "$gamedir" | grep -iqm 1 shenzhen); then
 		debug_echo "Setting 'MONO_FORCE_COMPAT' for Shenzhen I/O"
@@ -772,6 +778,10 @@ iomap()
 		ln -sf BP3_SSTRIP_64.xnb Content/images/bp3_sstrip_64.xnb
 		ln -sf BP3_SSTRIP_32.xnb Content/images/bp3_sstrip_32.xnb
 		ln -sf keySheet.xnb Content/images/keysheet.xnb
+	elif [ "$1" == "OFDP" ] ; then
+		ln -sf font2.xnb Content/Font2.xnb
+		ln -sf font5.xnb Content/Font5.xnb
+		ln -sf font6.xnb Content/Font6.xnb
 	else
 		echo "ERROR: invalid or no parameter for iomap()"
 		exit 1

@@ -173,7 +173,7 @@ Molek-Syntez
 Mount Your Friends  
 NeuroVoider  
 Ninja Warrior  
-One Finger Death Punch \[!]  
+One Finger Death Punch  
 Opus Magnum \[!]  
 Overdriven Reloaded  
 Owlboy  
