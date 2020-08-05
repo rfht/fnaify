@@ -22,11 +22,8 @@
 # - fix FIXMEs
 # - check_nlog now only looks at major version number; is there a better way?
 #   (it reports only major in 'monodis --assembly': 3.0.0.0, 4.0.0.0)
-# - fix whitespace issue seen with 'Battlepaths V1.8.vshost.exe.config', and Super
-#   Daryl Deluxe
 # - figure out how to do selection between AJ1.exe and AJ2.exe for Apple Jack
 # - fails to detect XNA in Streets of Fury EX because of whitespace; resolved after renaming .exe
-# - Cryptark now needs newer FNA.dll (works with 19.9 instead of 17.9)
 # - update the creator for dllmap file; based on fnaify.dllmap.config
 
 USAGE="\nUsage: `basename $0` [-i|-y] [-hv] [-c <configfile>] [-d <depdir>] [-m <monopath>] [<gamedir>]\n\
@@ -67,20 +64,29 @@ if [ -d "/usr/local/share/fnaify-libs" ]; then
 	depdir="/usr/local/share/fnaify-libs:$depdir"
 fi
 
-while [ $# -gt 0 ]; do
-	case "$1" in
-		-c) monoconfig="$2"; shift;;
-		-d) depdir="$2"; shift;;
-		-h) echo "$USAGE"; exit 0;;
-		-i) interaction=i;;
-		-m) monopath="$2"; shift;;
-		-v) FNAIFY_DEBUG=1;;
-		-y) interaction=y;;
-		-*) echo "$USAGE"; exit 1;;
-		*) gamedir=$(readlink -f "$1");;
+while getopts c:d:him:vy o; do
+	case "$o" in
+		c) monoconfig="$2" ;;
+		d) depdir="$2" ;;
+		h) echo "$USAGE"; exit 0;;
+		i) interaction=i ;;
+		m) monopath="$2" ;;
+		v) FNAIFY_DEBUG=1 ;;
+		y) interaction=y ;;
+		--) break ;;
 	esac
-	shift
 done
+shift $(($OPTIND-1))
+if [ -n "$1" ] ; then
+	if [ $# -gt 1 ] ; then
+		echo "ERROR: too many arguments"
+		echo "$USAGE"
+		exit 1
+	fi
+	gamedir=$(readlink -f "$1")
+fi
+
+echo "gamedir: $gamedir"
 cd "$gamedir"
 
 debug_echo()
@@ -844,7 +850,7 @@ EOF
 
 # End of Variables and Functions
 
-debug_echo "Dependency directory string: $depdir"
+debug_echo "Dependency directory string: $depdir\n"
 
 # Identify mono and FNA/MonoGame framework files first, warn/break if errors
 
