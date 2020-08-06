@@ -256,8 +256,9 @@ Thomas Frohwein &lt;[thfr@openbsd.org](mailto:thfr@openbsd.org)&gt;.
 
 # RELEASE HISTORY
 
-2\.3
+3\.0
 
+> Enable modes (\`setup\`, \`run\`).
 > Support for several Zachtronics games. Add libstubborn use to dllmap.
 > Symlinking for MonoGame, e.g. NeuroVoider.
 
@@ -301,4 +302,4 @@ Thomas Frohwein &lt;[thfr@openbsd.org](mailto:thfr@openbsd.org)&gt;.
 
 Thomas Frohwein &lt;[thfr@openbsd.org](mailto:thfr@openbsd.org)&gt;
 
-OpenBSD 6.7 - August 5, 2020
+OpenBSD 6.7 - August 6, 2020
