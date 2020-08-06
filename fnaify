@@ -26,6 +26,8 @@
 # - fails to detect XNA in Streets of Fury EX because of whitespace; resolved after renaming .exe
 # - update the creator for dllmap file; based on fnaify.dllmap.config
 # - pick FNA version with better performance than 17.12
+# - Streets of Fury EX needs the XNA bridge/NetStub files (still not running past initial screen)
+# - fix 'ls:  /usr/local/lib/steamworks-nosteam : No such file or directory' in check_remove_steam*
 
 USAGE="\nUsage: `basename $0` [-i|-y] [-hv] [-c <configfile>] [-d <depdir>] [-m <monopath>] [<gamedir>]\n\
 \n\
@@ -497,9 +499,9 @@ finish_fnaify()
 {
 	# Quirks for the runtime invocation of some games
 
-	##########################################################
-	# OBSOLETE; look at run() for the place to add to/modify #
-	##########################################################
+	############################################################################################
+	# exe_env and exe_flags IN HERE ARE OBSOLETE; look at run() for the place to add to/modify #
+	############################################################################################
 
 	# Apple Jack 1&2
 	if [ -n "$(ls "$gamedir" | grep -m 1 "AJ1.exe")" ] ; then
@@ -507,6 +509,7 @@ finish_fnaify()
 		iomap AppleJack
 	fi
 
+	# REMOVE THIS ONE
 	# Blueberry Garden
 	if $(ls "$gamedir" | grep -qm 1 Blueberry.exe); then
 		debug_echo "Setting 'MONO_FORCE_COMPAT' for Blueberry Garden"
@@ -531,6 +534,7 @@ finish_fnaify()
 		iomap GCM2
 	fi
 
+	# REMOVE THIS ONE
 	# Hacknet
 	if $(ls "$gamedir" | grep -iqm 1 hacknet); then
 		debug_echo "Setting flag '-disableweb' for HackNet"
@@ -561,18 +565,27 @@ finish_fnaify()
 		iomap PhoenixForce
 	fi
 
+	# REMOVE THIS ONE
 	# Shenzhen I/O
 	if $(ls "$gamedir" | grep -iqm 1 shenzhen); then
 		debug_echo "Setting 'MONO_FORCE_COMPAT' for Shenzhen I/O"
 		exe_env="${exe_env}MONO_FORCE_COMPAT=1 "
 	fi
 
+	# REMOVE THIS ONE
 	# ScourgeBringer
 	if $(ls "$gamedir" | grep -iqm 1 scourgebringer); then
 		debug_echo "Setting flag '-noSound' for ScourgeBringer"
 		exe_flags="${exe_flags}-noSound "
 	fi
 
+	# Streets of Fury EX
+	if [ -n "$(ls "$gamedir" | grep -m 1 "Streets of Fury EX")" ] ; then
+		debug_echo "Create symlinks to replace MONO_IOMAP for Streets of Fury EX"
+		iomap SoFEX
+	fi
+
+	# REMOVE exe_env FROM THIS ONE (but not iomap)
 	# Sword of the Stars: The Pit (SOTSTP)
 	if $(ls "$gamedir" | grep -qm 1 ThePit); then
 		debug_echo "Setting 'MONO_FORCE_COMPAT' for Sword of the Stars: The Pit"
@@ -580,6 +593,7 @@ finish_fnaify()
 		iomap SOTSTP
 	fi
 
+	# REMOVE THIS ONE
 	# Terraria
 	if $(ls "$gamedir" | grep -iqm 1 terraria); then
 		debug_echo "Setting 'MONO_FORCE_COMPAT' for Terraria"
@@ -870,6 +884,8 @@ iomap()
 		ln -sf LIfeBar.xnb Content/1.4/Boss/lifeBar.xnb
 		ln -sf firewavexml.xml Content/1.4/Player/fireWavexml.xml
 		ln -sf firewave.xnb Content/1.4/Player/fireWave.xnb
+	elif [ "$1" == "SoFEX" ] ; then
+		ln -sf ShockWave.xnb Content/Texture2D/Shockwave.xnb
 	else
 		echo "ERROR: invalid or no parameter for iomap()"
 		exit 1
