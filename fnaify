@@ -34,6 +34,8 @@ FNAIFY_VERSION=3.0
 #   turn the dllmap file into FNA.dll.config, so that it's loaded side-by-side with /etc/mono/config
 # - fix structure of USAGE; follow man page examples
 # - update man page/README for new syntax with modes setup, run
+# - clarify nomenclature in documentation (and code): modes is 'setup', 'run' etc. interactivity flags: '-i', '-y'
+# - mention package fnaify-extralibs in documentation
 
 USAGE="
 Usage:
@@ -291,6 +293,8 @@ run()
 		Hacknet.exe)				exe_flags="${exe_flags}-disableweb "		;;
 		ScourgeBringer.exe)			exe_flags="${exe_flags}-noSound "		;;
 	esac
+
+	# TODO: set up config with check_gameconfig()
 
 	# format all relevant command variables
 	depdir="$(echo "$depdir" | sed -E 's/:$//')"

@@ -273,7 +273,7 @@ Thomas Frohwein &lt;[thfr@openbsd.org](mailto:thfr@openbsd.org)&gt;.
 2\.0
 
 > Add support for XNA games.
-> Introduce modes
+> Introduce interactivity flags
 > **-i** | **-y**
 > to facilitate adding in needed assemblies/libraries.
 
