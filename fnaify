@@ -1,8 +1,10 @@
 #!/usr/bin/env ksh
 
+FNAIFY_VERSION=2.3
+
 #########################################################################
-# fnaify 2.3								#
-# ===============							#
+# fnaify 								#
+# ======								#
 #									#
 # Run FNA/XNA games on OpenBSD						#
 #									#
@@ -32,10 +34,11 @@
 #   turn the dllmap file into FNA.dll.config, so that it's loaded side-by-side with /etc/mono/config
 
 USAGE="\nUsage:\n\
+\n\
 `basename $0` setup [-i|-y] [-hv] [-c <configfile>] [-d <depdir>] [-m <monopath>] [<gamedir>]\n\
 `basename $0` run [-hv] [-c <configfile>] [-d <depdir>] [-m <monopath>] [<gamedir>]\n\
 `basename $0` help\n\
-`basename $0` [-hV]\n\
+`basename $0` [-V]\n\
 \n\
 -c: specify config file for dllmap (optional)\n\
 -d: replace directories for finding dependencies\n\
@@ -51,7 +54,7 @@ USAGE="\nUsage:\n\
 <gamedir> is optional and defaults to the current directory if not specified.\n\
 "
 
-FNAIFY_VERSION=2.3
+mode=
 depdir="/usr/local/lib:/usr/X11R6/lib"	# /usr/X11R6/lib is location of libfreetype.so on OpenBSD
 gamedir="$PWD"
 interaction=n	# y|n|i: yes to all, no to all, interactive
@@ -61,7 +64,6 @@ monopath="${MONO_PATH}"
 netstub_commit=e7d890e0ede0caa9e76ef37af6070344e3ab0abf
 newline='
 '
-scriptfile=
 
 if [ -d "/usr/local/lib/steamworks-nosteam" ] ; then
 	monopath="${monopath}/usr/local/lib/steamworks-nosteam:"
@@ -77,8 +79,7 @@ fi
 #list of exefiles and their number
 exefile=
 nexefile=0
-my_exe=""	# the .exe selected for the launch script
-
+my_exe=""
 exe_flags=""
 exe_env=""
 
@@ -125,9 +126,8 @@ trunklibnam()
 	echo "\$libnam" | sed -n -E "s/[\.0-9]*$//p"
 }
 
-selectexe()
+selectexe() # find .exe file for the game
 {
-	# find correct .exe file for the wrapper script
 	if [ $nexefile -gt 1 ]; then
 		if [ "x$interaction" = "xi" ] ; then
 			i=1
@@ -137,15 +137,14 @@ selectexe()
 			done
 			input_exe=0
 			while [ \( $(echo "$input_exe" | wc -c) -gt 2 \) -o \( -z "$(echo "$input_exe" | grep [1-9])" \) -o \( $input_exe -gt $((i - 1)) \) ]; do
-				echo -n "Enter number of .exe file to choose for wrapper script: "
+				echo -n "Enter number of .exe file to run: "
 				read input_exe
 			done
 			# NOTE: this only works for up to 9 candidate files
 			my_exe="$(echo $exefile | cut -f $input_exe -d ':')"
 		else
 			# FIXME: for now just pick the first .exe. Come up with
-			#        better heuristic (match directory or launch
-			#        script name; pick .exe with shortest name ... ?
+			#        better heuristic
 			my_exe="$(echo $exefile | cut -f 1 -d ':')"
 		fi
 	elif [ $nexefile -eq 1 ]; then
@@ -157,17 +156,18 @@ selectexe()
 	my_exe="$(echo "$my_exe" | sed -E "s/[ \t]$//")" # trim trailing whitespace
 }
 
-run()
+process_options()
 {
-	monoconfig=/usr/local/share/fnaify/fnaify.dllmap.config
-
-	while getopts c:d:hm:v o; do
+	while getopts c:d:him:Vvy o; do
 		case "$o" in
 			c) monoconfig="$2" ;;
 			d) depdir="$2" ;;
 			h) echo "$USAGE"; exit 0;;
+			i) interaction=i ;;
 			m) monopath="$2" ;;
+			V) echo "$FNAIFY_VERSION"; exit 0;;
 			v) FNAIFY_DEBUG=1 ;;
+			y) interaction=y ;;
 			--) break ;;
 		esac
 	done
@@ -180,9 +180,19 @@ run()
 		fi
 		gamedir=$(readlink -f "$1")
 	fi
+}
 
+help()
+{
+	echo "$USAGE"
+	exit 0
+}
+
+run()
+{
+	debug_echo "Mode: $mode"
+	process_options $@
 	cd "$gamedir"
-	debug_echo "Mode: run"
 
 	debug_echo "Checking mono runtime"
 	if [ -z "$FNAIFY_MONO" ]; then
@@ -221,7 +231,7 @@ run()
 	my_exe="$(echo "$my_exe" | tr -d '\:')"
 
 	printdash "fnaify runtime configuration"
-	echo "Game Directory:			$PWD"		# PWD as cd(1) into $gamedir happened above
+	echo "Game Directory:			$PWD"		# PWD as cd'd into $gamedir happened above
 	echo "Mono Binary:			$FNAIFY_MONO"
 	echo "Mono Path:			$monopath"
 	echo "Native Library Directories:	$depdir"
@@ -235,13 +245,13 @@ run()
 	echo "AT LEAST 2G are recommended for most games. See ksh(1) for ulimit command documentation"
 
 	# check if broken symlinks exist in the game directory, e.g. libdl.so
-	for l in \$(find . -type l); do
-		if [ ! -e "\$l" ] ; then
-			newl="\$(latest_syslib "\$(trunklibnam "\$(readlink \$l)")")"
-			if [ -z "\$newl" ] ; then
-				echo "ERROR - broken symlink: \$l. Expect trouble."
+	for l in $(find . -type l); do
+		if [ ! -e "$l" ] ; then
+			newl="$(latest_syslib "$(trunklibnam "$(readlink $l)")")"
+			if [ -z "$newl" ] ; then
+				echo "ERROR - broken symlink: $l. Expect trouble."
 			else
-				ln -fs "\$newl" "\$l"
+				ln -fs "$newl" "$l"
 			fi
 		fi
 	done
@@ -251,35 +261,21 @@ run()
 	exit
 }
 
-if [ "$1" == "run" ] ; then
-	shift
-	run $@
-fi
+setup()
+{
+	debug_echo "Mode: $mode"
+	process_options $@
+	cd "$gamedir"
+	debug_echo "gamedir: $PWD"	# cd'd into direct above
+}
 
-while getopts c:d:him:vy o; do
-	case "$o" in
-		c) monoconfig="$2" ;;
-		d) depdir="$2" ;;
-		h) echo "$USAGE"; exit 0;;
-		i) interaction=i ;;
-		m) monopath="$2" ;;
-		v) FNAIFY_DEBUG=1 ;;
-		y) interaction=y ;;
-		--) break ;;
-	esac
-done
-shift $(($OPTIND-1))
-if [ -n "$1" ] ; then
-	if [ $# -gt 1 ] ; then
-		echo "ERROR: too many arguments"
-		echo "$USAGE"
-		exit 1
-	fi
-	gamedir=$(readlink -f "$1")
-fi
-
-debug_echo "gamedir: $gamedir"
-cd "$gamedir"
+mode="$1"
+case "$mode" in
+	setup)	setup $@;	shift ;;
+	run)	run $@;		shift ;;
+	help)	echo "$USAGE"; exit 0;;
+	*)	process_options $@; echo "$USAGE"; exit 0;
+esac
 
 if [ -z "$monoconfig" ] ; then
 	if [ -f "$HOME/.config/fnaify/fnaify.dllmap.config" ] ; then
@@ -723,9 +719,6 @@ xnasetup()
 
 	selectexe
 	check_remove_steamworks
-	debug_echo "creating launch script"
-	scriptfile="run_game.sh"
-	fullscriptpath="$gamedir/$scriptfile"
 	finish_fnaify
 }
 
@@ -921,54 +914,6 @@ elif [ -e "$gamedir/MonoGame.Framework.dll" ]; then
 fi
 
 check_nlog
-
-debug_echo "\nTrying to identify the launch script file automatically..."
-scount=0
-scriptfilearray="" # files that are possible launchscripts
-sfile=""
-IFS="
-"
-for sfile in $(cd "$gamedir" && find . -maxdepth 1 -type f | grep -Ev "\.[^/]|mono.*config$" | cut -f 2 -d "/" | sort); do
-	debug_echo "\tfound candidate for launch script file: $sfile"
-	if [ -z "${scriptfilearray}" ]; then
-		scriptfilearray="$sfile"
-	else
-		scriptfilearray="$scriptfilearray $sfile"
-	fi
-	scount=$((scount + 1))
-done
-IFS=$SAVEIFS
-
-if [ \( $scount -gt 1 \) -a \( "x$interaction" = "xi" \) ]; then
-	i=1
-	for fsc in $scriptfilearray; do
-		echo "$i: ${fsc}"
-		i=$((i + 1))
-	done
-	input_script=0
-	# Parentheses for grouping must be escaped with '\'
-	# check for range of numbers, number of characters, and presence of non-digit characters
-	while [ \( $(echo "$input_script" | wc -c) -gt 2 \) -o \( -z "$(echo "$input_script" | grep [1-9])" \) -o \( $input_script -gt $((i - 1)) \) ]; do
-		echo -n "Enter number of the file to use as the launch script: "
-		read input_script
-	done
-	# http://www.etalabs.net/sh_tricks.html - Working with arrays
-	set -- ${scriptfilearray}
-	input_script="\$$input_script"
-	# hmm, eval... simplest way to pick an array element it seems.
-	# http://mywiki.wooledge.org/BashFAQ/048
-	# NOTE: this only works for up to 9 candidate files
-	scriptfile=$(eval echo "$input_script")
-elif [ $scount -eq 1 ]; then
-	scriptfile="${scriptfilearray}"
-else
-	scriptfile="run_game.sh"
-fi
-
-debug_echo "Identified the following file as the launch script: ${scriptfile}\n"
-
-# path and file variable definitions
-fullscriptpath="$gamedir/$scriptfile"
 
 set -A configfilesarray		# empties array
 nconfigfilesarray=0
