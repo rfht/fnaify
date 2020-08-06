@@ -258,7 +258,7 @@ Thomas Frohwein &lt;[thfr@openbsd.org](mailto:thfr@openbsd.org)&gt;.
 
 3\.0
 
-> Enable modes (\`setup\`, \`run\`).
+> Enable modes (*setup*, *run*).
 > Support for several Zachtronics games. Add libstubborn use to dllmap.
 > Symlinking for MonoGame, e.g. NeuroVoider.
 

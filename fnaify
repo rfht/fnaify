@@ -33,6 +33,7 @@ FNAIFY_VERSION=3.0
 # - instead of substituting fnaify.dllmap.config for /etc/mono/config
 #   turn the dllmap file into FNA.dll.config, so that it's loaded side-by-side with /etc/mono/config
 # - fix structure of USAGE; follow man page examples
+# - update man page/README for new syntax with modes setup, run
 
 USAGE="
 Usage:
