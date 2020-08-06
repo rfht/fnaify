@@ -25,6 +25,7 @@
 # - figure out how to do selection between AJ1.exe and AJ2.exe for Apple Jack
 # - fails to detect XNA in Streets of Fury EX because of whitespace; resolved after renaming .exe
 # - update the creator for dllmap file; based on fnaify.dllmap.config
+# - pick FNA version with better performance than 17.12
 
 USAGE="\nUsage: `basename $0` [-i|-y] [-hv] [-c <configfile>] [-d <depdir>] [-m <monopath>] [<gamedir>]\n\
 \n\
@@ -999,6 +1000,7 @@ else
 		-o \( -n "$(ls "$gamedir" | grep -im 1 "lightning.exe")" \) \
 		-o \( -n "$(ls "$gamedir" | grep -im 1 "shenzhen.exe")" \) \
 		-o \( -n "$(ls "$gamedir" | grep -im 1 "spacechem.exe")" \) \
+		-o \( -n "$(ls "$gamedir" | grep -im 1 "streets of fury ex.exe")" \) \
 		] ; then
 		debug_echo "\nCompatible game without XNA/FNA framework file found."
 		debug_echo 'Creating $HOME/Desktop directory which is needed for some Zachtronics games'

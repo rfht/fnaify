@@ -162,6 +162,7 @@ Gateways
 Grand Class Melee 2 \[!]  
 Growing Pains  
 HackNet  
+Hidden in Plain Sight  
 Hive \[!] - sometimes doesn't start up  
 Hyphen  
 Jon Shafer's At the Gates  
@@ -170,7 +171,7 @@ Little Racers STREET
 Mercenary Kings  
 MidBoss  
 Molek-Syntez  
-Mount Your Friends  
+Mount Your Friends \[!]  
 NeuroVoider  
 Ninja Warrior  
 One Finger Death Punch  
@@ -181,30 +182,33 @@ Paladin
 Penny Arcade's On the Rain-Slick Precipice of Darkness 3  
 Penny Arcade's On the Rain-Slick Precipice of Darkness 4  
 Phoenix Force  
+PlanetFriend  
 Press X to Not Die  
 Rex Rocket  
 Rogue Legacy  
+Ruggnar  
 Salt and Sanctuary  
+Session Seven  
 Shenzhen I/O  
 Shipwreck  
 Skulls of the Shogun  
 Soulcaster 1 & 2  
-SpaceChem  
+SpaceChem \[!]  
 SpeedRunners  
 Stardew Valley  
 Sumico  
-Super Amazing Wagon Adventure  
+Super Amazing Wagon Adventure \[!]  
 Super Blood Hockey  
 Super Rad Raygun  
-Sword of the Stars: The Pit  
+Sword of the Stars: The Pit \[!]  
 Terraria  
 Timespinner  
 TowerFall: Ascension  
+Ultra Hat Dimension  
 Unexplored  
 Unholy Heights (no audio)  
 The Useful Dead  
-Weapon of Choice  
-Wizorb  
+Weapon of Choice \[!]  
 Wyv and Keep
 
 # FILES
