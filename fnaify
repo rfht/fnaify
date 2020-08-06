@@ -775,7 +775,7 @@ run()
 
 	LD_LIBRARY_PATH="$depdir" MONO_PATH="$monopath" $exe_env exec "$FNAIFY_MONO" "$my_exe" $exe_flags \$*
 
-	exit
+	exit 0
 }
 
 setup()
@@ -968,6 +968,55 @@ setup()
 		fi
 	done
 
+
+	if [ -n "$(ls "$gamedir" | grep -m 1 "MidBoss.exe")" ] ; then
+		debug_echo 'creating MidBoss.exe.config for MidBoss'
+		cat <<EOF > "$gamedir/MidBoss.exe.config"
+<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+	<dllmap dll="SDL2_image.dll" target="libSDL2_image_compact.so"/>
+</configuration>
+EOF
+	fi
+
+	debug_echo "Moving some bundled dll files into fnaify-backup subfolder... "
+	for file in $monofilearray; do
+		if [ -e "$gamedir/$file" ]; then
+			debug_echo "\tFound bundled mono file: $file"
+			mkdir -p "$gamedir/fnaify-backup"
+			mv "$gamedir/$file" "$gamedir/fnaify-backup/"
+		fi
+	done
+	debug_echo " done."
+
+	# if necessary, replace FNA.dll
+	fna_replace=""
+	lastdir=""
+	if [ $fna_warning -eq 1 ]; then
+		if [ "x$interaction" = "xi" ] ; then
+			echo "\nWARNING: version of FNA.dll potentially incompatble!"
+			echo "Fetch FNA 17.12 from GitHub, compile, and replace bundled FNA.dll?"
+			echo "FNA is distributed under Microsoft Public License. The license"
+			echo "can be viewed here:"
+			echo "https://github.com/FNA-XNA/FNA/blob/master/licenses/LICENSE"
+			echo -n "Proceed with replacing FNA with version 17.12 (recommended)? [y/n] "
+			until [ "$fna_replace" = "y" -o "$fna_replace" = "n" ]; do
+				read fna_replace
+			done
+		elif [ "x$interaction" = "xy" ] ; then
+			fna_replace="y"
+		else
+			fna_replace="n"
+		fi
+
+		if [ "$fna_replace" = "y" ]; then
+			install_fna 17.12
+			fna_warning=0
+		fi
+	fi
+
+	check_remove_steamworks
+	symlink_mg_libs
 	iomap
 
 	if [ -n "${licenses}" ]; then
@@ -999,72 +1048,3 @@ case "$mode" in
 	help)	echo "$USAGE"; exit 0;;
 	*)	process_options $@; echo "$USAGE"; exit 0;
 esac
-
-# if MidBoss, add a FNA.dll.config to overwrite libSDL2_image_compact
-if [ $MidBoss -eq 1 ]; then
-	debug_echo 'creating FNA.dll.config for MidBoss'
-	cat <<EOF > "$gamedir/FNA.dll.config"
-<?xml version="1.0" encoding="utf-8"?>
-<configuration>
-	<dllmap dll="SDL2_image.dll" target="libSDL2_image_compact.so"/>
-</configuration>
-EOF
-fi
-
-debug_echo "Moving some bundled dll files into fnaify-backup subfolder... "
-for file in $monofilearray; do
-	if [ -e "$gamedir/$file" ]; then
-		debug_echo "\tFound bundled mono file: $file"
-		mkdir -p "$gamedir/fnaify-backup"
-		mv "$gamedir/$file" "$gamedir/fnaify-backup/"
-	fi
-done
-debug_echo " done."
-
-# if necessary, replace FNA.dll
-fna_replace=""
-lastdir=""
-if [ $fna_warning -eq 1 ]; then
-	if [ "x$interaction" = "xi" ] ; then
-		echo "\nWARNING: version of FNA.dll potentially incompatble!"
-		echo "Fetch FNA 17.12 from GitHub, compile, and replace bundled FNA.dll?"
-		echo "FNA is distributed under Microsoft Public License. The license"
-		echo "can be viewed here:"
-		echo "https://github.com/FNA-XNA/FNA/blob/master/licenses/LICENSE"
-		echo -n "Proceed with replacing FNA with version 17.12 (recommended)? [y/n] "
-		until [ "$fna_replace" = "y" -o "$fna_replace" = "n" ]; do
-			read fna_replace
-		done
-	elif [ "x$interaction" = "xy" ] ; then
-		fna_replace="y"
-	else
-		fna_replace="n"
-	fi
-
-	if [ "$fna_replace" = "y" ]; then
-		install_fna 17.12
-		fna_warning=0
-	fi
-fi
-
-check_remove_steamworks
-
-symlink_mg_libs
-
-IFS="
-"
-for xfile in $(cd "$gamedir" && find . -maxdepth 1 -type f -iname "*.exe" | cut -f 2 -d "/" | sort); do
-	exefile="$exefile$xfile:"
-	nexefile=$((nexefile + 1))
-done
-IFS=$SAVEIFS
-IFS="
-"
-for xfile in $(cd "$gamedir" && find . -maxdepth 1 -type f -iname "*.exe" | cut -f 2 -d "/" | sort); do
-	exefile="$exefile$xfile:"
-	nexefile=$((nexefile + 1))
-done
-IFS=$SAVEIFS
-selectexe
-
-finish_fnaify
