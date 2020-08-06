@@ -182,12 +182,22 @@ printdash()
 	echo "$dashes"
 }
 
+inarray() # check if $1 is in array $2
+{
+	firstarg="$1"
+	shift 1
+	echo "$*" | grep -q "$firstarg"
+}
+
+# function to find the latest present library. Return -1 if none found.
+# $1 is the basename of the library without the version suffix (e.g. /usr/lib/libc.so)
+# it will return the filename of the latest library version (e.g. /usr/lib/libc.so.96.0)
 latest_syslib()
 {
-	if [ -z "\$1" ] ; then
+	if [ -z "$1" ] ; then
 		return 1
 	fi
-	find "\$(dirname \$1)" -maxdepth 1 -name "\$(basename \$1)*" | tail -1
+	find "$(dirname $1)" -maxdepth 1 -name "$(basename $1)*" | tail -1
 }
 
 trunklibnam() # truncate library name
@@ -195,6 +205,64 @@ trunklibnam() # truncate library name
 	libnam="$1"
 	libnam="$(echo "$libnam" | sed -n -E "s/[\.0-9]*$//p")"
 	echo "$libnam" | sed -E "s/(libSDL2[^-]*)-2\.0(\.so.*)/\1\2/"
+}
+
+validlib() # returns 1 if $1 is in ignoredarray, otherwise 0
+{
+	libnam="$(trunklibnam $1)"
+	if [ -n "$(echo \"$ignoredarray\" | grep $libnam)" ]; then
+		return 1
+	elif [ -n "$(echo \"$libnam\" | grep '\.dll[ \t]*')" ]; then
+		return 1
+	else
+		return 0
+	fi
+}
+
+symlink_mg_libs()
+{
+	mg_subdirs="x64
+x86"
+	debug_echo "\nChecking for MonoGame x64/x86 dir to create symlinks"
+
+	
+	if [ \( ! -e "$gamedir/x64" \) -a \( ! -e "$gamedir/x86" \) ]; then
+		debug_echo "\nCouldn't find directories x64 or x86 in $gamedir"
+	else
+		for d in ${mg_subdirs[@]} ; do
+			debug_echo "\nProcessing library directory $gamedir/$d"
+			for file in $(ls "$gamedir/$d"); do
+				# sort out libs that need to be ignored
+				validlib $file
+				if [ $? -eq 1 ]; then
+					debug_echo "\tignored file: $file"
+					continue
+				fi
+				debug_echo "\tfound library file: $file. Replacing with symlink..."
+				trunk=$(trunklibnam "$file")
+				rm "$gamedir/$d/$file"
+				debug_echo -n "\t\tchecking for location of $trunk... "
+				if [ -n "$(latest_syslib /usr/local/lib/$trunk)" ] ; then
+					debug_echo "found in /usr/local/lib!"
+					trunkpath="/usr/local/lib/$trunk"
+				elif [ -n "$(latest_syslib /usr/X11R6/lib/$trunk)" ] ; then
+					debug_echo "found in /usr/X11R6/lib!"
+					trunkpath="/usr/X11R6/lib/$trunk"
+				elif [ -n "$(latest_syslib /usr/lib/$trunk)" ] ; then
+					debug_echo "found in /usr/lib!"
+					trunkpath="/usr/lib/$trunk"
+				else
+					debug_echo "NOT FOUND!!"
+					trunkpath=
+					echo "\n\t - ERROR: couldn't find system lib for $file"
+				fi
+				ln -s "$(latest_syslib "$trunkpath")" "$gamedir/$d/$file"
+			done
+			debug_echo "Done with library directory $gamedir/$d"
+		done
+		debug_echo "\nCreating libdl.so.2 symlink\n"
+		ln -s "$(latest_syslib /usr/lib/libc.so)" "$gamedir/libdl.so.2"
+	fi
 }
 
 selectexe()
@@ -297,149 +365,6 @@ check_gameconfig()
 	fi
 }
 
-process_options()
-{
-	while getopts c:d:him:Vvy o; do
-		case "$o" in
-			c) gameconfig="$2" ;;
-			d) depdir="$2" ;;
-			h) echo "$USAGE"; exit 0;;
-			i) interaction=i ;;
-			m) monopath="$2" ;;
-			V) echo "$FNAIFY_VERSION"; exit 0;;
-			v) FNAIFY_DEBUG=1 ;;
-			y) interaction=y ;;
-			--) break ;;
-		esac
-	done
-	shift $(($OPTIND-1))
-	if [ -n "$1" ] ; then
-		if [ $# -gt 1 ] ; then
-			echo "ERROR: too many arguments"
-			echo "$USAGE"
-			exit 1
-		fi
-		gamedir=$(readlink -f "$1")
-	fi
-}
-
-help()
-{
-	echo "$USAGE"
-	exit 0
-}
-
-run()
-{
-	debug_echo "Mode: $mode"
-	process_options $@
-	cd "$gamedir"
-
-	debug_echo "Checking mono runtime"
-	if [ -z "$FNAIFY_MONO" ]; then
-		FNAIFY_MONO="mono"
-	fi
-	"$FNAIFY_MONO" --version 2>/dev/null >/dev/null
-	if [ "$?" -gt 0 ]; then
-		echo "error calling mono - aborting... Please make sure that mono is in path or set it in FNAIFY_MONO environment variable!"
-		exit 1
-	fi
-
-	IFS="
-	"
-	for xfile in $(cd "$gamedir" && find . -maxdepth 1 -type f -iname "*.exe" | cut -f 2 -d "/" | sort); do
-		exefile="$exefile$xfile:"
-		nexefile=$((nexefile + 1))
-	done
-	IFS=$SAVEIFS
-	selectexe
-
-	# Quirks for the runtime invocation of some games
-	case "$my_exe" in
-		Blueberry.exe|Shenzhen.exe|ThePit.exe|Terraria.exe)
-			exe_env="${exe_env}MONO_FORCE_COMPAT=1 "					;;
-		Hacknet.exe)				exe_flags="${exe_flags}-disableweb "		;;
-		ScourgeBringer.exe)			exe_flags="${exe_flags}-noSound "		;;
-	esac
-
-	# TODO: set up config with check_gameconfig()
-
-	# format all relevant command variables
-	depdir="$(echo "$depdir" | sed -E 's/:$//')"
-	monopath="$(echo "$monopath" | sed -E 's/:$//' | sed -E 's/^://')"
-	# TODO: switch FNA.dll to a variable that chooses the framework file or .exe if no framework file
-	frameworkfile="FNA.dll"
-	gameconfigsymlink="${frameworkfile}.config"
-	gameconfig="$(readlink ${gameconfigsymlink})"
-	my_exe="$(echo "$my_exe" | tr -d '\:')"
-
-	printdash "fnaify runtime configuration"
-	echo "Game Directory:			$PWD"		# PWD as cd'd into $gamedir happened above
-	echo "Mono Binary:			$FNAIFY_MONO"
-	echo "Mono Path:			$monopath"
-	echo "Native Library Directories:	$depdir"
-	echo "Framework File:			$frameworkfile"
-	echo "Symlink to Config:		$gameconfigsymlink"
-	echo "Config File:			$gameconfig"
-	echo "Additional Runtime Environment:	$exe_env"
-	echo "Runtime Flags:			$exe_flags"
-
-	echo -n "\nNOTE: if game should unexpectedly fail to start, make sure datasize limit is high enough. "
-	echo "AT LEAST 2G are recommended for most games. See ksh(1) for ulimit command documentation"
-
-	# check if broken symlinks exist in the game directory, e.g. libdl.so
-	for l in $(find . -type l); do
-		if [ ! -e "$l" ] ; then
-			newl="$(latest_syslib "$(trunklibnam "$(readlink $l)")")"
-			if [ -z "$newl" ] ; then
-				echo "ERROR - broken symlink: $l. Expect trouble."
-			else
-				ln -fs "$newl" "$l"
-			fi
-		fi
-	done
-
-	LD_LIBRARY_PATH="$depdir" MONO_PATH="$monopath" $exe_env exec "$FNAIFY_MONO" "$my_exe" $exe_flags \$*
-
-	exit
-}
-
-setup()
-{
-	debug_echo "Mode: $mode"
-	process_options $@
-	cd "$gamedir"
-	debug_echo "gamedir: $PWD"	# cd'd into direct above
-}
-
-mode="$1"
-case "$mode" in
-	setup)	setup $@;	shift ;;
-	run)	run $@;		shift ;;
-	help)	echo "$USAGE"; exit 0;;
-	*)	process_options $@; echo "$USAGE"; exit 0;
-esac
-
-
-inarray() # check if $1 is in array $2
-{
-	firstarg="$1"
-	shift 1
-	echo "$*" | grep -q "$firstarg"
-}
-
-validlib() # returns 1 if $1 is in ignoredarray, otherwise 0
-{
-	libnam="$(trunklibnam $1)"
-	if [ -n "$(echo \"$ignoredarray\" | grep $libnam)" ]; then
-		return 1
-	elif [ -n "$(echo \"$libnam\" | grep '\.dll[ \t]*')" ]; then
-		return 1
-	else
-		return 0
-	fi
-}
-
 libraryname()
 {
         version="$1"
@@ -472,65 +397,7 @@ libraryname()
 	fi
 }
 
-# function to find the latest present library. Return -1 if none found.
-# $1 is the basename of the library without the version suffix (e.g. /usr/lib/libc.so)
-# it will return the filename of the latest library version (e.g. /usr/lib/libc.so.96.0)
-latest_syslib()
-{
-	if [ -z "$1" ] ; then
-		return 1
-	fi
-	find "$(dirname $1)" -maxdepth 1 -name "$(basename $1)*" | tail -1
-}
-
-symlink_mg_libs()
-{
-	mg_subdirs="x64
-x86"
-	debug_echo "\nChecking for MonoGame x64/x86 dir to create symlinks"
-
-	
-	if [ \( ! -e "$gamedir/x64" \) -a \( ! -e "$gamedir/x86" \) ]; then
-		debug_echo "\nCouldn't find directories x64 or x86 in $gamedir"
-	else
-		for d in ${mg_subdirs[@]} ; do
-			debug_echo "\nProcessing library directory $gamedir/$d"
-			for file in $(ls "$gamedir/$d"); do
-				# sort out libs that need to be ignored
-				validlib $file
-				if [ $? -eq 1 ]; then
-					debug_echo "\tignored file: $file"
-					continue
-				fi
-				debug_echo "\tfound library file: $file. Replacing with symlink..."
-				trunk=$(trunklibnam "$file")
-				rm "$gamedir/$d/$file"
-				debug_echo -n "\t\tchecking for location of $trunk... "
-				if [ -n "$(latest_syslib /usr/local/lib/$trunk)" ] ; then
-					debug_echo "found in /usr/local/lib!"
-					trunkpath="/usr/local/lib/$trunk"
-				elif [ -n "$(latest_syslib /usr/X11R6/lib/$trunk)" ] ; then
-					debug_echo "found in /usr/X11R6/lib!"
-					trunkpath="/usr/X11R6/lib/$trunk"
-				elif [ -n "$(latest_syslib /usr/lib/$trunk)" ] ; then
-					debug_echo "found in /usr/lib!"
-					trunkpath="/usr/lib/$trunk"
-				else
-					debug_echo "NOT FOUND!!"
-					trunkpath=
-					echo "\n\t - ERROR: couldn't find system lib for $file"
-				fi
-				ln -s "$(latest_syslib "$trunkpath")" "$gamedir/$d/$file"
-			done
-			debug_echo "Done with library directory $gamedir/$d"
-		done
-		debug_echo "\nCreating libdl.so.2 symlink\n"
-		ln -s "$(latest_syslib /usr/lib/libc.so)" "$gamedir/libdl.so.2"
-	fi
-}
-
-# check if Steamworks.NET.dll is present, move it away if stub is in $monopath
-check_remove_steamworks()
+check_remove_steamworks()	# check if Steamworks.NET.dll is present, move it away if stub is in $monopath
 {
 	# FIXME: likely not whitespace-safe
 	if [ -e "$gamedir/Steamworks.NET.dll" \
@@ -542,26 +409,6 @@ check_remove_steamworks()
 			mv "$gamedir/Steamworks.NET.dll" "$gamedir/fnaify-backup/"
 		fi
 	fi
-}
-
-finish_fnaify()
-{
-	iomap
-
-	if [ -n "${licenses}" ]; then
-		echo "Installed modules are under the following license(s):\n"
-		echo "${licenses}"
-	fi
-	if [ $fna_warning -eq 1 ]; then
-		echo "\nWARNING: version of FNA.dll potentially incompatible!"
-		echo "If the game doesn't run, try running 'fnaify -i' (or 'fnaify -y').\n"
-	fi
-	if [ $nlog_warning -eq 1 ]; then
-		echo "\nWARNING: version of NLog.dll potentially incompatible!"
-		echo "If the game doesn't run, try running 'fnaify -i' (or 'fnaify -y').\n"
-	fi
-
-	exit 0
 }
 
 # install FNA into gamedir; specify version (e.g. 17.12) as $1
@@ -652,74 +499,31 @@ check_nlog()
 		fi
 	fi
 }
-# check if this is an XNA game, otherwise abort
-xnasetup()
-{
-	# reset exefile and nexefile to pick only XNA files
-	exefile=
-	nexefile=0
-	IFS='
-'
-	for assembly in $(cd "${gamedir}" && find . -maxdepth 1 -type f | grep -E ".*\.exe$" | cut -f 2 -d "/" | sort); do
-		debug_echo "Checking $assembly for XNA"
-		monodis --assemblyref "${gamedir}/$assembly" 2>&1 \
-			| grep -iqm 1 "Microsoft.Xna.Framework"
-		if [ $? -eq 0 ]; then
-			exefile="$exefile$assembly:"
-			nexefile=$((nexefile + 1))
-		fi
-	done
-	IFS=$SAVEIFS
-	if [ $nexefile -lt 1 ]; then
-		echo "No FNA or XNA game found. Quitting."
-		exit 1
-	fi
-	if [ -d "/usr/local/share/fnaify/XNA-bridge" ];then
-		monopath="${monopath}:/usr/local/share/fnaify/XNA-bridge"
-	else
-		if [ "x$interaction" = "xi" ] ; then
-			echo -n "\nInstall FNA files from GitHub to for this XNA application? [y/n] "
-			response=
-			until [ \( "x$response" = "xy" \) -o \( "x$response" = "xn" \) ]
-			do
-				read response
-			done
-		elif [ "x$interaction" = "xy" ] ; then
-			response="y"
-		else
-			response="n"
-		fi
 
-		if [ "$response" = "y" ]; then
-			install_fna latest xna_bridge
-		else
-			echo "Failed to install FNA/XNA files. Try running with -i or -y flag\n"
+process_options()
+{
+	while getopts c:d:him:Vvy o; do
+		case "$o" in
+			c) gameconfig="$2" ;;
+			d) depdir="$2" ;;
+			h) echo "$USAGE"; exit 0;;
+			i) interaction=i ;;
+			m) monopath="$2" ;;
+			V) echo "$FNAIFY_VERSION"; exit 0;;
+			v) FNAIFY_DEBUG=1 ;;
+			y) interaction=y ;;
+			--) break ;;
+		esac
+	done
+	shift $(($OPTIND-1))
+	if [ -n "$1" ] ; then
+		if [ $# -gt 1 ] ; then
+			echo "ERROR: too many arguments"
+			echo "$USAGE"
 			exit 1
 		fi
+		gamedir=$(readlink -f "$1")
 	fi
-	
-	# convert .wma to .ogg and .wmv to .ogv
-	# https://gist.github.com/flibitijibibo/c97bc14aab04b1277d8ef5e97fc9aeff
-	IFS="
-"
-	# FIXME: check for errors on return of these commands
-	echo -n "checking for WMA/WMV files and converting. This may take several minutes..."
-	for afile in $(find "$gamedir" -name "*.wma"); do
-		ffmpeg -loglevel fatal -i "$afile" -c:a libvorbis -q:a 10 \
-			"$(echo "$afile" | rev | cut -d. -f2-$(($(echo "$afile" \
-			| tr -dc '.' | wc -c) + 1)) | rev).ogg"
-	done
-	for vfile in $(find . -name "*.wmv"); do
-		ffmpeg -loglevel fatal -i "$vfile" -c:v libtheora -q:v 10 -c:a libvorbis \
-			-q:a 10 "$(echo "$vfile" | rev | cut -d. -f2-$(($(echo "$vfile" \
-			| tr -dc '.' | wc -c) + 1)) | rev).ogv"
-	done
-	IFS=$SAVEIFS
-	echo " done."
-
-	selectexe
-	check_remove_steamworks
-	finish_fnaify
 }
 
 iomap()
@@ -827,9 +631,198 @@ iomap()
 	fi
 }
 
-# End of Variables and Functions
+# check if this is an XNA game, otherwise abort
+xnasetup()
+{
+	# reset exefile and nexefile to pick only XNA files
+	exefile=
+	nexefile=0
+	IFS='
+'
+	for assembly in $(cd "${gamedir}" && find . -maxdepth 1 -type f | grep -E ".*\.exe$" | cut -f 2 -d "/" | sort); do
+		debug_echo "Checking $assembly for XNA"
+		monodis --assemblyref "${gamedir}/$assembly" 2>&1 \
+			| grep -iqm 1 "Microsoft.Xna.Framework"
+		if [ $? -eq 0 ]; then
+			exefile="$exefile$assembly:"
+			nexefile=$((nexefile + 1))
+		fi
+	done
+	IFS=$SAVEIFS
+	if [ $nexefile -lt 1 ]; then
+		echo "No FNA or XNA game found. Quitting."
+		exit 1
+	fi
+	if [ -d "/usr/local/share/fnaify/XNA-bridge" ];then
+		monopath="${monopath}:/usr/local/share/fnaify/XNA-bridge"
+	else
+		if [ "x$interaction" = "xi" ] ; then
+			echo -n "\nInstall FNA files from GitHub to for this XNA application? [y/n] "
+			response=
+			until [ \( "x$response" = "xy" \) -o \( "x$response" = "xn" \) ]
+			do
+				read response
+			done
+		elif [ "x$interaction" = "xy" ] ; then
+			response="y"
+		else
+			response="n"
+		fi
 
-debug_echo "Dependency directory string: $depdir\n"
+		if [ "$response" = "y" ]; then
+			install_fna latest xna_bridge
+		else
+			echo "Failed to install FNA/XNA files. Try running with -i or -y flag\n"
+			exit 1
+		fi
+	fi
+	
+	# convert .wma to .ogg and .wmv to .ogv
+	# https://gist.github.com/flibitijibibo/c97bc14aab04b1277d8ef5e97fc9aeff
+	IFS="
+"
+	# FIXME: check for errors on return of these commands
+	echo -n "checking for WMA/WMV files and converting. This may take several minutes..."
+	for afile in $(find "$gamedir" -name "*.wma"); do
+		ffmpeg -loglevel fatal -i "$afile" -c:a libvorbis -q:a 10 \
+			"$(echo "$afile" | rev | cut -d. -f2-$(($(echo "$afile" \
+			| tr -dc '.' | wc -c) + 1)) | rev).ogg"
+	done
+	for vfile in $(find . -name "*.wmv"); do
+		ffmpeg -loglevel fatal -i "$vfile" -c:v libtheora -q:v 10 -c:a libvorbis \
+			-q:a 10 "$(echo "$vfile" | rev | cut -d. -f2-$(($(echo "$vfile" \
+			| tr -dc '.' | wc -c) + 1)) | rev).ogv"
+	done
+	IFS=$SAVEIFS
+	echo " done."
+
+	selectexe
+	check_remove_steamworks
+}
+
+###################################
+### MODES: help, run, setup	###
+###################################
+
+help()
+{
+	echo "$USAGE"
+	exit 0
+}
+
+run()
+{
+	debug_echo "Mode: $mode"
+	process_options $@
+	cd "$gamedir"
+
+	debug_echo "Checking mono runtime"
+	if [ -z "$FNAIFY_MONO" ]; then
+		FNAIFY_MONO="mono"
+	fi
+	"$FNAIFY_MONO" --version 2>/dev/null >/dev/null
+	if [ "$?" -gt 0 ]; then
+		echo "error calling mono - aborting... Please make sure that mono is in path or set it in FNAIFY_MONO environment variable!"
+		exit 1
+	fi
+
+	IFS="
+	"
+	for xfile in $(cd "$gamedir" && find . -maxdepth 1 -type f -iname "*.exe" | cut -f 2 -d "/" | sort); do
+		exefile="$exefile$xfile:"
+		nexefile=$((nexefile + 1))
+	done
+	IFS=$SAVEIFS
+	selectexe
+
+	# Quirks for the runtime invocation of some games
+	case "$my_exe" in
+		Blueberry.exe|Shenzhen.exe|ThePit.exe|Terraria.exe)
+			exe_env="${exe_env}MONO_FORCE_COMPAT=1 "					;;
+		Hacknet.exe)				exe_flags="${exe_flags}-disableweb "		;;
+		ScourgeBringer.exe)			exe_flags="${exe_flags}-noSound "		;;
+	esac
+
+	# TODO: set up config with check_gameconfig()
+
+	# format all relevant command variables
+	depdir="$(echo "$depdir" | sed -E 's/:$//')"
+	monopath="$(echo "$monopath" | sed -E 's/:$//' | sed -E 's/^://')"
+	# TODO: switch FNA.dll to a variable that chooses the framework file or .exe if no framework file
+	frameworkfile="FNA.dll"
+	gameconfigsymlink="${frameworkfile}.config"
+	gameconfig="$(readlink ${gameconfigsymlink})"
+	my_exe="$(echo "$my_exe" | tr -d '\:')"
+
+	printdash "fnaify runtime configuration"
+	echo "Game Directory:			$PWD"		# PWD as cd'd into $gamedir happened above
+	echo "Mono Binary:			$FNAIFY_MONO"
+	echo "Mono Path:			$monopath"
+	echo "Native Library Directories:	$depdir"
+	echo "Framework File:			$frameworkfile"
+	echo "Symlink to Config:		$gameconfigsymlink"
+	echo "Config File:			$gameconfig"
+	echo "Additional Runtime Environment:	$exe_env"
+	echo "Runtime Flags:			$exe_flags"
+
+	echo -n "\nNOTE: if game should unexpectedly fail to start, make sure datasize limit is high enough. "
+	echo "AT LEAST 2G are recommended for most games. See ksh(1) for ulimit command documentation"
+
+	# check if broken symlinks exist in the game directory, e.g. libdl.so
+	for l in $(find . -type l); do
+		if [ ! -e "$l" ] ; then
+			newl="$(latest_syslib "$(trunklibnam "$(readlink $l)")")"
+			if [ -z "$newl" ] ; then
+				echo "ERROR - broken symlink: $l. Expect trouble."
+			else
+				ln -fs "$newl" "$l"
+			fi
+		fi
+	done
+
+	LD_LIBRARY_PATH="$depdir" MONO_PATH="$monopath" $exe_env exec "$FNAIFY_MONO" "$my_exe" $exe_flags \$*
+
+	exit
+}
+
+setup()
+{
+	debug_echo "Mode: $mode"
+	process_options $@
+	cd "$gamedir"
+	debug_echo "gamedir: $PWD"	# cd'd into direct above
+
+	iomap
+
+	if [ -n "${licenses}" ]; then
+		echo "Installed modules are under the following license(s):\n"
+		echo "${licenses}"
+	fi
+	if [ $fna_warning -eq 1 ]; then
+		echo "\nWARNING: version of FNA.dll potentially incompatible!"
+		echo "If the game doesn't run, try running 'fnaify -i' (or 'fnaify -y').\n"
+	fi
+	if [ $nlog_warning -eq 1 ]; then
+		echo "\nWARNING: version of NLog.dll potentially incompatible!"
+		echo "If the game doesn't run, try running 'fnaify -i' (or 'fnaify -y').\n"
+	fi
+
+	exit 0
+}
+
+###	END OF VARIABLES AND FUNCTIONS	###
+
+###################
+###	MAIN	###
+###################
+
+mode="$1"
+case "$mode" in
+	setup)	setup $@;	shift ;;
+	run)	run $@;		shift ;;
+	help)	echo "$USAGE"; exit 0;;
+	*)	process_options $@; echo "$USAGE"; exit 0;
+esac
 
 # Identify mono and FNA/MonoGame framework files first, warn/break if errors
 
