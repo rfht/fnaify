@@ -31,7 +31,11 @@
 # - instead of substituting fnaify.dllmap.config for /etc/mono/config
 #   turn the dllmap file into FNA.dll.config, so that it's loaded side-by-side with /etc/mono/config
 
-USAGE="\nUsage: `basename $0` [-i|-y] [-hv] [-c <configfile>] [-d <depdir>] [-m <monopath>] [<gamedir>]\n\
+USAGE="\nUsage:\n\
+`basename $0` setup [-i|-y] [-hv] [-c <configfile>] [-d <depdir>] [-m <monopath>] [<gamedir>]\n\
+`basename $0` run [-hv] [-c <configfile>] [-d <depdir>] [-m <monopath>] [<gamedir>]\n\
+`basename $0` help\n\
+`basename $0` [-hV]\n\
 \n\
 -c: specify config file for dllmap (optional)\n\
 -d: replace directories for finding dependencies\n\
@@ -41,17 +45,19 @@ USAGE="\nUsage: `basename $0` [-i|-y] [-hv] [-c <configfile>] [-d <depdir>] [-m 
 -i: interactive mode\n\
 -m: add directories to MONO_PATH\n\
 -y: non-interactive mode; automatically replies 'yes' to all recommended choices\n\
+-V: display version
 -v: verbose output\n\
 \n\
 <gamedir> is optional and defaults to the current directory if not specified.\n\
 "
 
+FNAIFY_VERSION=2.3
 depdir="/usr/local/lib:/usr/X11R6/lib"	# /usr/X11R6/lib is location of libfreetype.so on OpenBSD
 gamedir="$PWD"
 interaction=n	# y|n|i: yes to all, no to all, interactive
 licenses=
 monoconfig=
-monopath="${MONO_PATH}:"
+monopath="${MONO_PATH}"
 netstub_commit=e7d890e0ede0caa9e76ef37af6070344e3ab0abf
 newline='
 '
@@ -62,7 +68,7 @@ if [ -d "/usr/local/lib/steamworks-nosteam" ] ; then
 	depdir="/usr/local/lib/steamworks-nosteam:$depdir"
 fi
 if [ -d "/usr/local/share/steamstubs" ]; then
-	monopath="${monopath}/usr/local/share/steamstubs:"
+	monopath="${monopath}:/usr/local/share/steamstubs"
 fi
 if [ -d "/usr/local/share/fnaify-libs" ]; then
 	depdir="/usr/local/share/fnaify-libs:$depdir"
@@ -672,8 +678,8 @@ xnasetup()
 		echo "No FNA or XNA game found. Quitting."
 		exit 1
 	fi
-	if [ -d "/usr/local/share/fnaify-libs/XNA-bridge" ];then
-		monopath="${monopath}/usr/local/share/fnaify-libs/XNA-bridge:"
+	if [ -d "/usr/local/share/fnaify/XNA-bridge" ];then
+		monopath="${monopath}:/usr/local/share/fnaify/XNA-bridge"
 	else
 		if [ "x$interaction" = "xi" ] ; then
 			echo -n "\nInstall FNA files from GitHub to for this XNA application? [y/n] "
