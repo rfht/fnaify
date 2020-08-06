@@ -88,6 +88,37 @@ debug_echo()
 	fi
 }
 
+printdash()
+{
+	if [ -z "$*" ]; then
+		return
+	fi
+	printf "$*\n"
+	c=1
+	dashes=
+	while [ $c -lt $(echo "$*" | wc -c) ]
+	do
+		dashes="${dashes}-"
+		# $((...)) for arithmetic substitution
+		c=$((c+1))
+	done
+	echo "$dashes"
+}
+
+latest_syslib()
+{
+	if [ -z "\$1" ] ; then
+		return 1
+	fi
+	find "\$(dirname \$1)" -maxdepth 1 -name "\$(basename \$1)*" | tail -1
+}
+
+trunklibnam()
+{
+	libnam="\$1"
+	echo "\$libnam" | sed -n -E "s/[\.0-9]*$//p"
+}
+
 selectexe()
 {
 	# find correct .exe file for the wrapper script
@@ -144,7 +175,6 @@ run()
 		gamedir=$(readlink -f "$1")
 	fi
 
-	debug_echo "gamedir: $gamedir"
 	cd "$gamedir"
 	debug_echo "Mode: run"
 
@@ -175,9 +205,42 @@ run()
 		ScourgeBringer.exe)			exe_flags="${exe_flags}-noSound "		;;
 	esac
 
-	set -x
-	LD_LIBRARY_PATH="$(echo "$depdir" | sed -E 's/:$//')" MONO_PATH="$(echo "$monopath" | sed -E 's/:$//' | sed -E 's/^://')" MONO_CONFIG="$monoconfig" $exe_env exec "$FNAIFY_MONO" "$(echo "$my_exe" | tr -d '\:')" $exe_flags \$*
-	set +x
+	# format all relevant command variables
+	depdir="$(echo "$depdir" | sed -E 's/:$//')"
+	monopath="$(echo "$monopath" | sed -E 's/:$//' | sed -E 's/^://')"
+	# TODO: switch FNA.dll to a variable that chooses the framework file or .exe if no framework file
+	frameworkfile="FNA.dll"
+	gameconfigsymlink="${frameworkfile}.config"
+	gameconfig="$(readlink ${gameconfigsymlink})"
+	my_exe="$(echo "$my_exe" | tr -d '\:')"
+
+	printdash "fnaify runtime configuration"
+	echo "Game Directory:			$PWD"		# PWD as cd(1) into $gamedir happened above
+	echo "Mono Binary:			$FNAIFY_MONO"
+	echo "Mono Path:			$monopath"
+	echo "Native Library Directories:	$depdir"
+	echo "Framework File:			$frameworkfile"
+	echo "Symlink to Config:		$gameconfigsymlink"
+	echo "Config File:			$gameconfig"
+	echo "Additional Runtime Environment:	$exe_env"
+	echo "Runtime Flags:			$exe_flags"
+
+	echo -n "\nNOTE: if game should unexpectedly fail to start, make sure datasize limit is high enough. "
+	echo "AT LEAST 2G are recommended for most games. See ksh(1) for ulimit command documentation"
+
+	# check if broken symlinks exist in the game directory, e.g. libdl.so
+	for l in \$(find . -type l); do
+		if [ ! -e "\$l" ] ; then
+			newl="\$(latest_syslib "\$(trunklibnam "\$(readlink \$l)")")"
+			if [ -z "\$newl" ] ; then
+				echo "ERROR - broken symlink: \$l. Expect trouble."
+			else
+				ln -fs "\$newl" "\$l"
+			fi
+		fi
+	done
+
+	LD_LIBRARY_PATH="$depdir" MONO_PATH="$monopath" $exe_env exec "$FNAIFY_MONO" "$my_exe" $exe_flags \$*
 
 	exit
 }
@@ -348,23 +411,6 @@ mscorlib.dll
 "
 
 needlibarray="" # array that will hold the names of needed libraries
-
-printdash()
-{
-	if [ -z "$*" ]; then
-		return
-	fi
-	printf "$*\n"
-	c=1
-	dashes=
-	while [ $c -lt $(echo "$*" | wc -c) ]
-	do
-		dashes="${dashes}-"
-		# $((...)) for arithmetic substitution
-		c=$((c+1))
-	done
-	echo "$dashes"
-}
 
 inarray() # check if $1 is in array $2
 {
@@ -780,50 +826,6 @@ iomap()
 	else
 		debug_echo "\tiomap: nothing to do"
 	fi
-}
-
-create_wrapper()
-{
-	cat <<EOF > "$fullscriptpath"
-#!/bin/sh
-
-# fnaify wrapper script for launching FNA games on BSD
-
-latest_syslib()
-{
-	if [ -z "\$1" ] ; then
-		return 1
-	fi
-	find "\$(dirname \$1)" -maxdepth 1 -name "\$(basename \$1)*" | tail -1
-}
-
-trunklibnam()
-{
-	libnam="\$1"
-	echo "\$libnam" | sed -n -E "s/[\.0-9]*$//p"
-}
-
-echo -n "NOTE: if game should unexpectedly fail to start, make sure datasize limit is high enough. "
-echo "AT LEAST 2G are recommended for most games. See ksh(1) for ulimit command documentation"
-
-cd "\`dirname "\$0"\`" # Move to the game's location in case it was invoked from elsewhere
-
-# check if broken symlinks exist in the game directory
-for l in \$(find . -maxdepth 2 -type l); do
-	if [ ! -e "\$l" ] ; then
-		newl="\$(latest_syslib "\$(trunklibnam "\$(readlink \$l)")")"
-		if [ -z "\$newl" ] ; then
-			echo "ERROR: Missing library for \$l. Expect trouble."
-		else
-			ln -fs "\$newl" "\$l"
-		fi
-	fi
-done
-
-LD_LIBRARY_PATH="$(echo "$depdir" | sed -E 's/:$//')" MONO_PATH="$(echo "$monopath" | sed -E 's/:$//' | sed -E 's/^://')" MONO_CONFIG="$monoconfig" $exe_env exec "$FNAIFY_MONO" "$(echo "$my_exe" | tr -d '\:')" $exe_flags \$*
-EOF
-
-	chmod +x "$fullscriptpath"
 }
 
 # End of Variables and Functions
