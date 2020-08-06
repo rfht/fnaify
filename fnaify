@@ -36,6 +36,8 @@ FNAIFY_VERSION=3.0
 # - update man page/README for new syntax with modes setup, run
 # - clarify nomenclature in documentation (and code): modes is 'setup', 'run' etc. interactivity flags: '-i', '-y'
 # - mention package fnaify-extralibs in documentation
+# - xnasetup() may need a replacement for the previous finish_fnaify()
+# - test MidBoss and check how to implement libSDL_image_compact better ... maybe in MidBoss.exe.config??
 
 USAGE="
 Usage:
@@ -336,24 +338,6 @@ check_gameconfig()
 		<!-- Terraria, Solaroids -->
 		<dllmap dll="gdiplus.dll" target="libgdiplus.so"/>
 
-		<!-- MidBoss -->
-		<dllmap dll="i:cygwin1.dll" target="libc.so"/>
-		<dllmap dll="libc" target="libc.so"/>
-		<dllmap dll="intl" target="libc.so"/>
-		<dllmap dll="libintl" target="libc.so"/>
-		<dllmap dll="i:libxslt.dll" target="libxslt.so"/>
-		<dllmap dll="i:odbc32.dll" target="libodbc.so"/>
-		<dllmap dll="oci" target="libclntsh.so"/>
-		<dllmap dll="db2cli" target="libdb2_36.so"/>
-		<dllmap dll="MonoPosixHelper" target="libMonoPosixHelper.so"/>
-		<dllmap dll="i:msvcrt" target="libc.so"/>
-		<dllmap dll="i:msvcrt.dll" target="libc.so"/>
-		<dllmap dll="sqlite" target="libsqlite.so"/>
-		<dllmap dll="sqlite3" target="libsqlite3.so"/>
-		<dllmap dll="libX11" target="libX11.so"/>
-		<dllmap dll="libcairo-2.dll" target="libcairo.so"/>
-		<dllmap dll="libcups" target="libcups.so"/>
-
 		<!-- Nuclex.Input (Dead Pixels, Amazing Princess Sarah, Akane the Kunoichi -->
 		<dllmap dll="kernel32">
 			<dllentry dll="ld.so" name="LoadLibrary" target="dlopen"/>
@@ -523,6 +507,24 @@ process_options()
 			exit 1
 		fi
 		gamedir=$(readlink -f "$1")
+	fi
+}
+check_mono_binaries()
+{
+	debug_echo "Checking mono and monodis"
+	if [ -z "$FNAIFY_MONO" ]; then
+		FNAIFY_MONO="mono"
+	fi
+	"$FNAIFY_MONO" --version 2>/dev/null >/dev/null
+	if [ "$?" -gt 0 ]; then
+		echo "error calling mono - aborting... Please make sure that mono is in path or set it in FNAIFY_MONO environment variable!"
+		exit 1
+	fi
+	# check if monodis can be called
+	monodis 2>/dev/null
+	if [ "$?" -eq 127 ]; then
+		echo "error calling monodis - aborting... Please make sure that monodis is in the PATH!"
+		exit 1
 	fi
 }
 
@@ -714,17 +716,8 @@ run()
 {
 	debug_echo "Mode: $mode"
 	process_options $@
+	check_mono_binaries
 	cd "$gamedir"
-
-	debug_echo "Checking mono runtime"
-	if [ -z "$FNAIFY_MONO" ]; then
-		FNAIFY_MONO="mono"
-	fi
-	"$FNAIFY_MONO" --version 2>/dev/null >/dev/null
-	if [ "$?" -gt 0 ]; then
-		echo "error calling mono - aborting... Please make sure that mono is in path or set it in FNAIFY_MONO environment variable!"
-		exit 1
-	fi
 
 	IFS="
 	"
@@ -789,8 +782,191 @@ setup()
 {
 	debug_echo "Mode: $mode"
 	process_options $@
+	check_mono_binaries
 	cd "$gamedir"
 	debug_echo "gamedir: $PWD"	# cd'd into direct above
+
+	# does any of the framework files exist in $gamedir?
+	if [ -e "$gamedir/FNA.dll" ]; then
+		debug_echo "\tFound FNA.dll"
+	elif [ -e "$gamedir/MonoGame.Framework.dll" ]; then
+		debug_echo "\tFound MonoGame.Framework.dll"
+	else
+		# games without framework files:
+		# Atom Zombie Smasher, Eliza, Molek-Syntez, Exapunks, Opus Magnum (Lightning.exe),
+		# Shenzhen I/O, SpaceChem (64bit and fullscreen update from 2020-07-15), Streets of Fury EX
+		if [ -n "$(ls "$gamedir" | grep -im 1 "atomzombiesmasher")" ] ; then
+			echo "$depdir"
+			echo "$needlib"
+			if $(ls $(echo "$depdir" | tr -s ':' ' ') | grep -q "libatomstb\.so")
+			then
+				debug_echo "\tfound libatomstb library"
+			else
+				# add libatomstb to needlibarray if not in there yet
+				inarray libatomstb.so $needlibarray
+				if [ $? -eq 0 ]; then
+					debug_echo " - already in array"
+				elif [ $? -eq 1 ]; then
+					needlibarray="${needlibarray}libatomstb.so "
+					debug_echo " - added to array"
+				else
+					echo "\n\t - ERROR: inarray returned with unexpected error\n"
+					exit 1
+				fi
+			fi
+		elif [ \( -n "$(ls "$gamedir" | grep -im 1 "eliza.exe")" \) \
+			-o \( -n "$(ls "$gamedir" | grep -im 1 "molek-syntez.exe")" \) \
+			-o \( -n "$(ls "$gamedir" | grep -im 1 "exapunks.exe")" \) \
+			-o \( -n "$(ls "$gamedir" | grep -im 1 "lightning.exe")" \) \
+			-o \( -n "$(ls "$gamedir" | grep -im 1 "shenzhen.exe")" \) \
+			-o \( -n "$(ls "$gamedir" | grep -im 1 "spacechem.exe")" \) \
+			] ; then
+			debug_echo "\nCompatible game without XNA/FNA framework file found."
+			debug_echo 'Creating $HOME/Desktop directory which is needed for some Zachtronics games'
+			mkdir -p "$HOME/Desktop"
+		elif [ -n "$(ls "$gamedir" | grep -im 1 "streets of fury ex.exe")" ] ; then
+			# Streets of Fury EX.exe likely doesn't need "$HOME/Desktop"
+			# TODO/FIXME: needs XNA files, but xnasetup doesn't recognize it as XNA game
+		else
+			check_nlog
+			xnasetup	# check if this is an XNA game and set up in that case
+		fi
+	fi
+
+	# The following code assumes that only one of FNA.dll and MonoGame.Framework.dll is present
+	if [ -e "$gamedir/FNA.dll" ]; then
+		fnaversion=`monodis --assembly "$gamedir/FNA.dll" | grep "Version" | tr -d [:alpha:] | tr -d " " | tr -d \:`
+		fnamajor=`echo "$fnaversion" | sed -n -E "s/\..*//p"`
+		fnaminor=`echo "$fnaversion" | sed -n -E "s/[0-9]+\.([0-9]+)\.[0-9]+\.[0-9]+/\1/p"`
+		debug_echo -n "\tFNA.dll version $fnaversion, "
+		debug_echo -n "major: $fnamajor, "
+		debug_echo "minor: $fnaminor"
+		if [ $fnamajor -lt 16 ] || ( [ $fnamajor -eq 16 ] && [ $fnaminor -lt 5 ] )
+		then
+			fna_warning=1
+		fi
+	elif [ -e "$gamedir/MonoGame.Framework.dll" ]; then
+		mgversion=`monodis --assembly "$gamedir/MonoGame.Framework.dll" | grep "Version" | tr -d [:alpha:] | tr -d " " | tr -d \:`
+		debug_echo "\tMonoGame.Framework.dll version $mgversion"
+	fi
+
+	check_nlog
+
+	set -A configfilesarray		# empties array
+	nconfigfilesarray=0
+	debug_echo "Identifying config files..."
+	IFS="
+	"
+	for cfile in $(ls "$gamedir" | grep "\.config$"); do
+		debug_echo "\tfound config file: $cfile"
+		configfilesarray[$((${#configfilesarray[*]} + 1))]="$cfile"
+		nconfigfilesarray=$((nconfigfilesarray + 1))
+	done
+	IFS=$SAVEIFS
+	debug_echo "Done identifying config files.\n"
+
+	# identify required libraries in .config files and lib{,64} directories
+	# FIXME: filenames not whitespace-safe (but should not be used in such files anyway)
+	printdash $(debug_echo "Identifying libraries required by the game...")
+
+	#for MidBoss, add SDL2_image_compact to needlib
+	MidBoss=0
+	ls "$gamedir" | grep -iqm 1 "midboss"
+	if [ $? -eq 0 ]; then
+		MidBoss=1
+		needlibarray="${needlibarray}libSDL2_image_compact.so "
+	fi
+
+	libraryname "lib64"
+	libraryname "lib"
+	libraryname "x64"
+	libraryname "x86"
+
+	debug_echo "Obtaining library names from the following config files"
+	if [ $nconfigfilesarray -lt 1 ]; then
+		debug_echo "No config files found."
+	else
+		cfile=""
+		IFS="
+	"
+		for cfile in ${configfilesarray[@]}; do
+			IFS=$SAVEIFS
+			debug_echo "\t$cfile"
+			linuxlines=$(grep "os\=\"linux" "$gamedir/$cfile")
+			for libstring in $(echo "$linuxlines" | sed -n -E "s/.*target=\"([^\"]+).*/\1/p"); do
+				# Fix where library name includes directory information
+				libstring=$(echo "$libstring" | sed -E 's/^.\///')
+				# remove directories at the start of lib name
+				libstring=$(echo "$libstring" | sed -E 's/^.*\///')
+				debug_echo -n "\t\tFound library string: $libstring"
+				# sort out libs that need to be ignored
+				validlib $libstring
+				if [ $? -eq 1 ]; then
+					debug_echo " - ignored"
+					continue
+				fi
+				libstring=$(trunklibnam "$libstring")
+				debug_echo -n " -> $libstring"
+				# add to libstring to needlibarray if not in there yet
+				inarray $libstring $needlibarray
+				if [ $? -eq 0 ]; then
+					debug_echo " - already in array"
+				elif [ $? -eq 1 ]; then
+					needlibarray="$needlibarray$libstring "
+					debug_echo " - added to array"
+				else
+					echo "\n\t - ERROR: inarray returned with unexpected error\n"
+					exit 1
+				fi
+			done
+		done
+		debug_echo "Done with identifying libraries in config files"
+	fi
+	debug_echo "Done with identification of needed libraries."
+
+	debug_echo -n "Fixing libpng filenames if present..."
+	needlibarray=$(echo "${needlibarray}" | sed -E "s/(libpng)..(\.so.*)/\1\2/")
+	debug_echo " done.\n"
+
+	# Check if the libraries are available on the system (/usr/local/lib).
+	# If not, break and inform user which libraries need to be installed.
+	echo -n "Checking installed libraries... "
+	debug_echo ""
+
+	# missinglibs[*] accumulates missing library names to inform user
+	missinglibs=""
+	for needlib in ${needlibarray}; do
+		if $(ls $(echo "$depdir" | tr -s ':' ' ') | grep -q "$needlib")
+		then
+			IFS=$SAVEIFS
+			debug_echo "\tfound library for: $needlib"
+		else
+			IFS=$SAVEIFS
+			debug_echo "\tNot found: $needlib"
+			missinglibs="$missinglibs$needlib "
+		fi
+	done
+	echo "done.\n"
+
+	if [ -n "${missinglibs}" ]; then
+		echo "\nCould not find the following libraries:\n
+		${missinglibs}\n"
+		exit 1
+	fi
+
+	# identify all .config files that do dllmap and move out of the way
+	debug_echo 'moving .config files with dllmap out of the way'
+	if [ ! -d "$gamedir/fnaify-backup" ] ; then	# FIXME: is this check needed?
+		mkdir -p "$gamedir/fnaify-backup"
+	fi
+	IFS="
+	"
+	for config_file in ${configfilesarray[@]}; do
+		IFS=$SAVEIFS
+		if $(grep -q "dllmap" "$config_file"); then
+			mv "$config_file" "$gamedir/fnaify-backup/"
+		fi
+	done
 
 	iomap
 
@@ -823,209 +999,6 @@ case "$mode" in
 	help)	echo "$USAGE"; exit 0;;
 	*)	process_options $@; echo "$USAGE"; exit 0;
 esac
-
-# Identify mono and FNA/MonoGame framework files first, warn/break if errors
-
-if [ -z "$FNAIFY_MONO" ]; then
-	FNAIFY_MONO="mono"
-fi
-
-debug_echo "Checking mono, monodis, framework library (FNA/MonoGame)..."
-"$FNAIFY_MONO" --version 2>/dev/null >/dev/null
-if [ "$?" -gt 0 ]; then
-	echo "error calling mono - aborting... Please make sure that mono is in path or set it in FNAIFY_MONO environment variable!"
-	exit 1
-fi
-# check if monodis can be called
-monodis 2>/dev/null
-if [ "$?" -eq 127 ]; then
-	echo "error calling monodis - aborting... Please make sure that monodis is in the PATH!"
-	exit 1
-fi
-# does any of the framework files exist in $gamedir?
-if [ -e "$gamedir/FNA.dll" ]; then
-	debug_echo "\tFound FNA.dll"
-elif [ -e "$gamedir/MonoGame.Framework.dll" ]; then
-	debug_echo "\tFound MonoGame.Framework.dll"
-else
-	# games without framework files:
-	# Atom Zombie Smasher, Eliza, Molek-Syntez, Exapunks, Opus Magnum (Lightning.exe),
-	# Shenzhen I/O, SpaceChem (64bit and fullscreen update from 2020-07-15), Streets of Fury EX
-	if [ -n "$(ls "$gamedir" | grep -im 1 "atomzombiesmasher")" ] ; then
-		echo "$depdir"
-		echo "$needlib"
-		if $(ls $(echo "$depdir" | tr -s ':' ' ') | grep -q "libatomstb\.so")
-		then
-			debug_echo "\tfound libatomstb library"
-		else
-			# add libatomstb to needlibarray if not in there yet
-			inarray libatomstb.so $needlibarray
-			if [ $? -eq 0 ]; then
-				debug_echo " - already in array"
-			elif [ $? -eq 1 ]; then
-				needlibarray="${needlibarray}libatomstb.so "
-				debug_echo " - added to array"
-			else
-				echo "\n\t - ERROR: inarray returned with unexpected error\n"
-				exit 1
-			fi
-		fi
-	elif [ \( -n "$(ls "$gamedir" | grep -im 1 "eliza.exe")" \) \
-		-o \( -n "$(ls "$gamedir" | grep -im 1 "molek-syntez.exe")" \) \
-		-o \( -n "$(ls "$gamedir" | grep -im 1 "exapunks.exe")" \) \
-		-o \( -n "$(ls "$gamedir" | grep -im 1 "lightning.exe")" \) \
-		-o \( -n "$(ls "$gamedir" | grep -im 1 "shenzhen.exe")" \) \
-		-o \( -n "$(ls "$gamedir" | grep -im 1 "spacechem.exe")" \) \
-		] ; then
-		debug_echo "\nCompatible game without XNA/FNA framework file found."
-		debug_echo 'Creating $HOME/Desktop directory which is needed for some Zachtronics games'
-		mkdir -p "$HOME/Desktop"
-	elif [ -n "$(ls "$gamedir" | grep -im 1 "streets of fury ex.exe")" ] ; then
-		# Streets of Fury EX.exe likely doesn't need "$HOME/Desktop"
-		# TODO/FIXME: needs XNA files, but xnasetup doesn't recognize it as XNA game
-	else
-		check_nlog
-		xnasetup	# check if this is an XNA game and set up in that case
-	fi
-fi
-
-# The following code assumes that only one of FNA.dll and MonoGame.Framework.dll is present
-if [ -e "$gamedir/FNA.dll" ]; then
-	fnaversion=`monodis --assembly "$gamedir/FNA.dll" | grep "Version" | tr -d [:alpha:] | tr -d " " | tr -d \:`
-	fnamajor=`echo "$fnaversion" | sed -n -E "s/\..*//p"`
-	fnaminor=`echo "$fnaversion" | sed -n -E "s/[0-9]+\.([0-9]+)\.[0-9]+\.[0-9]+/\1/p"`
-	debug_echo -n "\tFNA.dll version $fnaversion, "
-	debug_echo -n "major: $fnamajor, "
-	debug_echo "minor: $fnaminor"
-	if [ $fnamajor -lt 16 ] || ( [ $fnamajor -eq 16 ] && [ $fnaminor -lt 5 ] )
-	then
-		fna_warning=1
-	fi
-elif [ -e "$gamedir/MonoGame.Framework.dll" ]; then
-	mgversion=`monodis --assembly "$gamedir/MonoGame.Framework.dll" | grep "Version" | tr -d [:alpha:] | tr -d " " | tr -d \:`
-	debug_echo "\tMonoGame.Framework.dll version $mgversion"
-fi
-
-check_nlog
-
-set -A configfilesarray		# empties array
-nconfigfilesarray=0
-debug_echo "Identifying config files..."
-IFS="
-"
-for cfile in $(ls "$gamedir" | grep "\.config$"); do
-	debug_echo "\tfound config file: $cfile"
-	configfilesarray[$((${#configfilesarray[*]} + 1))]="$cfile"
-	nconfigfilesarray=$((nconfigfilesarray + 1))
-done
-IFS=$SAVEIFS
-debug_echo "Done identifying config files.\n"
-
-# identify required libraries in .config files and lib{,64} directories
-# FIXME: filenames not whitespace-safe (but should not be used in such files anyway)
-printdash $(debug_echo "Identifying libraries required by the game...")
-
-#for MidBoss, add SDL2_image_compact to needlib
-MidBoss=0
-ls "$gamedir" | grep -iqm 1 "midboss"
-if [ $? -eq 0 ]; then
-	MidBoss=1
-	needlibarray="${needlibarray}libSDL2_image_compact.so "
-fi
-
-libraryname "lib64"
-libraryname "lib"
-libraryname "x64"
-libraryname "x86"
-
-debug_echo "Obtaining library names from the following config files"
-if [ $nconfigfilesarray -lt 1 ]; then
-	debug_echo "No config files found."
-else
-	cfile=""
-	IFS="
-"
-	for cfile in ${configfilesarray[@]}; do
-		IFS=$SAVEIFS
-		debug_echo "\t$cfile"
-		linuxlines=$(grep "os\=\"linux" "$gamedir/$cfile")
-		for libstring in $(echo "$linuxlines" | sed -n -E "s/.*target=\"([^\"]+).*/\1/p"); do
-			# Fix where library name includes directory information
-			libstring=$(echo "$libstring" | sed -E 's/^.\///')
-			# remove directories at the start of lib name
-			libstring=$(echo "$libstring" | sed -E 's/^.*\///')
-			debug_echo -n "\t\tFound library string: $libstring"
-			# sort out libs that need to be ignored
-			validlib $libstring
-			if [ $? -eq 1 ]; then
-				debug_echo " - ignored"
-				continue
-			fi
-			libstring=$(trunklibnam "$libstring")
-			debug_echo -n " -> $libstring"
-			# add to libstring to needlibarray if not in there yet
-			inarray $libstring $needlibarray
-			if [ $? -eq 0 ]; then
-				debug_echo " - already in array"
-			elif [ $? -eq 1 ]; then
-				needlibarray="$needlibarray$libstring "
-				debug_echo " - added to array"
-			else
-				echo "\n\t - ERROR: inarray returned with unexpected error\n"
-				exit 1
-			fi
-		done
-	done
-	debug_echo "Done with identifying libraries in config files"
-fi
-debug_echo "Done with identification of needed libraries."
-
-debug_echo -n "Fixing libpng filenames if present..."
-needlibarray=$(echo "${needlibarray}" | sed -E "s/(libpng)..(\.so.*)/\1\2/")
-debug_echo " done.\n"
-
-# Check if the libraries are available on the system (/usr/local/lib).
-# If not, break and inform user which libraries need to be installed.
-echo -n "Checking installed libraries... "
-debug_echo ""
-
-# missinglibs[*] accumulates missing library names to inform user
-missinglibs=""
-for needlib in ${needlibarray}; do
-	if $(ls $(echo "$depdir" | tr -s ':' ' ') | grep -q "$needlib")
-	then
-		IFS=$SAVEIFS
-		debug_echo "\tfound library for: $needlib"
-	else
-		IFS=$SAVEIFS
-		debug_echo "\tNot found: $needlib"
-		missinglibs="$missinglibs$needlib "
-	fi
-done
-echo "done.\n"
-
-if [ -n "${missinglibs}" ]; then
-	#printdash $(echo "Result of configuration testing: FAILED")
-	echo "\nCould not find the following libraries:\n
-	${missinglibs}\n"
-	exit 1
-#else
-	#printdash $(echo "Result of configuration testing: SUCCESS")
-fi
-
-# identify all .config files that do dllmap and move out of the way
-debug_echo 'moving .config files with dllmap out of the way'
-if [ ! -d "$gamedir/fnaify-backup" ] ; then	# FIXME: is this check needed?
-	mkdir -p "$gamedir/fnaify-backup"
-fi
-IFS="
-"
-for config_file in ${configfilesarray[@]}; do
-	IFS=$SAVEIFS
-	if $(grep -q "dllmap" "$config_file"); then
-		mv "$config_file" "$gamedir/fnaify-backup/"
-	fi
-done
 
 # if MidBoss, add a FNA.dll.config to overwrite libSDL2_image_compact
 if [ $MidBoss -eq 1 ]; then
