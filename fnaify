@@ -498,124 +498,12 @@ check_remove_steamworks()
 
 finish_fnaify()
 {
-	# Quirks for the runtime invocation of some games
-
-	############################################################################################
-	# exe_env and exe_flags IN HERE ARE OBSOLETE; look at run() for the place to add to/modify #
-	############################################################################################
-
-	# Apple Jack 1&2
-	if [ -n "$(ls "$gamedir" | grep -m 1 "AJ1.exe")" ] ; then
-		debug_echo "Create symlinks to replace MONO_IOMAP for Apple Jack 1&2"
-		iomap AppleJack
-	fi
-
-	# REMOVE THIS ONE
-	# Blueberry Garden
-	if $(ls "$gamedir" | grep -qm 1 Blueberry.exe); then
-		debug_echo "Setting 'MONO_FORCE_COMPAT' for Blueberry Garden"
-		exe_env="${exe_env}MONO_FORCE_COMPAT=1 "
-	fi
-
-	# Cthulhu Saves the World (CSTW)
-	if [ -n "$(ls "$gamedir" | grep -m 1 "CSTW.exe")" ] ; then
-		debug_echo "Create symlinks to replace MONO_IOMAP for Cthulhu Saves the World"
-		iomap CSTW
-	fi
-
-	# Dead Pixesl
-	if [ -n "$(ls "$gamedir" | grep -m 1 "Dead Pixels.exe")" ] ; then
-		debug_echo "Create symlinks to replace MONO_IOMAP for Dead Pixels"
-		iomap DeadPixels
-	fi
-
-	# Grand Class Melee 2 (GCM2)
-	if [ -n "$(ls "$gamedir" | grep -m 1 "Grand Class Melee.exe")" ] ; then
-		debug_echo "Create symlinks to replace MONO_IOMAP for Grand Class Melee 2"
-		iomap GCM2
-	fi
-
-	# REMOVE THIS ONE
-	# Hacknet
-	if $(ls "$gamedir" | grep -iqm 1 hacknet); then
-		debug_echo "Setting flag '-disableweb' for HackNet"
-		exe_flags="${exe_flags}-disableweb "
-	fi
-
-	# LaserCat
-	if [ -n "$(ls "$gamedir" | grep -m 1 "LaserCat.exe")" ] ; then
-		debug_echo "Create symlinks to replace MONO_IOMAP for LaserCat"
-		iomap LaserCat
-	fi
-
-	# Mount Your Friends
-	if [ -n "$(ls "$gamedir" | grep -m 1 "MountYourFriends.exe")" ] ; then
-		debug_echo "Create symlinks to replace MONO_IOMAP for Mount Your Friends"
-		iomap MountYourFriends
-	fi
-
-	# One Finger Death Punch (OFDP)
-	if [ -n "$(ls "$gamedir" | grep -m 1 "One Finger Death Punch.exe")" ] ; then
-		debug_echo "Create symlinks to replace MONO_IOMAP for One Finger Death Punch"
-		iomap OFDP
-	fi
-
-	# Phoenix Force
-	if [ -n "$(ls "$gamedir" | grep -m 1 "PhoenixForce")" ] ; then
-		debug_echo "Create symlinks to replace MONO_IOMAP for Phoenix Force"
-		iomap PhoenixForce
-	fi
-
-	# REMOVE THIS ONE
-	# Shenzhen I/O
-	if $(ls "$gamedir" | grep -iqm 1 shenzhen); then
-		debug_echo "Setting 'MONO_FORCE_COMPAT' for Shenzhen I/O"
-		exe_env="${exe_env}MONO_FORCE_COMPAT=1 "
-	fi
-
-	# REMOVE THIS ONE
-	# ScourgeBringer
-	if $(ls "$gamedir" | grep -iqm 1 scourgebringer); then
-		debug_echo "Setting flag '-noSound' for ScourgeBringer"
-		exe_flags="${exe_flags}-noSound "
-	fi
-
-	# Streets of Fury EX
-	if [ -n "$(ls "$gamedir" | grep -m 1 "Streets of Fury EX")" ] ; then
-		debug_echo "Create symlinks to replace MONO_IOMAP for Streets of Fury EX"
-		iomap SoFEX
-	fi
-
-	# REMOVE exe_env FROM THIS ONE (but not iomap)
-	# Sword of the Stars: The Pit (SOTSTP)
-	if $(ls "$gamedir" | grep -qm 1 ThePit); then
-		debug_echo "Setting 'MONO_FORCE_COMPAT' for Sword of the Stars: The Pit"
-		exe_env="${exe_env}MONO_FORCE_COMPAT=1 "
-		iomap SOTSTP
-	fi
-
-	# REMOVE THIS ONE
-	# Terraria
-	if $(ls "$gamedir" | grep -iqm 1 terraria); then
-		debug_echo "Setting 'MONO_FORCE_COMPAT' for Terraria"
-		exe_env="${exe_env}MONO_FORCE_COMPAT=1 "
-	fi
-
-	echo "Replacing launch script with BSD version..."
-	if [ \( -e "$fullscriptpath" \) -a \( ! -e "$fullscriptpath.linux" \) ]; then
-		debug_echo -n "\t(creating copy of original launcher script with suffix '.linux')... "
-		cp -p "$fullscriptpath" "$fullscriptpath.linux"
-		debug_echo "done."
-	fi
-	create_wrapper
-	debug_echo "Launcher script replaced.\n"
+	iomap
 
 	if [ -n "${licenses}" ]; then
 		echo "Installed modules are under the following license(s):\n"
 		echo "${licenses}"
 	fi
-	echo "To run the game in $gamedir, use\n"
-	echo "./${scriptfile}\n"
 	if [ $fna_warning -eq 1 ]; then
 		echo "\nWARNING: version of FNA.dll potentially incompatible!"
 		echo "If the game doesn't run, try running 'fnaify -i' (or 'fnaify -y').\n"
@@ -624,6 +512,7 @@ finish_fnaify()
 		echo "\nWARNING: version of NLog.dll potentially incompatible!"
 		echo "If the game doesn't run, try running 'fnaify -i' (or 'fnaify -y').\n"
 	fi
+
 	exit 0
 }
 
@@ -790,7 +679,8 @@ xnasetup()
 
 iomap()
 {
-	if [ "$1" == "DeadPixels" ] ; then
+	debug_echo "iomap: checking if symlinks for filename cases need to be created
+	if [ -n "$(ls "$gamedir" | grep -m 1 "Dead Pixels.exe")" ] ; then
 		ln -sf Sprites Content/sprites
 		ln -sf Effects Content/Sprites/effects
 		ln -sf Splash Content/Sprites/splash
@@ -822,16 +712,16 @@ iomap()
 		ln -sf effects Content/Sprites/Effects
 		ln -sf cuemark.xnb Content/Sprites/effects/cueMark.xnb
 		ln -sf Static.xnb Content/Sprites/Menu/Preview/static.xnb
-	elif [ "$1" == "AppleJack" ] ; then
+	elif [ -n "$(ls "$gamedir" | grep -m 1 "AJ1.exe")" ] ; then
 		ln -sf j_rip.xnb Content/AJ1/j_Rip.xnb
 		ln -sf j_rip.xnb Content/AJ2/j_Rip.xnb
 		ln -sf Owlturnneo2.xnb Content/AJ1/owlturnneo2.xnb
 		ln -sf Owlturnneo2.xnb Content/AJ2/owlturnneo2.xnb
-	elif [ "$1" == "CSTW" ] ; then
+	elif [ -n "$(ls "$gamedir" | grep -m 1 "CSTW.exe")" ] ; then
 		ln -sf paws_Happy.xnb Content/Portrait/Paws/Paws_Happy.xnb
-	elif [ "$1" == "SOTSTP" ] ; then
+	elif $(ls "$gamedir" | grep -qm 1 ThePit); then
 		ln -sf UI Content/ui
-	elif [ "$1" == "GCM2" ] ; then
+	elif [ -n "$(ls "$gamedir" | grep -m 1 "Grand Class Melee.exe")" ] ; then
 		ln -sf water.xnb Content/Sounds/Water.xnb
 		ln -sf grass.xnb Content/Sounds/Grass.xnb
 		ln -sf move.xnb Content/Sounds/Move.xnb
@@ -863,9 +753,9 @@ iomap()
 		ln -sf frame_ingame_right_mire.xnb Content/Textures/Menu/frame_ingame_right_Mire.xnb
 		ln -sf frame_ingame_left_dune.xnb Content/Textures/Menu/frame_ingame_left_Dune.xnb
 		ln -sf sword1.xnb Content/Sounds/Sword1.xnb
-	elif [ "$1" == "LaserCat" ] ; then
+	elif [ -n "$(ls "$gamedir" | grep -m 1 "LaserCat.exe")" ] ; then
 		ln -sf audio Content/Audio
-	elif [ "$1" == "MountYourFriends" ] ; then
+	elif [ -n "$(ls "$gamedir" | grep -m 1 "MountYourFriends.exe")" ] ; then
 		ln -sf menuBg.xnb Content/images/menubg.xnb
 		ln -sf humanClean.xnb Content/images/humanclean.xnb
 		ln -sf humanCleanNorm.xnb Content/images/humancleannorm.xnb
@@ -877,19 +767,18 @@ iomap()
 		ln -sf BP3_SSTRIP_64.xnb Content/images/bp3_sstrip_64.xnb
 		ln -sf BP3_SSTRIP_32.xnb Content/images/bp3_sstrip_32.xnb
 		ln -sf keySheet.xnb Content/images/keysheet.xnb
-	elif [ "$1" == "OFDP" ] ; then
+	elif [ -n "$(ls "$gamedir" | grep -m 1 "One Finger Death Punch.exe")" ] ; then
 		ln -sf font2.xnb Content/Font2.xnb
 		ln -sf font5.xnb Content/Font5.xnb
 		ln -sf font6.xnb Content/Font6.xnb
-	elif [ "$1" == "PhoenixForce" ] ; then
+	elif [ -n "$(ls "$gamedir" | grep -m 1 "PhoenixForce")" ] ; then
 		ln -sf LIfeBar.xnb Content/1.4/Boss/lifeBar.xnb
 		ln -sf firewavexml.xml Content/1.4/Player/fireWavexml.xml
 		ln -sf firewave.xnb Content/1.4/Player/fireWave.xnb
-	elif [ "$1" == "SoFEX" ] ; then
+	elif [ -n "$(ls "$gamedir" | grep -m 1 "Streets of Fury EX")" ] ; then
 		ln -sf ShockWave.xnb Content/Texture2D/Shockwave.xnb
 	else
-		echo "ERROR: invalid or no parameter for iomap()"
-		exit 1
+		debug_echo "\tiomap: nothing to do"
 	fi
 }
 
