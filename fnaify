@@ -19,7 +19,7 @@
 #########################################################################
 
 # TODO:
-# - fix FIXMEs
+# - fix FIXMEs/TODOs
 # - check_nlog now only looks at major version number; is there a better way?
 #   (it reports only major in 'monodis --assembly': 3.0.0.0, 4.0.0.0)
 # - figure out how to do selection between AJ1.exe and AJ2.exe for Apple Jack
@@ -28,6 +28,8 @@
 # - pick FNA version with better performance than 17.12
 # - Streets of Fury EX needs the XNA bridge/NetStub files (still not running past initial screen)
 # - fix 'ls:  /usr/local/lib/steamworks-nosteam : No such file or directory' in check_remove_steam*
+# - instead of substituting fnaify.dllmap.config for /etc/mono/config
+#   turn the dllmap file into FNA.dll.config, so that it's loaded side-by-side with /etc/mono/config
 
 USAGE="\nUsage: `basename $0` [-i|-y] [-hv] [-c <configfile>] [-d <depdir>] [-m <monopath>] [<gamedir>]\n\
 \n\
@@ -47,7 +49,6 @@ USAGE="\nUsage: `basename $0` [-i|-y] [-hv] [-c <configfile>] [-d <depdir>] [-m 
 depdir="/usr/local/lib:/usr/X11R6/lib"	# /usr/X11R6/lib is location of libfreetype.so on OpenBSD
 gamedir="$PWD"
 interaction=n	# y|n|i: yes to all, no to all, interactive
-libatomstb_commit=f8291c591d04ac304c4f5324163bc83287de77b7
 licenses=
 monoconfig=
 monopath="${MONO_PATH}:"
@@ -965,49 +966,25 @@ elif [ -e "$gamedir/MonoGame.Framework.dll" ]; then
 	debug_echo "\tFound MonoGame.Framework.dll"
 else
 	# games without framework files:
-	# Atom Zombie Smasher
-	# Eliza
-	# Molek-Syntez
-	# Exapunks
-	# Opus Magnum (Lightning.exe)
-	# Shenzhen I/O
-	# SpaceChem (64bit and fullscreen update from 2020-07-15)
+	# Atom Zombie Smasher, Eliza, Molek-Syntez, Exapunks, Opus Magnum (Lightning.exe),
+	# Shenzhen I/O, SpaceChem (64bit and fullscreen update from 2020-07-15), Streets of Fury EX
 	if [ -n "$(ls "$gamedir" | grep -im 1 "atomzombiesmasher")" ] ; then
-		debug_echo "\nAtom Zombie Smasher requires libatomstb.so"
-		if $(ls $(echo "$depdir" | tr -s ':' ' ') | grep -q "$needlib")
+		echo "$depdir"
+		echo "$needlib"
+		if $(ls $(echo "$depdir" | tr -s ':' ' ') | grep -q "libatomstb\.so")
 		then
 			debug_echo "\tfound libatomstb library"
 		else
-			if [ "x$interaction" = "xi" ] ; then
-				echo -n "Compile and install libatomstb.so in game directory? [y/n]"
-				response=
-				until [ \( "x$response" = "xy" \) -o \( "x$response" = "xn" \) ]
-				do
-					read response
-				done
-			elif [ "x$interaction" = "xy" ] ; then
-				response="y"
+			# add libatomstb to needlibarray if not in there yet
+			inarray libatomstb.so $needlibarray
+			if [ $? -eq 0 ]; then
+				debug_echo " - already in array"
+			elif [ $? -eq 1 ]; then
+				needlibarray="${needlibarray}libatomstb.so "
+				debug_echo " - added to array"
 			else
-				response="n"
-			fi
-
-			if [ "x$response" = "xy" ] ; then
-				lastdir="$PWD"
-				cd /tmp/
-				echo "\nInstalling libatomstb.so ..."
-				licenses="${licenses}libatomstb:\thttps://github.com/flibitijibibo/AZSNotSFML/blob/master/NotSFML.cs${newline}"
-				ftp -V https://github.com/flibitijibibo/AZSNotSFML/archive/$libatomstb_commit.tar.gz
-				tar zxf $libatomstb_commit.tar.gz
-				mv AZSNotSFML-$libatomstb_commit AZSNotSFML
-				echo -n "compiling libatomstb.so. This may take a moment... "
-				cc -O2 -pipe -c -fpic -I/usr/include/sys \
-					-o AZSNotSFML/atomstb/atomstb.o AZSNotSFML/atomstb/atomstb.c
-				cc -shared -o AZSNotSFML/atomstb/libatomstb.so \
-					AZSNotSFML/atomstb/atomstb.o
-				echo "done."
-				cp /tmp/AZSNotSFML/atomstb/libatomstb.so "$gamedir/"
-				cd "$lastdir"
-				rm -rf /tmp/AZSNotSFML
+				echo "\n\t - ERROR: inarray returned with unexpected error\n"
+				exit 1
 			fi
 		fi
 	elif [ \( -n "$(ls "$gamedir" | grep -im 1 "eliza.exe")" \) \
@@ -1016,11 +993,13 @@ else
 		-o \( -n "$(ls "$gamedir" | grep -im 1 "lightning.exe")" \) \
 		-o \( -n "$(ls "$gamedir" | grep -im 1 "shenzhen.exe")" \) \
 		-o \( -n "$(ls "$gamedir" | grep -im 1 "spacechem.exe")" \) \
-		-o \( -n "$(ls "$gamedir" | grep -im 1 "streets of fury ex.exe")" \) \
 		] ; then
 		debug_echo "\nCompatible game without XNA/FNA framework file found."
 		debug_echo 'Creating $HOME/Desktop directory which is needed for some Zachtronics games'
 		mkdir -p "$HOME/Desktop"
+	elif [ -n "$(ls "$gamedir" | grep -im 1 "streets of fury ex.exe")" ] ; then
+		# Streets of Fury EX.exe likely doesn't need "$HOME/Desktop"
+		# TODO/FIXME: needs XNA files, but xnasetup doesn't recognize it as XNA game
 	else
 		check_nlog
 		xnasetup	# check if this is an XNA game and set up in that case
