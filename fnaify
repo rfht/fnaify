@@ -45,15 +45,19 @@ FNAIFY_VERSION=3.0
 USAGE="
 Usage:
 
-`basename $0` setup [-i|-y] [-hv] [-c <configfile>] [-d <depdir>] [-m <monopath>] [<gamedir>]
-`basename $0` run [-hv] [-c <configfile>] [-d <depdir>] [-m <monopath>] [<gamedir>]
+`basename $0` setup [-i|-y] [-hv] [-c <configfile>] [-D <depdir>] [-d <gamedir>] [-f <frameworkfile> | -F <frameworkversion>] [-m <monopath>]
+`basename $0` run [-hv] [-c <configfile>] [-D <depdir>] [-d <gamedir>] [-f <frameworkfile> | -F <frameworkversion>] [-m <monopath>] [<userflags>]
 `basename $0` help
 `basename $0` [-V]
 
 -c: specify config file for dllmap (optional)
--d: replace directories for finding dependencies
+-D: add mono debug flag
+-d: game directory
+-f: framework file
+-F: framework version
 -h: print usage information
 -i: interactive mode
+-l: replace library directories
 -m: add directories to MONO_PATH
 -y: non-interactive mode; automatically replies 'yes' to all recommended choices
 -V: display version
@@ -66,12 +70,14 @@ mode=
 depdir="/usr/local/lib:/usr/X11R6/lib"	# /usr/X11R6/lib is location of libfreetype.so on OpenBSD
 gamedir="$PWD"
 interaction=n	# y|n|i: yes to all, no to all, interactive
+debug=
 licenses=
 gameconfig=
 frameworkfile=
 frameworkversion=
 frameworkmajor=
 frameworkminor=
+userflags=
 monopath="${MONO_PATH}"
 netstub_commit=e7d890e0ede0caa9e76ef37af6070344e3ab0abf
 newline='
@@ -710,12 +716,16 @@ check_nlog()
 
 process_options()
 {
-	while getopts c:d:him:Vvy o; do
+	while getopts c:Dd:F:f:hil:m:Vvy o; do
 		case "$o" in
 			c) gameconfig="$OPTARG" ;;
-			d) depdir="$OPTARG" ;;
+			D) debug="--debug" ;;
+			d) gamedir=$(readlink -f "$OPTARG") ;;
+			f) frameworkfile="$OPTARG" ;;
+			F) frameworkversion="$OPTARG" ;;
 			h) echo "$USAGE"; exit 0;;
 			i) interaction=i ;;
+			l) depdir="$OPTARG" ;;
 			m) monopath="$OPTARG" ;;
 			V) echo "$FNAIFY_VERSION"; exit 0;;
 			v) FNAIFY_DEBUG=1 ;;
@@ -726,14 +736,7 @@ process_options()
 	debug_echo "mode:		$mode"
 	debug_echo "options:	$*\n"
 	shift $(($OPTIND-1))
-	if [ -n "$1" ] ; then
-		if [ $# -gt 1 ] ; then
-			echo "ERROR: too many arguments"
-			echo "$USAGE"
-			exit 1
-		fi
-		gamedir=$(readlink -f "$1")
-	fi
+	userflags=$@
 }
 
 check_mono_binaries()
@@ -1004,7 +1007,7 @@ run()
 		fi
 	done
 
-	LD_LIBRARY_PATH="$depdir" MONO_PATH="$monopath" $exe_env exec "$FNAIFY_MONO" "$my_exe" $exe_flags \$*
+	LD_LIBRARY_PATH="$depdir" MONO_PATH="$monopath" $exe_env exec "$FNAIFY_MONO" $debug "$my_exe" $exe_flags $userargs
 
 	exit 0
 }
@@ -1016,10 +1019,11 @@ setup()
 	cd "$gamedir"
 	debug_echo "gamedir: $PWD"	# cd'd into direct above
 
+	debug_echo "Setting up the framework files"
 	get_frameworkfile
-	debug_echo "framework file:		$frameworkfile"
+	debug_echo "	framework file:			$frameworkfile"
 	get_frameworkversion
-	debug_echo "framework version:	$frameworkversion"
+	debug_echo "	framework version:	$frameworkversion"
 
 	if [ -z "$frameworkfile" ] ; then
 		# games without framework files:
