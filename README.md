@@ -150,6 +150,7 @@ Dead Pixels II \[!]
 The Dishwasher: Vampire Smile  
 Draw a Stickman: EPIC  
 Dust: An Elysian Tail  
+Eagle Island  
 Eliza  
 Escape Goat  
 Escape Goat 2  
