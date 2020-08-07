@@ -22,8 +22,6 @@ FNAIFY_VERSION=3.0
 
 # TODO:
 # - fix FIXMEs/TODOs
-# - check_nlog now only looks at major version number; is there a better way?
-#   (it reports only major in 'monodis --assembly': 3.0.0.0, 4.0.0.0)
 # - figure out how to do selection between AJ1.exe and AJ2.exe for Apple Jack
 # - fails to detect XNA in Streets of Fury EX because of whitespace; resolved after renaming .exe
 # - update the creator for dllmap file; based on fnaify.dllmap.config
@@ -41,6 +39,7 @@ FNAIFY_VERSION=3.0
 # - add flag to choose framework file: '-f'?
 # - add flag to choose FNA version
 # - add option to add runtime exe_flags to run mode
+# - create list of .dll that need symlink to the config file: Nuclex.Input.dll, OpenAL-CS.dll
 
 USAGE="
 Usage:
@@ -866,6 +865,8 @@ iomap()
 		ln -sf firewave.xnb Content/1.4/Player/fireWave.xnb
 	elif [ -n "$(ls "$gamedir" | grep -m 1 "Streets of Fury EX")" ] ; then
 		ln -sf ShockWave.xnb Content/Texture2D/Shockwave.xnb
+	elif [ -n "$(ls "$gamedir" | grep -m 1 "Aces Wild.exe")" ] ; then
+		ln -sf HitSparks Content/Sprites/Hitsparks
 	else
 		debug_echo "\tiomap: nothing to do"
 	fi
@@ -963,13 +964,16 @@ run()
 		Hacknet.exe)				exe_flags="${exe_flags}-disableweb "		;;
 		ScourgeBringer.exe)			exe_flags="${exe_flags}-noSound "		;;
 	esac
+	my_exe="$(echo "$my_exe" | tr -d '\:')"
 
 	# format all relevant command variables
 	depdir="$(echo "$depdir" | sed -E 's/:$//')"
 	monopath="$(echo "$monopath" | sed -E 's/:$//' | sed -E 's/^://')"
 	get_frameworkfile
 	get_frameworkversion
-	gameconfigsymlink="${frameworkfile}.config"
+	[ -n "$frameworkfile" ] \
+		&& gameconfigsymlink="${frameworkfile}.config" \
+		|| gameconfigsymlink="${my_exe}.config"
 	check_gameconfig
 	[ -e $gameconfig ] || { echo "ERROR: provided gameconfig file not existant: $gameconfig"; exit 1; }
 	debug_echo "gameconfig: $gameconfig"
@@ -977,7 +981,6 @@ run()
 	[ "x$gameconfig" = "x$(readlink "$gameconfigsymlink")" ] \
 		&& debug_echo "existing symlink ok" \
 		|| ln -sf "$gameconfig" "$gameconfigsymlink"
-	my_exe="$(echo "$my_exe" | tr -d '\:')"
 
 	echo
 	printdash "fnaify runtime configuration"
@@ -1155,7 +1158,7 @@ setup()
 
 	# Check if the libraries are available on the system (/usr/local/lib).
 	# If not, break and inform user which libraries need to be installed.
-	echo -n "Checking installed libraries... "
+	debug_echo -n "Checking installed libraries... "
 	debug_echo ""
 
 	# missinglibs[*] accumulates missing library names to inform user
@@ -1171,7 +1174,7 @@ setup()
 			missinglibs="$missinglibs$needlib "
 		fi
 	done
-	echo "done.\n"
+	debug_echo "done.\n"
 
 	if [ -n "${missinglibs}" ]; then
 		echo "\nCould not find the following libraries:\n
