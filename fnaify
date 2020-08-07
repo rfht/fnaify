@@ -119,6 +119,7 @@ libXNAWebRenderer.so
 libsteam_api.so
 libcef.so
 libfmod.so
+libfmodex.so
 libfmodstudio.so
 libtiny_jpeg.so
 steamwrapper.so
@@ -173,6 +174,7 @@ FNA.dll
 MonoGame.Framework.dll
 Nuclex.Input.dll
 OpenAL-CS.dll
+FMOD.dll
 "
 
 debug_echo()
@@ -746,8 +748,10 @@ process_options()
 		esac
 	done
 	debug_echo "mode:		$mode"
-	debug_echo "options:	$*\n"
+	debug_echo "options:	$*"
+	debug_echo "OPTIND:	$OPTIND"
 	shift $(($OPTIND-1))
+	debug_echo "options after shift:	$*\n"
 	userflags=$@
 }
 
@@ -872,6 +876,11 @@ iomap()
 		ln -sf ShockWave.xnb Content/Texture2D/Shockwave.xnb
 	elif [ -n "$(ls "$gamedir" | grep -m 1 "Aces Wild.exe")" ] ; then
 		ln -sf HitSparks Content/Sprites/Hitsparks
+	elif [ -n "$(ls "$gamedir" | grep -m 1 "CameraObscura.exe")" ] ; then
+		ln -sf enemies Content/Enemies
+		ln -sf buttons Content/Buttons
+		ln -sf ui Content/UI
+		ln -sf particle Content/Particle
 	else
 		debug_echo "\tiomap: nothing to do"
 	fi
@@ -909,7 +918,7 @@ xnasetup()
 	IFS="
 "
 	# FIXME: check for errors on return of these commands
-	echo -n "checking for WMA/WMV files and converting. This may take several minutes..."
+	echo "checking for WMA/WMV files and converting. This may take several minutes..."
 	for afile in $(find "$gamedir" -name "*.wma"); do
 		echo "converting $afile to OGG"
 		ffmpeg -loglevel fatal -i "$afile" -c:a libvorbis -q:a 10 \
@@ -962,30 +971,30 @@ run()
 
 	selectexe
 
+	# Config
+	check_gameconfig
+	[ -e $gameconfig ] || { echo "ERROR: provided gameconfig file not existent: $gameconfig"; exit 1; }
+	debug_echo "gameconfig: $gameconfig"
+	for f in $configbasearray; do
+		[ -e "$f" ] && { \
+			debug_echo "existing symlink target: ${f}.config -> $(readlink "${f}.config")"
+			gameconfigsymlink="${gameconfigsymlink}${f}.config "
+			[ "x$gameconfig" = "x$(readlink "${f}.config")" ] || \
+				ln -sf "$gameconfig" "${f}.config"
+		}
+	done
+
 	# Quirks
+	my_exe="$(echo "$my_exe" | tr -d '\:')"
 	case "$my_exe" in
 		Blueberry.exe|Shenzhen.exe|ThePit.exe|Terraria.exe)
 			exe_env="${exe_env}MONO_FORCE_COMPAT=1 "					;;
 		Hacknet.exe)				exe_flags="${exe_flags}-disableweb "		;;
 		ScourgeBringer.exe)			exe_flags="${exe_flags}-noSound "		;;
 	esac
-	my_exe="$(echo "$my_exe" | tr -d '\:')"
 	gameconfigsymlink="${gameconfigsymlink}${my_exe}.config "
 	[ "x$gameconfig" = "x$(readlink "${my_exe}.config")" ] || \
 		ln -sf "$gameconfig" "${my_exe}.config"
-
-	# Config
-	check_gameconfig
-	[ -e $gameconfig ] || { echo "ERROR: provided gameconfig file not existent: $gameconfig"; exit 1; }
-	debug_echo "gameconfig: $gameconfig"
-	for f in $configbasearray; do
-		debug_echo "existing symlink target: ${f}.config -> $(readlink "${f}.config")"
-		[ -e "$f" ] && { \
-			gameconfigsymlink="${gameconfigsymlink}${f}.config "
-			[ "x$gameconfig" = "x$(readlink "${f}.config")" ] || \
-				ln -sf "$gameconfig" "${f}.config"
-		}
-	done
 
 	# format all relevant command variables
 	depdir="$(echo "$depdir" | sed -E 's/:$//')"
@@ -1005,8 +1014,9 @@ run()
 	echo "Symlinks to Config:		$gameconfigsymlink"
 	echo "Config File:			$gameconfig"
 	echo "Other Runtime Environment:	$exe_env"
-	echo "Runtime Flags:			$exe_flags"
+	echo "Runtime Flags:			$exe_flags $userflags"
 	echo "Datasize Limit:			${datasize} M"
+	echo
 
 	[ $datasize -lt 2048 ] && { \
 		echo "AT LEAST 2G are recommended for most games. See ksh(1) for ulimit command documentation"
@@ -1014,7 +1024,10 @@ run()
 	}
 
 	# check if broken symlinks exist in the game directory, e.g. libdl.so.2
+	IFS='
+'
 	for l in $(find . -type l); do
+		IFS=$SAVEIFS
 		if [ ! -e "$l" ] ; then
 			newl="$(latest_syslib "$(trunklibnam "$(readlink $l)")")"
 			if [ -z "$newl" ] ; then
@@ -1025,7 +1038,8 @@ run()
 		fi
 	done
 
-	LD_LIBRARY_PATH="$depdir" MONO_PATH="$monopath" $exe_env exec "$FNAIFY_MONO" $debug "$my_exe" $exe_flags $userargs
+	debug_echo "env LD_LIBRARY_PATH="$depdir" MONO_PATH="$monopath" $exe_env "$FNAIFY_MONO" $debug "$my_exe" $exe_flags $userflags"
+	env LD_LIBRARY_PATH="$depdir" MONO_PATH="$monopath" $exe_env "$FNAIFY_MONO" $debug "$my_exe" $exe_flags $userflags
 
 	exit 0
 }
