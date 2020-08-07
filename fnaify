@@ -29,6 +29,7 @@ FNAIFY_VERSION=3.0
 # - update the creator for dllmap file; based on fnaify.dllmap.config
 # - pick FNA version with better performance than 17.12
 # - Streets of Fury EX needs the XNA bridge/NetStub files (still not running past initial screen)
+#	-> needs to detect Microsoft.Xna.Framework in the Beat*.dll file rather than .exe
 # - fix 'ls:  /usr/local/lib/steamworks-nosteam : No such file or directory' in check_remove_steam*
 # - instead of substituting fnaify.dllmap.config for /etc/mono/config
 #   turn the dllmap file into FNA.dll.config, so that it's loaded side-by-side with /etc/mono/config
@@ -36,7 +37,6 @@ FNAIFY_VERSION=3.0
 # - update man page/README for new syntax with modes setup, run
 # - clarify nomenclature in documentation (and code): modes is 'setup', 'run' etc. interactivity flags: '-i', '-y'
 # - mention package fnaify-extralibs in documentation
-# - xnasetup() may need a replacement for the previous finish_fnaify()
 # - test MidBoss and check how to implement libSDL_image_compact better ... maybe in MidBoss.exe.config??
 # - add flag to choose framework file: '-f'?
 # - add flag to choose FNA version
@@ -863,18 +863,6 @@ iomap()
 # check if this is an XNA game, otherwise abort
 xnasetup()
 {
-	# reset exefile and nexefile to pick only XNA files
-	exefile=
-	nexefile=0
-	IFS='
-'
-	# TODO: include .dll files; this is needed to recognize Streets of Fury EX as XNA (BeatThemAll.dll).
-	for assembly in $(cd "${gamedir}" && find . -maxdepth 1 -type f | grep -E ".*\.exe$" | cut -f 2 -d "/" | sort); do
-		debug_echo "Checking $assembly for XNA"
-		monodis --assemblyref "${gamedir}/$assembly" 2>&1 \
-			| grep -iqm 1 "Microsoft.Xna.Framework"
-	done
-	IFS=$SAVEIFS
 	if [ -d "/usr/local/share/fnaify/XNA-bridge" ];then
 		monopath="${monopath}:/usr/local/share/fnaify/XNA-bridge"
 	else
@@ -906,20 +894,19 @@ xnasetup()
 	# FIXME: check for errors on return of these commands
 	echo -n "checking for WMA/WMV files and converting. This may take several minutes..."
 	for afile in $(find "$gamedir" -name "*.wma"); do
+		echo "converting $afile to OGG"
 		ffmpeg -loglevel fatal -i "$afile" -c:a libvorbis -q:a 10 \
 			"$(echo "$afile" | rev | cut -d. -f2-$(($(echo "$afile" \
 			| tr -dc '.' | wc -c) + 1)) | rev).ogg"
 	done
 	for vfile in $(find . -name "*.wmv"); do
+		echo "converting $vfile to OGV"
 		ffmpeg -loglevel fatal -i "$vfile" -c:v libtheora -q:v 10 -c:a libvorbis \
 			-q:a 10 "$(echo "$vfile" | rev | cut -d. -f2-$(($(echo "$vfile" \
 			| tr -dc '.' | wc -c) + 1)) | rev).ogv"
 	done
 	IFS=$SAVEIFS
 	echo " done."
-
-	selectexe
-	check_remove_steamworks
 }
 
 get_frameworkfile()
@@ -1062,7 +1049,20 @@ setup()
 			mkdir -p "$HOME/Desktop"
 		else
 			check_nlog	# TODO: why is this done here?? because it's not in xnasetup()??
-			xnasetup	# check if this is an XNA game and set up in that case
+			found_xna=0
+			IFS='
+		'
+			for f in $(find . -maxdepth 1 -type f -iname "*.exe" -o -iname "*.dll" -exec file {} \; \
+				| fgrep "Mono/.Net assembly"); do
+				f="$(echo $f | cut -d : -f 1)"
+				debug_echo "Checking $f for XNA"
+				[ -n "$(monodis --assemblyref "$f" 2>&1 | grep -im 1 "Microsoft.Xna.Framework")" ] \
+					&& { found_xna=1; break; }
+			done
+			IFS=$SAVEIFS
+			[ $found_xna -eq 1 ] \
+				&& { debug_echo "Found XNA reference"; xnasetup; } \
+				|| { echo "No FNA, MonoGame or XNA reference found"; exit 1; }
 		fi
 	fi
 
