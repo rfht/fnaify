@@ -282,9 +282,20 @@ x86"
 
 selectexe()
 {
-	debug_echo "attempting to auto-select .exe assembly to run"
+	debug_echo "executable assembly selection routine"
+	IFS="
+"
+	for xfile in $(cd "$gamedir" && find . -maxdepth 1 -type f -iname "*.exe" | cut -f 2 -d "/" | sort); do
+		exefile="$exefile$xfile:"
+		nexefile=$((nexefile + 1))
+	done
+	IFS=$SAVEIFS
 	if [ $nexefile -gt 1 ]; then
-		if [ "x$interaction" = "xi" ] ; then
+		if [ "x$interaction" = "xy" ] ; then
+			# FIXME: for now just pick the first .exe. Come up with
+			#        better heuristic
+			my_exe="$(echo $exefile | cut -f 1 -d ':')"
+		else
 			i=1
 			while [ $i -le $nexefile ]; do
 				echo "$i: $(echo $exefile | cut -f $i -d ':')"
@@ -297,14 +308,11 @@ selectexe()
 			done
 			# NOTE: this only works for up to 9 candidate files
 			my_exe="$(echo $exefile | cut -f $input_exe -d ':')"
-		else
-			# FIXME: for now just pick the first .exe. Come up with
-			#        better heuristic
-			my_exe="$(echo $exefile | cut -f 1 -d ':')"
 		fi
 	elif [ $nexefile -eq 1 ]; then
 		my_exe="$exefile"
 	else
+		# TODO: there appear to be games without .exe, like Streets of Rage 4
 		echo "ERROR: no .exe file found\n"
 		exit 1
 	fi
@@ -946,13 +954,6 @@ run()
 	check_mono_binaries
 	cd "$gamedir"
 
-	IFS="
-"
-	for xfile in $(cd "$gamedir" && find . -maxdepth 1 -type f -iname "*.exe" | cut -f 2 -d "/" | sort); do
-		exefile="$exefile$xfile:"
-		nexefile=$((nexefile + 1))
-	done
-	IFS=$SAVEIFS
 	selectexe
 
 	# Quirks
@@ -1052,11 +1053,10 @@ setup()
 			debug_echo 'Creating $HOME/Desktop directory which is needed for Zachtronics games'
 			mkdir -p "$HOME/Desktop"
 		else
-			check_nlog	# TODO: why is this done here?? because it's not in xnasetup()??
 			found_xna=0
 			IFS='
 		'
-			for f in $(find . -maxdepth 1 -type f -iname "*.exe" -o -iname "*.dll" -exec file {} \; \
+			for f in $(find . -maxdepth 1 \( -iname "*.exe" -o -iname "*.dll" \) -exec file {} \; \
 				| fgrep "Mono/.Net assembly"); do
 				f="$(echo $f | cut -d : -f 1)"
 				debug_echo "Checking $f for XNA"
