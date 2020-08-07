@@ -38,6 +38,9 @@ FNAIFY_VERSION=3.0
 # - mention package fnaify-extralibs in documentation
 # - xnasetup() may need a replacement for the previous finish_fnaify()
 # - test MidBoss and check how to implement libSDL_image_compact better ... maybe in MidBoss.exe.config??
+# - add flag to choose framework file: '-f'?
+# - add flag to choose FNA version
+# - add option to add runtime exe_flags to run mode
 
 USAGE="
 Usage:
@@ -65,6 +68,10 @@ gamedir="$PWD"
 interaction=n	# y|n|i: yes to all, no to all, interactive
 licenses=
 gameconfig=
+frameworkfile=
+frameworkversion=
+frameworkmajor=
+frameworkminor=
 monopath="${MONO_PATH}"
 netstub_commit=e7d890e0ede0caa9e76ef37af6070344e3ab0abf
 newline='
@@ -717,7 +724,7 @@ process_options()
 		esac
 	done
 	debug_echo "mode:		$mode"
-	debug_echo "options:	$*"
+	debug_echo "options:	$*\n"
 	shift $(($OPTIND-1))
 	if [ -n "$1" ] ; then
 		if [ $# -gt 1 ] ; then
@@ -861,20 +868,13 @@ xnasetup()
 	nexefile=0
 	IFS='
 '
+	# TODO: include .dll files; this is needed to recognize Streets of Fury EX as XNA (BeatThemAll.dll).
 	for assembly in $(cd "${gamedir}" && find . -maxdepth 1 -type f | grep -E ".*\.exe$" | cut -f 2 -d "/" | sort); do
 		debug_echo "Checking $assembly for XNA"
 		monodis --assemblyref "${gamedir}/$assembly" 2>&1 \
 			| grep -iqm 1 "Microsoft.Xna.Framework"
-		if [ $? -eq 0 ]; then
-			exefile="$exefile$assembly:"
-			nexefile=$((nexefile + 1))
-		fi
 	done
 	IFS=$SAVEIFS
-	if [ $nexefile -lt 1 ]; then
-		echo "No FNA or XNA game found. Quitting."
-		exit 1
-	fi
 	if [ -d "/usr/local/share/fnaify/XNA-bridge" ];then
 		monopath="${monopath}:/usr/local/share/fnaify/XNA-bridge"
 	else
@@ -922,6 +922,23 @@ xnasetup()
 	check_remove_steamworks
 }
 
+get_frameworkfile()
+{
+	if [ -e "$gamedir/FNA.dll" ]; then
+		frameworkfile="FNA.dll"
+	elif [ -e "$gamedir/MonoGame.Framework.dll" ]; then
+		frameworkfile="MonoGame.Framework.dll"
+	fi
+}
+
+get_frameworkversion()
+{
+	[ -z "$frameworkfile" ] && return	# either no framework file, or need to run get_frameworkfile() first
+	frameworkversion="$(monodis --assembly "$frameworkfile" | fgrep Version | sed -E 's/Version:[[:blank:]]*//')"
+	frameworkmajor=`echo "$frameworkversion" | sed -n -E "s/([0-9]+)\.[0-9]+\.[0-9]+\.[0-9]+/\1/p"`
+	frameworkminor=`echo "$frameworkversion" | sed -n -E "s/[0-9]+\.([0-9]+)\.[0-9]+\.[0-9]+/\1/p"`
+}
+
 ###################################
 ### MODES: help, run, setup	###
 ###################################
@@ -948,7 +965,7 @@ run()
 	IFS=$SAVEIFS
 	selectexe
 
-	# Quirks for the runtime invocation of some games
+	# Quirks
 	case "$my_exe" in
 		Blueberry.exe|Shenzhen.exe|ThePit.exe|Terraria.exe)
 			exe_env="${exe_env}MONO_FORCE_COMPAT=1 "					;;
@@ -959,14 +976,16 @@ run()
 	# format all relevant command variables
 	depdir="$(echo "$depdir" | sed -E 's/:$//')"
 	monopath="$(echo "$monopath" | sed -E 's/:$//' | sed -E 's/^://')"
-	# TODO: switch FNA.dll to a variable that chooses the framework file or .exe if no framework file
-	frameworkfile="FNA.dll"
+	get_frameworkfile
+	get_frameworkversion
 	gameconfigsymlink="${frameworkfile}.config"
 	check_gameconfig
 	[ -e $gameconfig ] || { echo "ERROR: provided gameconfig file not existant: $gameconfig"; exit 1; }
 	debug_echo "gameconfig: $gameconfig"
 	echo "existing symlink target: $gameconfigsymlink -> $(readlink "$gameconfigsymlink")"
-	[ "x$gameconfig" == "x$(readlink "$gameconfigsymlink")" ] && debug_echo "existing symlink ok" || ln -sf "$gameconfig" "$gameconfigsymlink"
+	[ "x$gameconfig" = "x$(readlink "$gameconfigsymlink")" ] \
+		&& debug_echo "existing symlink ok" \
+		|| ln -sf "$gameconfig" "$gameconfigsymlink"
 	my_exe="$(echo "$my_exe" | tr -d '\:')"
 
 	echo
@@ -976,17 +995,17 @@ run()
 	echo "Mono Path:			$monopath"
 	echo "Native Library Directories:	$depdir"
 	echo "Framework File:			$frameworkfile"
-	echo "Framework File Version:		$(monodis --assembly "$frameworkfile" | fgrep Version | sed -E 's/Version:[[:blank:]]*//')"
+	echo "Framework File Version:		$frameworkversion"
 	echo "Symlink to Config:		$gameconfigsymlink"
 	echo "Config File:			$gameconfig"
-	echo "Additional Runtime Environment:	$exe_env"
+	echo "Other Runtime Environment:	$exe_env"
 	echo "Runtime Flags:			$exe_flags"
 
 	echo -n "\nNOTE: if game should unexpectedly fail to start, make sure datasize limit is high enough. "
 	echo "AT LEAST 2G are recommended for most games. See ksh(1) for ulimit command documentation"
 	echo
 
-	# check if broken symlinks exist in the game directory, e.g. libdl.so
+	# check if broken symlinks exist in the game directory, e.g. libdl.so.2
 	for l in $(find . -type l); do
 		if [ ! -e "$l" ] ; then
 			newl="$(latest_syslib "$(trunklibnam "$(readlink $l)")")"
@@ -1010,32 +1029,25 @@ setup()
 	cd "$gamedir"
 	debug_echo "gamedir: $PWD"	# cd'd into direct above
 
-	# does any of the framework files exist in $gamedir?
-	if [ -e "$gamedir/FNA.dll" ]; then
-		debug_echo "\tFound FNA.dll"
-	elif [ -e "$gamedir/MonoGame.Framework.dll" ]; then
-		debug_echo "\tFound MonoGame.Framework.dll"
-	else
+	get_frameworkfile
+	debug_echo "framework file:		$frameworkfile"
+	get_frameworkversion
+	debug_echo "framework version:	$frameworkversion"
+
+	if [ -z "$frameworkfile" ] ; then
 		# games without framework files:
 		# Atom Zombie Smasher, Eliza, Molek-Syntez, Exapunks, Opus Magnum (Lightning.exe),
 		# Shenzhen I/O, SpaceChem (64bit and fullscreen update from 2020-07-15), Streets of Fury EX
-		if [ -n "$(ls "$gamedir" | grep -im 1 "atomzombiesmasher")" ] ; then
-			echo "$depdir"
-			echo "$needlib"
+		if [ -n "$(ls "$gamedir" | grep -m 1 "AtomZombieSmasher\.exe")" ] ; then
 			if $(ls $(echo "$depdir" | tr -s ':' ' ') | grep -q "libatomstb\.so")
 			then
-				debug_echo "\tfound libatomstb library"
+				debug_echo "\tfound libatomstb library in a library directory"
 			else
-				# add libatomstb to needlibarray if not in there yet
+				# add libatomstb to needlibarray
 				inarray libatomstb.so $needlibarray
-				if [ $? -eq 0 ]; then
-					debug_echo " - already in array"
-				elif [ $? -eq 1 ]; then
+				if [ $? -eq 1 ]; then
 					needlibarray="${needlibarray}libatomstb.so "
-					debug_echo " - added to array"
-				else
-					echo "\n\t - ERROR: inarray returned with unexpected error\n"
-					exit 1
+					debug_echo "\tlibatomstb.so added to array"
 				fi
 			fi
 		elif [ \( -n "$(ls "$gamedir" | grep -im 1 "eliza.exe")" \) \
@@ -1046,38 +1058,23 @@ setup()
 			-o \( -n "$(ls "$gamedir" | grep -im 1 "spacechem.exe")" \) \
 			] ; then
 			debug_echo "\nCompatible game without XNA/FNA framework file found."
-			debug_echo 'Creating $HOME/Desktop directory which is needed for some Zachtronics games'
+			debug_echo 'Creating $HOME/Desktop directory which is needed for Zachtronics games'
 			mkdir -p "$HOME/Desktop"
-		elif [ -n "$(ls "$gamedir" | grep -im 1 "streets of fury ex.exe")" ] ; then
-			# Streets of Fury EX.exe likely doesn't need "$HOME/Desktop"
-			echo "TODO/FIXME: needs XNA files, but xnasetup doesn't recognize it as XNA game"
 		else
-			check_nlog
+			check_nlog	# TODO: why is this done here?? because it's not in xnasetup()??
 			xnasetup	# check if this is an XNA game and set up in that case
 		fi
 	fi
 
-	# The following code assumes that only one of FNA.dll and MonoGame.Framework.dll is present
-	if [ -e "$gamedir/FNA.dll" ]; then
-		fnaversion=`monodis --assembly "$gamedir/FNA.dll" | grep "Version" | tr -d [:alpha:] | tr -d " " | tr -d \:`
-		fnamajor=`echo "$fnaversion" | sed -n -E "s/\..*//p"`
-		fnaminor=`echo "$fnaversion" | sed -n -E "s/[0-9]+\.([0-9]+)\.[0-9]+\.[0-9]+/\1/p"`
-		debug_echo -n "\tFNA.dll version $fnaversion, "
-		debug_echo -n "major: $fnamajor, "
-		debug_echo "minor: $fnaminor"
-		if [ $fnamajor -lt 16 ] || ( [ $fnamajor -eq 16 ] && [ $fnaminor -lt 5 ] )
-		then
-			fna_warning=1
-		fi
-	elif [ -e "$gamedir/MonoGame.Framework.dll" ]; then
-		mgversion=`monodis --assembly "$gamedir/MonoGame.Framework.dll" | grep "Version" | tr -d [:alpha:] | tr -d " " | tr -d \:`
-		debug_echo "\tMonoGame.Framework.dll version $mgversion"
+	if [ "x$frameworkfile" = "xFNA.dll" ] && ( [ $frameworkmajor -lt 16 ] || ( [ $frameworkmajor -eq 16 ] && [ $frameworkminor -lt 5 ] ) )
+	then
+		fna_warning=1
 	fi
 
 	check_nlog
 
-	set -A configfilesarray		# empties array
-	nconfigfilesarray=0
+	set -A configfilesarray		# empty the array
+	nconfigfilesarray=0		# TODO: is this really needed?
 	debug_echo "Identifying config files..."
 	IFS="
 "
