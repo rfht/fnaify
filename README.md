@@ -128,6 +128,7 @@ Amazing Princess Sarah
 Apotheon  
 Apple Jack 1&2  
 Atom Zombie Smasher  
+A Virus Named TOM \[!]  
 Before the Echo \[!]  
 Bleed  
 Bleed 2  
@@ -209,6 +210,7 @@ Unexplored
 Unholy Heights (no audio)  
 The Useful Dead  
 Weapon of Choice \[!]  
+Wizorb  
 Wyv and Keep
 
 # FILES

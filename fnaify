@@ -40,6 +40,7 @@ FNAIFY_VERSION=3.0
 # - add flag to choose FNA version
 # - add option to add runtime exe_flags to run mode
 # - create list of .dll that need symlink to the config file: Nuclex.Input.dll, OpenAL-CS.dll
+# - AVNT: find a way to have Steam deactivated for this one in libSteamworksNative.so
 
 USAGE="
 Usage:
@@ -137,16 +138,20 @@ Mono.CSharp.dll
 Mono.Posix.dll
 Mono.Security.dll
 System.Configuration.dll
+System.Configuration.Install.dll
 System.Core.dll
 System.Data.dll
+System.Design.dll
 System.Drawing.dll
 System.IO.Compression.FileSystem.dll
 System.IO.Compression.dll
+System.Management.dll
 System.Net.dll
 System.Numerics.dll
 System.Runtime.Serialization.dll
 System.Security.dll
 System.ServiceModel.dll
+System.Transactions.dll
 System.Web.Extensions.dll
 System.Web.Http.dll
 System.Web.Services.dll
@@ -1001,7 +1006,7 @@ run()
 	echo "Config File:			$gameconfig"
 	echo "Other Runtime Environment:	$exe_env"
 	echo "Runtime Flags:			$exe_flags"
-	echo "Datasize Limit:			${datasize}M"
+	echo "Datasize Limit:			${datasize} M"
 
 	[ $datasize -lt 2048 ] && { \
 		echo "AT LEAST 2G are recommended for most games. See ksh(1) for ulimit command documentation"
