@@ -134,8 +134,9 @@ Bleed
 Bleed 2  
 Breath of Death VII  
 Brushwood Buddies  
+Camera Obscura  
 Capsized  
-Celeste (no audio) \[!]  
+Celeste (no audio)  
 Chaos Heart  
 Charlie Murder  
 Chasm  
@@ -304,4 +305,4 @@ Thomas Frohwein &lt;[thfr@openbsd.org](mailto:thfr@openbsd.org)&gt;.
 
 Thomas Frohwein &lt;[thfr@openbsd.org](mailto:thfr@openbsd.org)&gt;
 
-OpenBSD 6.7 - August 6, 2020
+OpenBSD 6.7 - August 7, 2020

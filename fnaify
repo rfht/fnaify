@@ -1039,6 +1039,7 @@ run()
 	done
 
 	debug_echo "env LD_LIBRARY_PATH="$depdir" MONO_PATH="$monopath" $exe_env "$FNAIFY_MONO" $debug "$my_exe" $exe_flags $userflags"
+	debug_echo ""
 	env LD_LIBRARY_PATH="$depdir" MONO_PATH="$monopath" $exe_env "$FNAIFY_MONO" $debug "$my_exe" $exe_flags $userflags
 
 	exit 0
