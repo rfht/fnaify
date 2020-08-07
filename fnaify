@@ -71,7 +71,7 @@ newline='
 '
 
 if [ -d "/usr/local/lib/steamworks-nosteam" ] ; then
-	monopath="${monopath}/usr/local/lib/steamworks-nosteam:"
+	monopath="${monopath}:/usr/local/lib/steamworks-nosteam"
 	depdir="/usr/local/lib/steamworks-nosteam:$depdir"
 fi
 if [ -d "/usr/local/share/steamstubs" ]; then
@@ -269,6 +269,7 @@ x86"
 
 selectexe()
 {
+	debug_echo "attempting to auto-select .exe assembly to run"
 	if [ $nexefile -gt 1 ]; then
 		if [ "x$interaction" = "xi" ] ; then
 			i=1
@@ -303,7 +304,7 @@ check_gameconfig()
 		if [ -f "$HOME/.config/fnaify/fnaify.dllmap.config" ] ; then
 			gameconfig="$HOME/.config/fnaify/fnaify.dllmap.config"
 			# check for outdated config file
-			if [ "x$(cat "$gameconfig" | grep -m 1 "libstubborn")" = "x" ] ; then
+			if [ "x$(cat "$gameconfig" | grep -m 1 "fnaify version $FNAIFY_VERSION")" = "x" ] ; then
 				echo "WARNING: $gameconfig appears to be out of date. It is strongly recommended to remove it and re-run `basename $0`."
 			fi
 		else
@@ -314,36 +315,252 @@ check_gameconfig()
 				debug_echo "creating $gameconfig"
 				mkdir -p ~/.config/fnaify
 				cat <<EOF > "$gameconfig"
-	<!-- mono config file for fnaify dllmaps -->
-	<configuration>
-		<dllmap dll="FAudio" target="libFAudio.so"/>
-		<dllmap dll="MojoShader.dll" target="libmojoshader.so"/>
-		<dllmap dll="SDL2.dll" target="libSDL2.so"/>
-		<!-- MidBoss needs libSDL2_image_compact.so -->
-		<dllmap dll="SDL2_image.dll" target="libSDL2_image.so"/>
-		<dllmap dll="SDL2_mixer.dll" target="libSDL2_mixer.so"/>
-		<dllmap dll="SDL2_ttf.dll" target="libSDL2_ttf.so"/>
-		<dllmap dll="SteamworksNative.dll" target="libSteamworksNative.so"/>
-		<dllmap dll="freetype6" target="libfreetype.so" />
-		<dllmap dll="freetype6.dll" target="libfreetype.so" />
-		<dllmap dll="libtheorafile.dll" target="libtheorafile.so"/>
-		<dllmap dll="libtheoraplay.dll" target="libtheoraplay.so"/>
-		<dllmap dll="libvorbisfile.dll" target="libvorbisfile.so"/>
-		<dllmap dll="openal32.dll" target="libopenal.so"/>
-		<dllmap dll="soft_oal.dll" target="libopenal.so"/>
+<!-- mono config file for fnaify -->
+<!-- fnaify version 3.0 -->
+<configuration>
+	<!-- SteamworksNative: Khet 2.0, etc -->
+	<dllmap dll="SteamworksNative">
+		<dllentry dll="libstubborn.so" name="GetStat" target="int_0"/>
+		<dllentry dll="libstubborn.so" name="Initialize" target="int_0"/>
+		<dllentry dll="libstubborn.so" name="RunCallbacks" target="ptr_null"/>
+	</dllmap>
 
-		<!-- Atom Zombie Smasher -->
-		<dllmap dll="msvcr100.dll" target="libc.so"/>
+	<!-- steamwrapper: Dead Pixels -->
+	<dllmap dll="steamwrapper.dll">
+		<dllentry dll="libstubborn.so" name="API_RunCallbacks" target="int_0"/>
+		<dllentry dll="libstubborn.so" name="API_Init" target="int_0"/>
+		<dllentry dll="libstubborn.so" name="API_Shutdown" target="int_0"/>
+		<dllentry dll="libstubborn.so" name="Stats_getStat" target="int_0"/>
+	</dllmap>
 
-		<!-- Terraria, Solaroids -->
-		<dllmap dll="gdiplus.dll" target="libgdiplus.so"/>
+	<!-- fmod_event -->
+	<dllmap dll="fmod_event.dll">
+		<dllentry dll="libstubborn.so" name="FMOD_EventSystem_Create" target="int_0"/>
+	</dllmap>
 
-		<!-- Nuclex.Input (Dead Pixels, Amazing Princess Sarah, Akane the Kunoichi -->
-		<dllmap dll="kernel32">
-			<dllentry dll="ld.so" name="LoadLibrary" target="dlopen"/>
-		</dllmap>
-	</configuration>
-	EOF
+	<!-- general -->
+	<dllmap dll="FAudio" target="libFAudio.so"/>
+	<dllmap dll="MojoShader.dll" target="libmojoshader.so"/>
+	<dllmap dll="SDL2.dll" target="libSDL2.so"/>
+	<!-- MidBoss needs libSDL2_image_compact.so -->
+	<dllmap dll="SDL2_image.dll" target="libSDL2_image.so"/>
+	<dllmap dll="SDL2_mixer.dll" target="libSDL2_mixer.so"/>
+	<dllmap dll="SDL2_ttf.dll" target="libSDL2_ttf.so"/>
+	<dllmap dll="freetype6" target="libfreetype.so" />
+	<dllmap dll="freetype6.dll" target="libfreetype.so" />
+	<dllmap dll="libtheorafile.dll" target="libtheorafile.so"/>
+	<dllmap dll="libtheoraplay.dll" target="libtheoraplay.so"/>
+	<dllmap dll="libvorbisfile.dll" target="libvorbisfile.so"/>
+	<dllmap dll="libvorbisfile-3.dll" target="libvorbisfile.so"/>
+	<dllmap dll="openal32.dll" target="libopenal.so"/>
+	<dllmap dll="soft_oal.dll" target="libopenal.so"/>
+	<dllmap dll="System.Native" target="libmono-native.so"/>
+	<dllmap dll="System.Net.Security.Native" target="libmono-native.so"/>
+
+	<!-- Atom Zombie Smasher -->
+	<dllmap dll="msvcr100.dll" target="libc.so"/>
+
+	<!-- Terraria, Solaroids -->
+	<dllmap dll="gdiplus.dll" target="libgdiplus.so"/>
+
+	<!-- Nuclex.Input: Dead Pixels, Amazing Princess Sarah, Akane the Kunoichi -->
+	<dllmap dll="kernel32">
+		<dllentry dll="ld.so" name="LoadLibrary" target="dlopen"/>
+	</dllmap>
+
+	<!-- Steam stubs -->
+	<!-- CommunityExpressSW: Little Racers STREET, Murder Miners -->
+	<dllmap dll="CommunityExpressSW" target="libcestub.so"/>
+	<!--<dllmap dll="SteamworksNative.dll" target="libSteamworksNative.so"/>-->
+	<!-- SteamWrapper: Bastion -->
+	<dllmap dll="SteamWrapper.dll">
+		<dllentry dll="libstubborn.so" name="SteamWrapper_GetCurrentGameLanguage"	target="int_0"/>
+		<dllentry dll="libstubborn.so" name="SteamWrapper_Init"				target="int_0"/>
+		<dllentry dll="libstubborn.so" name="SteamWrapper_GetUserDataFolder"		target="string_empty"/>
+		<dllentry dll="libstubborn.so" name="SteamWrapper_RunCallbacks"			target="int_0"/>
+		<dllentry dll="libstubborn.so" name="SteamWrapper_LbUploadScore"		target="int_0"/>
+		<dllentry dll="libstubborn.so" name="SteamWrapper_Shutdown"			target="int_0"/>
+		<dllentry dll="libstubborn.so" name="SteamWrapper_SetAchievement"		target="int_0"/>
+	</dllmap>
+	<!-- steam_api: Unrailed!, Before the Echo -->
+	<dllmap dll="steam_api">
+		<dllentry dll="libstubborn.so" name="SteamAPI_Init"		target="int_0"/>
+		<dllentry dll="libstubborn.so" name="SteamAPI_RegisterCallback"		target="int_0"/>
+		<dllentry dll="libstubborn.so" name="SteamAPI_GetHSteamUser"		target="int_0"/>
+		<dllentry dll="libstubborn.so" name="SteamAPI_GetHSteamPipe"		target="int_1"/>
+		<dllentry dll="libstubborn.so" name="SteamInternal_CreateInterface"	target="int_1"/>
+		<dllentry dll="libstubborn.so" name="SteamAPI_ISteamClient_GetISteamUser"	target="int_1"/>
+		<dllentry dll="libstubborn.so" name="SteamAPI_ISteamClient_GetISteamFriends"	target="int_1"/>
+		<dllentry dll="libstubborn.so" name="SteamAPI_ISteamClient_GetISteamUtils"	target="int_1"/>
+		<dllentry dll="libstubborn.so" name="SteamAPI_ISteamClient_GetISteamMatchmaking"	target="int_1"/>
+		<dllentry dll="libstubborn.so" name="SteamAPI_ISteamClient_GetISteamMatchmakingServers"	target="int_1"/>
+		<dllentry dll="libstubborn.so" name="SteamAPI_ISteamClient_GetISteamUserStats"	target="int_1"/>
+		<dllentry dll="libstubborn.so" name="SteamAPI_ISteamClient_GetISteamApps"	target="int_1"/>
+		<dllentry dll="libstubborn.so" name="SteamAPI_ISteamClient_GetISteamNetworking"	target="int_1"/>
+		<dllentry dll="libstubborn.so" name="SteamAPI_ISteamClient_GetISteamRemoteStorage"	target="int_1"/>
+		<dllentry dll="libstubborn.so" name="SteamAPI_ISteamClient_GetISteamScreenshots"	target="int_1"/>
+		<dllentry dll="libstubborn.so" name="SteamAPI_ISteamClient_GetISteamGameSearch"	target="int_1"/>
+		<dllentry dll="libstubborn.so" name="SteamAPI_ISteamClient_GetISteamHTTP"	target="int_1"/>
+		<dllentry dll="libstubborn.so" name="SteamAPI_ISteamClient_GetISteamController"	target="int_1"/>
+		<dllentry dll="libstubborn.so" name="SteamAPI_ISteamClient_GetISteamUGC"	target="int_1"/>
+		<dllentry dll="libstubborn.so" name="SteamAPI_ISteamClient_GetISteamAppList"	target="int_1"/>
+		<dllentry dll="libstubborn.so" name="SteamAPI_ISteamClient_GetISteamMusic"	target="int_1"/>
+		<dllentry dll="libstubborn.so" name="SteamAPI_ISteamClient_GetISteamMusicRemote"	target="int_1"/>
+		<dllentry dll="libstubborn.so" name="SteamAPI_ISteamClient_GetISteamHTMLSurface"	target="int_1"/>
+		<dllentry dll="libstubborn.so" name="SteamAPI_ISteamClient_GetISteamInventory"	target="int_1"/>
+		<dllentry dll="libstubborn.so" name="SteamAPI_ISteamClient_GetISteamVideo"	target="int_1"/>
+		<dllentry dll="libstubborn.so" name="SteamAPI_ISteamClient_GetISteamParentalSettings"	target="int_1"/>
+		<dllentry dll="libstubborn.so" name="SteamAPI_ISteamClient_GetISteamInput"	target="int_1"/>
+		<dllentry dll="libstubborn.so" name="SteamAPI_ISteamClient_GetISteamParties"	target="int_1"/>
+		<dllentry dll="libstubborn.so" name="SteamAPI_ISteamUser_GetSteamID"	target="int_1"/>
+		<dllentry dll="libstubborn.so" name="SteamAPI_ISteamFriends_GetFriendPersonaName"	target="string_empty"/>
+		<dllentry dll="libstubborn.so" name="SteamAPI_ISteamUserStats_RequestCurrentStats"	target="int_1"/>
+		<dllentry dll="libstubborn.so" name="SteamAPI_ISteamApps_GetCurrentBetaName"	target="string_empty"/>
+		<dllentry dll="libstubborn.so" name="SteamAPI_ISteamApps_BIsDlcInstalled"	target="int_0"/>
+		<dllentry dll="libstubborn.so" name="SteamAPI_ISteamApps_GetLaunchCommandLine"	target="string_empty"/>
+		<dllentry dll="libstubborn.so" name="SteamUserStats"		target="int_1"/>
+		<dllentry dll="libstubborn.so" name="SteamRemoteStorage"	target="int_1"/>
+		<dllentry dll="libstubborn.so" name="SteamAPI_ISteamRemoteStorage_FileExists"	target="int_0"/>
+		<dllentry dll="libstubborn.so" name="SteamAPI_RunCallbacks"	target="int_0"/>
+		<dllentry dll="libstubborn.so" name="SteamAPI_ISteamRemoteStorage_FileWrite"	target="int_0"/>
+		<dllentry dll="libstubborn.so" name="SteamAPI_Shutdown"	target="int_0"/>
+		<dllentry dll="libstubborn.so" name="SteamAPI_ISteamUserStats_GetAchievement"	target="int_0"/>
+		<dllentry dll="libstubborn.so" name="SteamAPI_ISteamUserStats_SetAchievement"	target="int_0"/>
+		<dllentry dll="libstubborn.so" name="SteamAPI_ISteamUserStats_StoreStats"	target="int_0"/>
+		<dllentry dll="libstubborn.so" name="SteamAPI_ISteamInput_Init"	target="int_0"/>
+		<dllentry dll="libstubborn.so" name="SteamAPI_RestartAppIfNecessary"	target="int_0"/>
+	</dllmap>
+	<!-- steam_api64: Burning Knight -->
+	<dllmap dll="steam_api64">
+		<dllentry dll="libstubborn.so" name="SteamAPI_Init"		target="int_0"/>
+	</dllmap>
+
+	<!-- FMOD stubs -->
+	<dllmap dll="fmodstudio">
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_System_Create"		target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_System_Initialize"	target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_System_SetListenerAttributes"	target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_System_Update"		target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_System_LoadBankFile"		target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_System_GetVCA"		target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_VCA_SetVolume"		target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_VCA_GetVolume"		target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_System_GetEvent"	target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_EventDescription_LoadSampleData"	target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_EventDescription_CreateInstance"	target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_EventDescription_Is3D"	target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_EventInstance_Start"	target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_System_GetBus"		target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_Bus_SetPaused"		target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_Bus_GetPaused"		target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_EventInstance_GetDescription"	target="int_0"/>
+		<!-- Celeste needs a specific value for 2 variables -->
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_EventDescription_GetPath"	target="int_celeste_event"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_Bank_LoadSampleData"	target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_EventInstance_SetVolume"	target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_System_GetListenerAttributes"	target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_EventInstance_Set3DAttributes"	target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_EventInstance_Release"	target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_EventInstance_GetVolume"	target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_EventInstance_Stop"	target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_EventInstance_Get3DAttributes"	target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_System_Release"	target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_EventInstance_SetParameterValue"	target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_EventDescription_IsOneshot"	target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_EventInstance_SetPaused"	target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_EventInstance_TriggerCue"	target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_Bus_StopAllEvents"	target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_EventInstance_GetPaused"	target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_EventInstance_GetPlaybackState"	target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_System_GetLowLevelSystem"	target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_EventDescription_GetInstanceCount"	target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_EventDescription_UnloadSampleData"	target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_System_FlushCommands"	target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_Bus_GetChannelGroup"	target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_EventInstance_SetCallback"	target="int_0"/>
+	</dllmap>
+	<dllmap dll="fmodstudio.dll">
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_System_Create"		target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_System_Initialize"	target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_System_SetListenerAttributes"	target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_System_Update"		target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_System_LoadBankFile"		target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_System_GetVCA"		target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_VCA_SetVolume"		target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_VCA_GetVolume"		target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_System_GetEvent"	target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_EventDescription_LoadSampleData"	target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_EventDescription_CreateInstance"	target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_EventDescription_Is3D"	target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_EventInstance_Start"	target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_System_GetBus"		target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_Bus_SetPaused"		target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_Bus_GetPaused"		target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_EventInstance_GetDescription"	target="int_0"/>
+		<!-- Celeste needs a specific value for 2 variables -->
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_EventDescription_GetPath"	target="int_celeste_event"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_Bank_LoadSampleData"	target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_EventInstance_SetVolume"	target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_System_GetListenerAttributes"	target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_EventInstance_Set3DAttributes"	target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_EventInstance_Release"	target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_EventInstance_GetVolume"	target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_EventInstance_Stop"	target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_EventInstance_Get3DAttributes"	target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_System_Release"	target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_EventInstance_SetParameterValue"	target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_EventDescription_IsOneshot"	target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_EventInstance_SetPaused"	target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_EventInstance_TriggerCue"	target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_Bus_StopAllEvents"	target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_EventInstance_GetPaused"	target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_EventInstance_GetPlaybackState"	target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_System_GetLowLevelSystem"	target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_EventDescription_GetInstanceCount"	target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_EventDescription_UnloadSampleData"	target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_Bus_LockChannelGroup"	target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_System_FlushCommands"	target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_Bus_GetChannelGroup"	target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_EventInstance_SetCallback"	target="int_0"/>
+	</dllmap>
+	<dllmap dll="fmodex">
+		<dllentry dll="libstubborn.so" name="FMOD_System_Create"			target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_System_GetVersion"			target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_System_Init"				target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_System_SetReverbProperties"		target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_System_Update"			target="int_0"/>
+	</dllmap>
+
+	<dllmap dll="uP2P.dll">
+		<dllentry dll="libstubborn.so" name="libuP2P_liaison_init"		target="int_1"/>
+		<dllentry dll="libstubborn.so" name="libuP2P_hook"		target="int_0"/>
+		<dllentry dll="libstubborn.so" name="libuP2P_part_read"		target="int_0"/>
+		<dllentry dll="libstubborn.so" name="libuP2P_part"		target="int_0"/>
+		<dllentry dll="libstubborn.so" name="libuP2P_sync_zero"		target="int_0"/>
+		<dllentry dll="libstubborn.so" name="libuP2P_persona_rich"		target="int_0"/>
+		<dllentry dll="libstubborn.so" name="libuP2P_liaison_poll"		target="int_0"/>
+		<dllentry dll="libstubborn.so" name="libuP2P_fake"		target="int_0"/>
+		<dllentry dll="libstubborn.so" name="libuP2P_take"		target="int_0"/>
+		<dllentry dll="libstubborn.so" name="libuP2P_liaison_exit"		target="int_0"/>
+	</dllmap>
+
+	<dllmap dll="fmod">
+		<dllentry dll="libstubborn.so" name="FMOD_System_GetVersion"		target="int_fmf_getversion"/>
+		<dllentry dll="libstubborn.so" name="FMOD_System_SetDSPBufferSize"	target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_System_SetAdvancedSettings"	target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_System_SetSoftwareChannels"	target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_ChannelGroup_SetVolume"	target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_ChannelGroup_SetPitch"	target="int_0"/>
+	</dllmap>
+
+	<!-- PhotonBridge: Unrailed! -->
+	<dllmap dll="PhotonBridge">
+		<dllentry dll"libstubborn.so" name="init"		target="int_1"/>
+		<dllentry dll"libstubborn.so" name="Init"		target="int_1"/>
+	</dllmap>
+
+</configuration>
+EOF
 			fi
 		fi
 	fi
@@ -488,17 +705,19 @@ process_options()
 {
 	while getopts c:d:him:Vvy o; do
 		case "$o" in
-			c) gameconfig="$2" ;;
-			d) depdir="$2" ;;
+			c) gameconfig="$OPTARG" ;;
+			d) depdir="$OPTARG" ;;
 			h) echo "$USAGE"; exit 0;;
 			i) interaction=i ;;
-			m) monopath="$2" ;;
+			m) monopath="$OPTARG" ;;
 			V) echo "$FNAIFY_VERSION"; exit 0;;
 			v) FNAIFY_DEBUG=1 ;;
 			y) interaction=y ;;
 			--) break ;;
 		esac
 	done
+	debug_echo "mode:		$mode"
+	debug_echo "options:	$*"
 	shift $(($OPTIND-1))
 	if [ -n "$1" ] ; then
 		if [ $# -gt 1 ] ; then
@@ -509,6 +728,7 @@ process_options()
 		gamedir=$(readlink -f "$1")
 	fi
 }
+
 check_mono_binaries()
 {
 	debug_echo "Checking mono and monodis"
@@ -530,7 +750,7 @@ check_mono_binaries()
 
 iomap()
 {
-	debug_echo "iomap: checking if symlinks for filename cases need to be created
+	debug_echo "iomap: checking if symlinks for filename cases need to be created"
 	if [ -n "$(ls "$gamedir" | grep -m 1 "Dead Pixels.exe")" ] ; then
 		ln -sf Sprites Content/sprites
 		ln -sf Effects Content/Sprites/effects
@@ -714,13 +934,13 @@ help()
 
 run()
 {
-	debug_echo "Mode: $mode"
 	process_options $@
+	[ -e "$gamedir/.fnaify_ready" ] || { echo "Run 'fnaify setup' first."; exit 1; }
 	check_mono_binaries
 	cd "$gamedir"
 
 	IFS="
-	"
+"
 	for xfile in $(cd "$gamedir" && find . -maxdepth 1 -type f -iname "*.exe" | cut -f 2 -d "/" | sort); do
 		exefile="$exefile$xfile:"
 		nexefile=$((nexefile + 1))
@@ -736,23 +956,27 @@ run()
 		ScourgeBringer.exe)			exe_flags="${exe_flags}-noSound "		;;
 	esac
 
-	# TODO: set up config with check_gameconfig()
-
 	# format all relevant command variables
 	depdir="$(echo "$depdir" | sed -E 's/:$//')"
 	monopath="$(echo "$monopath" | sed -E 's/:$//' | sed -E 's/^://')"
 	# TODO: switch FNA.dll to a variable that chooses the framework file or .exe if no framework file
 	frameworkfile="FNA.dll"
 	gameconfigsymlink="${frameworkfile}.config"
-	gameconfig="$(readlink ${gameconfigsymlink})"
+	check_gameconfig
+	[ -e $gameconfig ] || { echo "ERROR: provided gameconfig file not existant: $gameconfig"; exit 1; }
+	debug_echo "gameconfig: $gameconfig"
+	echo "existing symlink target: $gameconfigsymlink -> $(readlink "$gameconfigsymlink")"
+	[ "x$gameconfig" == "x$(readlink "$gameconfigsymlink")" ] && debug_echo "existing symlink ok" || ln -sf "$gameconfig" "$gameconfigsymlink"
 	my_exe="$(echo "$my_exe" | tr -d '\:')"
 
+	echo
 	printdash "fnaify runtime configuration"
 	echo "Game Directory:			$PWD"		# PWD as cd'd into $gamedir happened above
 	echo "Mono Binary:			$FNAIFY_MONO"
 	echo "Mono Path:			$monopath"
 	echo "Native Library Directories:	$depdir"
 	echo "Framework File:			$frameworkfile"
+	echo "Framework File Version:		$(monodis --assembly "$frameworkfile" | fgrep Version | sed -E 's/Version:[[:blank:]]*//')"
 	echo "Symlink to Config:		$gameconfigsymlink"
 	echo "Config File:			$gameconfig"
 	echo "Additional Runtime Environment:	$exe_env"
@@ -760,6 +984,7 @@ run()
 
 	echo -n "\nNOTE: if game should unexpectedly fail to start, make sure datasize limit is high enough. "
 	echo "AT LEAST 2G are recommended for most games. See ksh(1) for ulimit command documentation"
+	echo
 
 	# check if broken symlinks exist in the game directory, e.g. libdl.so
 	for l in $(find . -type l); do
@@ -780,7 +1005,6 @@ run()
 
 setup()
 {
-	debug_echo "Mode: $mode"
 	process_options $@
 	check_mono_binaries
 	cd "$gamedir"
@@ -826,7 +1050,7 @@ setup()
 			mkdir -p "$HOME/Desktop"
 		elif [ -n "$(ls "$gamedir" | grep -im 1 "streets of fury ex.exe")" ] ; then
 			# Streets of Fury EX.exe likely doesn't need "$HOME/Desktop"
-			# TODO/FIXME: needs XNA files, but xnasetup doesn't recognize it as XNA game
+			echo "TODO/FIXME: needs XNA files, but xnasetup doesn't recognize it as XNA game"
 		else
 			check_nlog
 			xnasetup	# check if this is an XNA game and set up in that case
@@ -856,7 +1080,7 @@ setup()
 	nconfigfilesarray=0
 	debug_echo "Identifying config files..."
 	IFS="
-	"
+"
 	for cfile in $(ls "$gamedir" | grep "\.config$"); do
 		debug_echo "\tfound config file: $cfile"
 		configfilesarray[$((${#configfilesarray[*]} + 1))]="$cfile"
@@ -888,7 +1112,7 @@ setup()
 	else
 		cfile=""
 		IFS="
-	"
+"
 		for cfile in ${configfilesarray[@]}; do
 			IFS=$SAVEIFS
 			debug_echo "\t$cfile"
@@ -960,14 +1184,13 @@ setup()
 		mkdir -p "$gamedir/fnaify-backup"
 	fi
 	IFS="
-	"
+"
 	for config_file in ${configfilesarray[@]}; do
 		IFS=$SAVEIFS
 		if $(grep -q "dllmap" "$config_file"); then
 			mv "$config_file" "$gamedir/fnaify-backup/"
 		fi
 	done
-
 
 	if [ -n "$(ls "$gamedir" | grep -m 1 "MidBoss.exe")" ] ; then
 		debug_echo 'creating MidBoss.exe.config for MidBoss'
@@ -1032,6 +1255,8 @@ EOF
 		echo "If the game doesn't run, try running 'fnaify -i' (or 'fnaify -y').\n"
 	fi
 
+	touch .fnaify_ready
+
 	exit 0
 }
 
@@ -1043,8 +1268,8 @@ EOF
 
 mode="$1"
 case "$mode" in
-	setup)	setup $@;	shift ;;
-	run)	run $@;		shift ;;
+	setup)	shift; setup $@	;;
+	run)	shift; run $@ ;;
 	help)	echo "$USAGE"; exit 0;;
 	*)	process_options $@; echo "$USAGE"; exit 0;
 esac
