@@ -121,6 +121,7 @@ libcef.so
 libfmod.so
 libfmodex.so
 libfmodstudio.so
+liblua53.so
 libtiny_jpeg.so
 steamwrapper.so
 steam_appid.txt
@@ -128,6 +129,7 @@ steam_appid.txt
 
 # array of mono files that need to be removed from the game folder
 monofilearray="
+CSteamworks.dll
 I18N.CJK.dll
 I18N.MidEast.dll
 I18N.Other.dll
@@ -175,6 +177,7 @@ MonoGame.Framework.dll
 Nuclex.Input.dll
 OpenAL-CS.dll
 FMOD.dll
+CommunityExpress.dll
 "
 
 debug_echo()
@@ -285,7 +288,8 @@ x86"
 			debug_echo "Done with library directory $gamedir/$d"
 		done
 		debug_echo "\nCreating libdl.so.2 symlink\n"
-		ln -s "$(latest_syslib /usr/lib/libc.so)" "$gamedir/libdl.so.2"
+		[ ! -e "$gamedir/libdl.so.2" ] && \
+			ln -s "$(latest_syslib /usr/lib/libc.so)" "$gamedir/libdl.so.2"
 	fi
 }
 
@@ -627,6 +631,8 @@ libraryname()
 
 check_remove_steamworks()	# check if Steamworks.NET.dll is present, move it away if stub is in $monopath
 {
+	remove leading and trailing ':'
+	monopath="$(echo "$monopath" | sed -E 's/^://' | sed -E 's/:$//')"
 	# FIXME: likely not whitespace-safe
 	if [ -e "$gamedir/Steamworks.NET.dll" \
 		-a -n "$monopath" -a -n "$(ls $(echo "$monopath" | tr -s ':' ' ') | grep -m 1 "Steamworks\.NET\.dll")" ]
@@ -881,6 +887,25 @@ iomap()
 		ln -sf buttons Content/Buttons
 		ln -sf ui Content/UI
 		ln -sf particle Content/Particle
+	elif [ -n "$(ls "$gamedir" | grep -m 1 "DLC\.exe")" ] ; then
+		ln -sf ../../campaigns/dlcquest/texture/awardmentSpriteSheet.xnb Content/base/texture/awardmentSpriteSheet.xnb
+		ln -sf ../../campaigns/dlcquest/texture/dlcSpriteSheet.xnb Content/base/texture/dlcSpriteSheet.xnb
+		ln -sf ../../campaigns/dlcquest/data/map Content/base/data/map
+		ln -sf ../../campaigns/dlcquest/texture/tiles_16x16.xnb Content/base/texture/tiles_16x16.xnb
+		ln -sf ../../campaigns/dlcquest/texture/skyNightSpriteSheet.xnb Content/base/texture/skyNightSpriteSheet.xnb
+		ln -sf ../../campaigns/dlcquest/texture/backgroundSpriteSheet.xnb Content/base/texture/backgroundSpriteSheet.xnb
+		ln -sf ../../campaigns/dlcquest/texture/background2SpriteSheet.xnb Content/base/texture/background2SpriteSheet.xnb
+		ln -sf ../../../campaigns/dlcquest/data/npc/shopkeep.xnb Content/base/data/npc/shopkeep.xnb
+		ln -sf ../../../campaigns/dlcquest/data/npc/shopkeep2.xnb Content/base/data/npc/shopkeep2.xnb
+		ln -sf ../../../campaigns/dlcquest/data/npc/shepherd.xnb Content/base/data/npc/shepherd.xnb
+		ln -sf ../../../campaigns/dlcquest/data/npc/random.xnb Content/base/data/npc/random.xnb
+		ln -sf ../../../campaigns/dlcquest/data/npc/filler.xnb Content/base/data/npc/filler.xnb
+		ln -sf ../../../campaigns/dlcquest/data/npc/blacksmith.xnb Content/base/data/npc/blacksmith.xnb
+		ln -sf ../../../campaigns/dlcquest/data/npc/sidequest.xnb Content/base/data/npc/sidequest.xnb
+		ln -sf ../../../campaigns/dlcquest/data/npc/troll.xnb Content/base/data/npc/troll.xnb
+		ln -sf ../../../campaigns/dlcquest/data/npc/gunsmith.xnb Content/base/data/npc/gunsmith.xnb
+		ln -sf ../../../campaigns/dlcquest/data/npc/princess.xnb Content/base/data/npc/princess.xnb
+		ln -sf ../../../campaigns/dlcquest/data/npc/horse.xnb Content/base/data/npc/horse.xnb
 	else
 		debug_echo "\tiomap: nothing to do"
 	fi
@@ -1019,6 +1044,7 @@ run()
 	echo "Game Directory:			$PWD"		# PWD as cd'd into $gamedir happened above
 	echo "Mono Binary:			$FNAIFY_MONO"
 	echo "Mono Path:			$monopath"
+	echo "Main Assembly:			$my_exe"
 	echo "Native Library Directories:	$depdir"
 	echo "Framework File:			$frameworkfile"
 	echo "Framework File Version:		$frameworkversion"

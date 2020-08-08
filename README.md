@@ -169,6 +169,7 @@ Hidden in Plain Sight
 Hive \[!] - sometimes doesn't start up  
 Hyphen  
 Jon Shafer's At the Gates  
+Khet 2.0  
 LaserCat  
 Little Racers STREET  
 Mercenary Kings  
@@ -194,6 +195,7 @@ Salt and Sanctuary
 Session Seven  
 Shenzhen I/O  
 Shipwreck  
+Signs of Life  
 Skulls of the Shogun  
 Soulcaster 1 & 2  
 SpaceChem \[!]  
