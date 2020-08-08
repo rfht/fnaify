@@ -929,7 +929,54 @@ iomap()
 				ln -sf ../../../campaigns/dlcquest/data/npc/horse.xnb Content/base/data/npc/horse.xnb
 				;;
 			"EvilQuest.exe" )
-				ln -sf Shank.xnb Content/Weapons/shank.xnb
+				ln -sf Weapons Content/weapons
+				ln -sf DialogWindow.xnb Content/HUD/dialogWindow.xnb
+				ln -sf SpellSprites Content/spellSprites
+				ln -sf PromptMessageWindow.xnb Content/HUD/promptMessageWindow.xnb
+				ln -sf PromptWindow.xnb Content/HUD/promptWindow.xnb
+				ln -sf Menu Content/menu
+				ln -sf smallCursor.xnb Content/Menu/smallcursor.xnb
+				ln -sf ItemIcons.xnb Content/Menu/itemIcons.xnb
+				ln -sf SpellIcons.xnb Content/Menu/spellIcons.xnb
+				ln -sf SplashSymbol.xnb Content/Menu/splashSymbol.xnb
+				ln -sf SplashChaosoftLogo.xnb Content/Menu/splashChaosoftLogo.xnb
+				ln -sf SplashGamesText.xnb Content/Menu/splashGamesText.xnb
+				ln -sf PrisonGalvis_NoShadow.xnb Content/prisonGalvis_NoShadow.xnb
+				ln -sf EnemySprites Content/enemysprites
+				ln -sf Galvis_NoShadow.xnb Content/EnemySprites/galvis_noShadow.xnb
+				ln -sf DemonGalvis.xnb Content/demonGalvis.xnb
+				ln -sf StunnedEffect.xnb Content/SpellSprites/stunnedEffect.xnb
+				ln -sf Colorize.xnb Content/colorize.xnb
+				ln -sf bossDialogMusic.xnb Content/BossDialogMusic.xnb
+				ln -sf Equip.xnb Content/Menu/equip.xnb
+				ln -sf MessageWindow.xnb Content/Menu/messageWindow.xnb
+				ln -sf Shop.xnb Content/shop.xnb
+				ln -sf Title.xnb Content/Menu/title.xnb
+				ln -sf TitleNewGame.xnb Content/Menu/titleNewGame.xnb
+				ln -sf TitleNewGameActive.xnb Content/Menu/titleNewGameActive.xnb
+				ln -sf GalvisTheme.xnb Content/galvisTheme.xnb
+				ln -sf FlamesBG.xnb Content/Intro/Screen1/flamesBG.xnb
+				ln -sf FlamesFG.xnb Content/Intro/Screen1/flamesFG.xnb
+				ln -sf ForegroundMask.xnb Content/Intro/Screen1/foregroundMask.xnb
+				ln -sf VillageBGFire.xnb Content/Intro/Screen3/villageBGFire.xnb
+				ln -sf VillageFG.xnb Content/Intro/Screen3/villageFG.xnb
+				ln -sf VillageFire.xnb Content/Intro/Screen3/villageFire.xnb
+				ln -sf Galvis1.xnb Content/Intro/Screen3/galvis1.xnb
+				ln -sf Galvis2.xnb Content/Intro/Screen3/galvis2.xnb
+				ln -sf Silhouettes.xnb Content/Intro/Screen4/silhouettes.xnb
+				ln -sf FullColor.xnb Content/Intro/Screen4/fullcolor.xnb
+				ln -sf FlamesBG.xnb Content/Intro/Screen4/flamesBG.xnb
+				ln -sf FlamesFG.xnb Content/Intro/Screen4/flamesFG.xnb
+				ln -sf ForegroundMask.xnb Content/Intro/Screen4/foregroundMask.xnb
+				ln -sf ArrestFG1.xnb Content/Intro/Screen5/arrestFG1.xnb
+				ln -sf ArrestFG2.xnb Content/Intro/Screen5/arrestFG2.xnb
+				ln -sf ArrestFG3.xnb Content/Intro/Screen5/arrestFG3.xnb
+				ln -sf GalvisEndingCloseUpBG1.xnb Content/Intro/Screen9/GalvisEndingCloseupBG1.xnb
+				ln -sf ControlsPC.xnb Content/Menu/controlsPC.xnb
+				ln -sf amethyst.xnb Content/Amethyst.xnb
+				ln -sf BattlefieldIntro.xnb Content/BATTLEFIELDINTRO.xnb
+				ln -sf Prison2.xnb Content/PRISON2.xnb
+				ln -sf Prison1.xnb Content/PRISON1.xnb
 				;;
 		esac
 	done
