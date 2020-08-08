@@ -172,12 +172,14 @@ mscorlib.dll
 "
 
 configbasearray="
+CommunityExpress.dll
+FMOD.dll
 FNA.dll
 MonoGame.Framework.dll
 Nuclex.Input.dll
 OpenAL-CS.dll
-FMOD.dll
-CommunityExpress.dll
+SDL2#.dll
+SDL2-CS.dll
 "
 
 debug_echo()
@@ -784,7 +786,11 @@ check_mono_binaries()
 iomap()
 {
 	debug_echo "iomap: checking if symlinks for filename cases need to be created"
-	for f in "$(ls "$gamedir" | egrep "\.exe")"; do
+	IFS='
+'
+	for f in $(ls "$gamedir" | egrep "\.exe"); do
+		IFS=$SAVEIFS
+		echo "iomap: $f"
 		case $f in
 			"Dead Pixels.exe" )
 				ln -sf Sprites Content/sprites
@@ -922,8 +928,12 @@ iomap()
 				ln -sf ../../../campaigns/dlcquest/data/npc/princess.xnb Content/base/data/npc/princess.xnb
 				ln -sf ../../../campaigns/dlcquest/data/npc/horse.xnb Content/base/data/npc/horse.xnb
 				;;
+			"EvilQuest.exe" )
+				ln -sf Shank.xnb Content/Weapons/shank.xnb
+				;;
 		esac
 	done
+	IFS=$SAVEIFS
 }
 
 # check if this is an XNA game, otherwise abort
