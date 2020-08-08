@@ -632,7 +632,7 @@ libraryname()
 
 check_remove_steamworks()	# check if Steamworks.NET.dll is present, move it away if stub is in $monopath
 {
-	remove leading and trailing ':'
+	# remove leading and trailing ':'
 	monopath="$(echo "$monopath" | sed -E 's/^://' | sed -E 's/:$//')"
 	# FIXME: likely not whitespace-safe
 	if [ -e "$gamedir/Steamworks.NET.dll" \
