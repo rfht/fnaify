@@ -599,9 +599,10 @@ EOF
 
 libraryname()
 {
+	debug_echo ""
         version="$1"
 	if [ ! -e "$gamedir/$version" ]; then
-		debug_echo "\nCouldn't find library directory $gamedir/$version"
+		debug_echo "Couldn't find library directory $gamedir/$version\n"
 	else
 		debug_echo "\nEntering library directory $gamedir/$version"
 		for file in $(ls "$gamedir/$version"); do
@@ -783,132 +784,146 @@ check_mono_binaries()
 iomap()
 {
 	debug_echo "iomap: checking if symlinks for filename cases need to be created"
-	if [ -n "$(ls "$gamedir" | grep -m 1 "Dead Pixels.exe")" ] ; then
-		ln -sf Sprites Content/sprites
-		ln -sf Effects Content/Sprites/effects
-		ln -sf Splash Content/Sprites/splash
-		ln -sf Items Content/Sprites/InGame/items
-		ln -sf Grenades Content/Sprites/InGame/grenades
-		ln -sf Hud Content/Sprites/InGame/hud
-		ln -sf insideBuildings Content/Sprites/InGame/InsideBuildings
-		ln -sf Character Content/Sprites/InGame/character
-		ln -sf City Content/Sprites/InGame/city
-		ln -sf Traders Content/Sprites/InGame/traders
-		ln -sf Zombies Content/Sprites/InGame/zombies
-		ln -sf Objects Content/Sprites/InGame/objects
-		ln -sf Other Content/Sprites/InGame/other
-		ln -sf GunShots Content/Sprites/InGame/gunShots
-		ln -sf Buttons Content/Sprites/buttons
-		ln -sf Menu Content/Sprites/menu
-		ln -sf Cursor Content/Sprites/cursor
-		ln -sf Achievements Content/Sprites/achievements
-		ln -sf Credits Content/Sprites/credits
-		ln -sf Font Content/Sprites/font
-		ln -sf preview Content/Sprites/Preview
-		ln -sf preview Content/Sprites/Menu/Preview
-		ln -sf PsxButtons Content/Sprites/buttons/psxButtons
-		ln -sf Cutscene Content/Sprites/CutScene
-		ln -sf buildings Content/Sprites/InGame/City/Buildings
-		ln -sf mainbackground.xnb Content/ConfigSprites/mainBackground.xnb
-		ln -sf largeCuts.xnb Content/Sprites/effects/largecuts.xnb
-		ln -sf smallCuts.xnb Content/Sprites/effects/smallcuts.xnb
-		ln -sf effects Content/Sprites/Effects
-		ln -sf cuemark.xnb Content/Sprites/effects/cueMark.xnb
-		ln -sf Static.xnb Content/Sprites/Menu/Preview/static.xnb
-	elif [ -n "$(ls "$gamedir" | grep -m 1 "AJ1.exe")" ] ; then
-		ln -sf j_rip.xnb Content/AJ1/j_Rip.xnb
-		ln -sf j_rip.xnb Content/AJ2/j_Rip.xnb
-		ln -sf Owlturnneo2.xnb Content/AJ1/owlturnneo2.xnb
-		ln -sf Owlturnneo2.xnb Content/AJ2/owlturnneo2.xnb
-	elif [ -n "$(ls "$gamedir" | grep -m 1 "CSTW.exe")" ] ; then
-		ln -sf paws_Happy.xnb Content/Portrait/Paws/Paws_Happy.xnb
-	elif $(ls "$gamedir" | grep -qm 1 ThePit); then
-		ln -sf UI Content/ui
-	elif [ -n "$(ls "$gamedir" | grep -m 1 "Grand Class Melee.exe")" ] ; then
-		ln -sf water.xnb Content/Sounds/Water.xnb
-		ln -sf grass.xnb Content/Sounds/Grass.xnb
-		ln -sf move.xnb Content/Sounds/Move.xnb
-		ln -sf select.xnb Content/Sounds/Select.xnb
-		ln -sf back.xnb Content/Sounds/Back.xnb
-		ln -sf squire_base.xnb Content/Textures/Players/Squire_base.xnb
-		ln -sf squire_greyscale.xnb Content/Textures/Players/Squire_greyscale.xnb
-		ln -sf militia_base.xnb Content/Textures/Players/Militia_base.xnb
-		ln -sf militia_greyscale.xnb Content/Textures/Players/Militia_greyscale.xnb
-		ln -sf apprentice_base.xnb Content/Textures/Players/Apprentice_base.xnb
-		ln -sf apprentice_greyscale.xnb Content/Textures/Players/Apprentice_greyscale.xnb
-		ln -sf savant_base.xnb Content/Textures/Players/Savant_base.xnb
-		ln -sf savant_greyscale.xnb Content/Textures/Players/Savant_greyscale.xnb
-		ln -sf sword.xnb Content/Textures/Weapons/Sword.xnb
-		ln -sf arrow.xnb Content/Sounds/Arrow.xnb
-		ln -sf scorch.xnb Content/Sounds/Scorch.xnb
-		ln -sf bigspeed.xnb Content/Sounds/Bigspeed.xnb
-		ln -sf frame_ingame_left_ruin.xnb Content/Textures/Menu/frame_ingame_left_Ruin.xnb
-		ln -sf frame_ingame_left_mire.xnb Content/Textures/Menu/frame_ingame_left_Mire.xnb
-		ln -sf frame_ingame_right_ruin.xnb Content/Textures/Menu/frame_ingame_right_Ruin.xnb
-		ln -sf frame_ingame_left_wood.xnb Content/Textures/Menu/frame_ingame_left_Wood.xnb
-		ln -sf ruin_leaf.xnb Content/Textures/Terrain/Ruin_leaf.xnb
-		ln -sf frame_ingame_right_wood.xnb Content/Textures/Menu/frame_ingame_right_Wood.xnb
-		ln -sf bigblow1.xnb Content/Sounds/Bigblow1.xnb
-		ln -sf ruin_grassmove.xnb Content/Textures/Terrain/Ruin_grassmove.xnb
-		ln -sf wood_leaf.xnb Content/Textures/Terrain/Wood_leaf.xnb
-		ln -sf ruin_watermove.xnb Content/Textures/Terrain/Ruin_watermove.xnb
-		ln -sf castshort.xnb Content/Sounds/Castshort.xnb
-		ln -sf frame_ingame_right_mire.xnb Content/Textures/Menu/frame_ingame_right_Mire.xnb
-		ln -sf frame_ingame_left_dune.xnb Content/Textures/Menu/frame_ingame_left_Dune.xnb
-		ln -sf sword1.xnb Content/Sounds/Sword1.xnb
-	elif [ -n "$(ls "$gamedir" | grep -m 1 "LaserCat.exe")" ] ; then
-		ln -sf audio Content/Audio
-	elif [ -n "$(ls "$gamedir" | grep -m 1 "MountYourFriends.exe")" ] ; then
-		ln -sf menuBg.xnb Content/images/menubg.xnb
-		ln -sf humanClean.xnb Content/images/humanclean.xnb
-		ln -sf humanCleanNorm.xnb Content/images/humancleannorm.xnb
-		ln -sf menuMarker.xnb Content/images/menumarker.xnb
-		ln -sf stegersaurusLogo.xnb Content/images/backdrops/stegersauruslogo.xnb
-		ln -sf UIComponents.xnb Content/images/uicomponents.xnb
-		ln -sf restrictedArea.xnb Content/images/restrictedarea.xnb
-		ln -sf goatSheet.xnb Content/images/goatsheet.xnb
-		ln -sf BP3_SSTRIP_64.xnb Content/images/bp3_sstrip_64.xnb
-		ln -sf BP3_SSTRIP_32.xnb Content/images/bp3_sstrip_32.xnb
-		ln -sf keySheet.xnb Content/images/keysheet.xnb
-	elif [ -n "$(ls "$gamedir" | grep -m 1 "One Finger Death Punch.exe")" ] ; then
-		ln -sf font2.xnb Content/Font2.xnb
-		ln -sf font5.xnb Content/Font5.xnb
-		ln -sf font6.xnb Content/Font6.xnb
-	elif [ -n "$(ls "$gamedir" | grep -m 1 "PhoenixForce")" ] ; then
-		ln -sf LIfeBar.xnb Content/1.4/Boss/lifeBar.xnb
-		ln -sf firewavexml.xml Content/1.4/Player/fireWavexml.xml
-		ln -sf firewave.xnb Content/1.4/Player/fireWave.xnb
-	elif [ -n "$(ls "$gamedir" | grep -m 1 "Streets of Fury EX")" ] ; then
-		ln -sf ShockWave.xnb Content/Texture2D/Shockwave.xnb
-	elif [ -n "$(ls "$gamedir" | grep -m 1 "Aces Wild.exe")" ] ; then
-		ln -sf HitSparks Content/Sprites/Hitsparks
-	elif [ -n "$(ls "$gamedir" | grep -m 1 "CameraObscura.exe")" ] ; then
-		ln -sf enemies Content/Enemies
-		ln -sf buttons Content/Buttons
-		ln -sf ui Content/UI
-		ln -sf particle Content/Particle
-	elif [ -n "$(ls "$gamedir" | grep -m 1 "DLC\.exe")" ] ; then
-		ln -sf ../../campaigns/dlcquest/texture/awardmentSpriteSheet.xnb Content/base/texture/awardmentSpriteSheet.xnb
-		ln -sf ../../campaigns/dlcquest/texture/dlcSpriteSheet.xnb Content/base/texture/dlcSpriteSheet.xnb
-		ln -sf ../../campaigns/dlcquest/data/map Content/base/data/map
-		ln -sf ../../campaigns/dlcquest/texture/tiles_16x16.xnb Content/base/texture/tiles_16x16.xnb
-		ln -sf ../../campaigns/dlcquest/texture/skyNightSpriteSheet.xnb Content/base/texture/skyNightSpriteSheet.xnb
-		ln -sf ../../campaigns/dlcquest/texture/backgroundSpriteSheet.xnb Content/base/texture/backgroundSpriteSheet.xnb
-		ln -sf ../../campaigns/dlcquest/texture/background2SpriteSheet.xnb Content/base/texture/background2SpriteSheet.xnb
-		ln -sf ../../../campaigns/dlcquest/data/npc/shopkeep.xnb Content/base/data/npc/shopkeep.xnb
-		ln -sf ../../../campaigns/dlcquest/data/npc/shopkeep2.xnb Content/base/data/npc/shopkeep2.xnb
-		ln -sf ../../../campaigns/dlcquest/data/npc/shepherd.xnb Content/base/data/npc/shepherd.xnb
-		ln -sf ../../../campaigns/dlcquest/data/npc/random.xnb Content/base/data/npc/random.xnb
-		ln -sf ../../../campaigns/dlcquest/data/npc/filler.xnb Content/base/data/npc/filler.xnb
-		ln -sf ../../../campaigns/dlcquest/data/npc/blacksmith.xnb Content/base/data/npc/blacksmith.xnb
-		ln -sf ../../../campaigns/dlcquest/data/npc/sidequest.xnb Content/base/data/npc/sidequest.xnb
-		ln -sf ../../../campaigns/dlcquest/data/npc/troll.xnb Content/base/data/npc/troll.xnb
-		ln -sf ../../../campaigns/dlcquest/data/npc/gunsmith.xnb Content/base/data/npc/gunsmith.xnb
-		ln -sf ../../../campaigns/dlcquest/data/npc/princess.xnb Content/base/data/npc/princess.xnb
-		ln -sf ../../../campaigns/dlcquest/data/npc/horse.xnb Content/base/data/npc/horse.xnb
-	else
-		debug_echo "\tiomap: nothing to do"
-	fi
+	for f in "$(ls "$gamedir" | egrep "\.exe")"; do
+		case $f in
+			"Dead Pixels.exe" )
+				ln -sf Sprites Content/sprites
+				ln -sf Effects Content/Sprites/effects
+				ln -sf Splash Content/Sprites/splash
+				ln -sf Items Content/Sprites/InGame/items
+				ln -sf Grenades Content/Sprites/InGame/grenades
+				ln -sf Hud Content/Sprites/InGame/hud
+				ln -sf insideBuildings Content/Sprites/InGame/InsideBuildings
+				ln -sf Character Content/Sprites/InGame/character
+				ln -sf City Content/Sprites/InGame/city
+				ln -sf Traders Content/Sprites/InGame/traders
+				ln -sf Zombies Content/Sprites/InGame/zombies
+				ln -sf Objects Content/Sprites/InGame/objects
+				ln -sf Other Content/Sprites/InGame/other
+				ln -sf GunShots Content/Sprites/InGame/gunShots
+				ln -sf Buttons Content/Sprites/buttons
+				ln -sf Menu Content/Sprites/menu
+				ln -sf Cursor Content/Sprites/cursor
+				ln -sf Achievements Content/Sprites/achievements
+				ln -sf Credits Content/Sprites/credits
+				ln -sf Font Content/Sprites/font
+				ln -sf preview Content/Sprites/Preview
+				ln -sf preview Content/Sprites/Menu/Preview
+				ln -sf PsxButtons Content/Sprites/buttons/psxButtons
+				ln -sf Cutscene Content/Sprites/CutScene
+				ln -sf buildings Content/Sprites/InGame/City/Buildings
+				ln -sf mainbackground.xnb Content/ConfigSprites/mainBackground.xnb
+				ln -sf largeCuts.xnb Content/Sprites/effects/largecuts.xnb
+				ln -sf smallCuts.xnb Content/Sprites/effects/smallcuts.xnb
+				ln -sf effects Content/Sprites/Effects
+				ln -sf cuemark.xnb Content/Sprites/effects/cueMark.xnb
+				ln -sf Static.xnb Content/Sprites/Menu/Preview/static.xnb
+				;;
+			AJ1.exe )
+				ln -sf j_rip.xnb Content/AJ1/j_Rip.xnb
+				ln -sf j_rip.xnb Content/AJ2/j_Rip.xnb
+				ln -sf Owlturnneo2.xnb Content/AJ1/owlturnneo2.xnb
+				ln -sf Owlturnneo2.xnb Content/AJ2/owlturnneo2.xnb
+				;;
+			CSTW.exe )
+				ln -sf paws_Happy.xnb Content/Portrait/Paws/Paws_Happy.xnb
+				;;
+			ThePit.exe )
+				ln -sf UI Content/ui
+				;;
+			"Grand Class Melee.exe" )
+				ln -sf water.xnb Content/Sounds/Water.xnb
+				ln -sf grass.xnb Content/Sounds/Grass.xnb
+				ln -sf move.xnb Content/Sounds/Move.xnb
+				ln -sf select.xnb Content/Sounds/Select.xnb
+				ln -sf back.xnb Content/Sounds/Back.xnb
+				ln -sf squire_base.xnb Content/Textures/Players/Squire_base.xnb
+				ln -sf squire_greyscale.xnb Content/Textures/Players/Squire_greyscale.xnb
+				ln -sf militia_base.xnb Content/Textures/Players/Militia_base.xnb
+				ln -sf militia_greyscale.xnb Content/Textures/Players/Militia_greyscale.xnb
+				ln -sf apprentice_base.xnb Content/Textures/Players/Apprentice_base.xnb
+				ln -sf apprentice_greyscale.xnb Content/Textures/Players/Apprentice_greyscale.xnb
+				ln -sf savant_base.xnb Content/Textures/Players/Savant_base.xnb
+				ln -sf savant_greyscale.xnb Content/Textures/Players/Savant_greyscale.xnb
+				ln -sf sword.xnb Content/Textures/Weapons/Sword.xnb
+				ln -sf arrow.xnb Content/Sounds/Arrow.xnb
+				ln -sf scorch.xnb Content/Sounds/Scorch.xnb
+				ln -sf bigspeed.xnb Content/Sounds/Bigspeed.xnb
+				ln -sf frame_ingame_left_ruin.xnb Content/Textures/Menu/frame_ingame_left_Ruin.xnb
+				ln -sf frame_ingame_left_mire.xnb Content/Textures/Menu/frame_ingame_left_Mire.xnb
+				ln -sf frame_ingame_right_ruin.xnb Content/Textures/Menu/frame_ingame_right_Ruin.xnb
+				ln -sf frame_ingame_left_wood.xnb Content/Textures/Menu/frame_ingame_left_Wood.xnb
+				ln -sf ruin_leaf.xnb Content/Textures/Terrain/Ruin_leaf.xnb
+				ln -sf frame_ingame_right_wood.xnb Content/Textures/Menu/frame_ingame_right_Wood.xnb
+				ln -sf bigblow1.xnb Content/Sounds/Bigblow1.xnb
+				ln -sf ruin_grassmove.xnb Content/Textures/Terrain/Ruin_grassmove.xnb
+				ln -sf wood_leaf.xnb Content/Textures/Terrain/Wood_leaf.xnb
+				ln -sf ruin_watermove.xnb Content/Textures/Terrain/Ruin_watermove.xnb
+				ln -sf castshort.xnb Content/Sounds/Castshort.xnb
+				ln -sf frame_ingame_right_mire.xnb Content/Textures/Menu/frame_ingame_right_Mire.xnb
+				ln -sf frame_ingame_left_dune.xnb Content/Textures/Menu/frame_ingame_left_Dune.xnb
+				ln -sf sword1.xnb Content/Sounds/Sword1.xnb
+				;;
+			"LaserCat.exe" )
+				ln -sf audio Content/Audio
+				;;
+			"MountYourFriends.exe" )
+				ln -sf menuBg.xnb Content/images/menubg.xnb
+				ln -sf humanClean.xnb Content/images/humanclean.xnb
+				ln -sf humanCleanNorm.xnb Content/images/humancleannorm.xnb
+				ln -sf menuMarker.xnb Content/images/menumarker.xnb
+				ln -sf stegersaurusLogo.xnb Content/images/backdrops/stegersauruslogo.xnb
+				ln -sf UIComponents.xnb Content/images/uicomponents.xnb
+				ln -sf restrictedArea.xnb Content/images/restrictedarea.xnb
+				ln -sf goatSheet.xnb Content/images/goatsheet.xnb
+				ln -sf BP3_SSTRIP_64.xnb Content/images/bp3_sstrip_64.xnb
+				ln -sf BP3_SSTRIP_32.xnb Content/images/bp3_sstrip_32.xnb
+				ln -sf keySheet.xnb Content/images/keysheet.xnb
+				;;
+			"One Finger Death Punch.exe" )
+				ln -sf font2.xnb Content/Font2.xnb
+				ln -sf font5.xnb Content/Font5.xnb
+				ln -sf font6.xnb Content/Font6.xnb
+				;;
+			"PhoenixForce.exe" )
+				ln -sf LIfeBar.xnb Content/1.4/Boss/lifeBar.xnb
+				ln -sf firewavexml.xml Content/1.4/Player/fireWavexml.xml
+				ln -sf firewave.xnb Content/1.4/Player/fireWave.xnb
+				;;
+			"Streets of Fury EX.exe" )
+				ln -sf ShockWave.xnb Content/Texture2D/Shockwave.xnb
+				;;
+			"Aces Wild.exe" )
+				ln -sf HitSparks Content/Sprites/Hitsparks
+				;;
+			"CameraObscura.exe" )
+				ln -sf enemies Content/Enemies
+				ln -sf buttons Content/Buttons
+				ln -sf ui Content/UI
+				ln -sf particle Content/Particle
+				;;
+			"DLC.exe" )
+				ln -sf ../../campaigns/dlcquest/texture/awardmentSpriteSheet.xnb Content/base/texture/awardmentSpriteSheet.xnb
+				ln -sf ../../campaigns/dlcquest/texture/dlcSpriteSheet.xnb Content/base/texture/dlcSpriteSheet.xnb
+				ln -sf ../../campaigns/dlcquest/data/map Content/base/data/map
+				ln -sf ../../campaigns/dlcquest/texture/tiles_16x16.xnb Content/base/texture/tiles_16x16.xnb
+				ln -sf ../../campaigns/dlcquest/texture/skyNightSpriteSheet.xnb Content/base/texture/skyNightSpriteSheet.xnb
+				ln -sf ../../campaigns/dlcquest/texture/backgroundSpriteSheet.xnb Content/base/texture/backgroundSpriteSheet.xnb
+				ln -sf ../../campaigns/dlcquest/texture/background2SpriteSheet.xnb Content/base/texture/background2SpriteSheet.xnb
+				ln -sf ../../../campaigns/dlcquest/data/npc/shopkeep.xnb Content/base/data/npc/shopkeep.xnb
+				ln -sf ../../../campaigns/dlcquest/data/npc/shopkeep2.xnb Content/base/data/npc/shopkeep2.xnb
+				ln -sf ../../../campaigns/dlcquest/data/npc/shepherd.xnb Content/base/data/npc/shepherd.xnb
+				ln -sf ../../../campaigns/dlcquest/data/npc/random.xnb Content/base/data/npc/random.xnb
+				ln -sf ../../../campaigns/dlcquest/data/npc/filler.xnb Content/base/data/npc/filler.xnb
+				ln -sf ../../../campaigns/dlcquest/data/npc/blacksmith.xnb Content/base/data/npc/blacksmith.xnb
+				ln -sf ../../../campaigns/dlcquest/data/npc/sidequest.xnb Content/base/data/npc/sidequest.xnb
+				ln -sf ../../../campaigns/dlcquest/data/npc/troll.xnb Content/base/data/npc/troll.xnb
+				ln -sf ../../../campaigns/dlcquest/data/npc/gunsmith.xnb Content/base/data/npc/gunsmith.xnb
+				ln -sf ../../../campaigns/dlcquest/data/npc/princess.xnb Content/base/data/npc/princess.xnb
+				ln -sf ../../../campaigns/dlcquest/data/npc/horse.xnb Content/base/data/npc/horse.xnb
+				;;
+		esac
+	done
 }
 
 # check if this is an XNA game, otherwise abort

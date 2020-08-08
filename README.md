@@ -130,6 +130,7 @@ Apple Jack 1&2
 Atom Zombie Smasher  
 A Virus Named TOM \[!]  
 Before the Echo \[!]  
+Bird Assassin  
 Bleed  
 Bleed 2  
 Breath of Death VII  
@@ -308,4 +309,4 @@ Thomas Frohwein &lt;[thfr@openbsd.org](mailto:thfr@openbsd.org)&gt;.
 
 Thomas Frohwein &lt;[thfr@openbsd.org](mailto:thfr@openbsd.org)&gt;
 
-OpenBSD 6.7 - August 7, 2020
+OpenBSD 6.7 - August 8, 2020
