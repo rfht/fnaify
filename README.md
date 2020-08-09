@@ -156,18 +156,16 @@ Eliza
 Escape Goat  
 Escape Goat 2  
 EXAPUNKS  
-Explosionade \[!]  
 FEZ  
 Fist Puncher  
 Flinthook  
 Flotilla  
-Game Type \[!]  
 Gateways  
 Grand Class Melee 2 \[!]  
 Growing Pains  
 HackNet  
 Hidden in Plain Sight  
-Hive \[!] - sometimes doesn't start up  
+Hive  
 Hyphen  
 Jon Shafer's At the Gates  
 Khet 2.0  
@@ -309,4 +307,4 @@ Thomas Frohwein &lt;[thfr@openbsd.org](mailto:thfr@openbsd.org)&gt;.
 
 Thomas Frohwein &lt;[thfr@openbsd.org](mailto:thfr@openbsd.org)&gt;
 
-OpenBSD 6.7 - August 8, 2020
+OpenBSD 6.7 - August 9, 2020

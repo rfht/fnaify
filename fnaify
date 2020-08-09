@@ -304,8 +304,10 @@ selectexe()
 	IFS="
 "
 	for xfile in $(cd "$gamedir" && find . -maxdepth 1 -type f -iname "*.exe" | cut -f 2 -d "/" | sort); do
-		exefile="$exefile$xfile:"
-		nexefile=$((nexefile + 1))
+		if [ -z "$(echo "$xfile" | grep vshost)" ] ; then
+			exefile="$exefile$xfile:"
+			nexefile=$((nexefile + 1))
+		fi
 	done
 	IFS=$SAVEIFS
 	if [ $nexefile -gt 1 ]; then
