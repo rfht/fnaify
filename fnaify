@@ -141,6 +141,7 @@ Microsoft.CSharp.dll
 Mono.CSharp.dll
 Mono.Posix.dll
 Mono.Security.dll
+Steam.dll
 System.Configuration.dll
 System.Configuration.Install.dll
 System.Core.dll
@@ -303,8 +304,11 @@ selectexe()
 	debug_echo "executable assembly selection routine"
 	IFS="
 "
-	for xfile in $(cd "$gamedir" && find . -maxdepth 1 -type f -iname "*.exe" | cut -f 2 -d "/" | sort); do
-		if [ -z "$(echo "$xfile" | grep vshost)" ] ; then
+	for xfile in $(cd "$gamedir" && find . -maxdepth 1 -type f -iname "*.exe" | cut -f 2 -d "/" | sort)
+	do
+		if (	[ -z "$(echo "$xfile" | grep vshost)" ] &&
+			[ -z "$(echo "$xfile" | grep -i config)" ]
+		) ; then
 			exefile="$exefile$xfile:"
 			nexefile=$((nexefile + 1))
 		fi
@@ -1151,6 +1155,7 @@ run()
 
 	echo
 	printdash "fnaify runtime configuration"
+	echo "fnaify Version:			$FNAIFY_VERSION"
 	echo "Game Directory:			$PWD"		# PWD as cd'd into $gamedir happened above
 	echo "Mono Binary:			$FNAIFY_MONO"
 	echo "Mono Path:			$monopath"
