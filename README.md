@@ -168,7 +168,6 @@ Hidden in Plain Sight
 Hive  
 Hyphen  
 Jon Shafer's At the Gates  
-Khet 2.0  
 LaserCat  
 Little Racers STREET  
 Mercenary Kings  

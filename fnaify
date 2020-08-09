@@ -387,7 +387,6 @@ check_gameconfig()
 	<dllmap dll="FAudio" target="libFAudio.so"/>
 	<dllmap dll="MojoShader.dll" target="libmojoshader.so"/>
 	<dllmap dll="SDL2.dll" target="libSDL2.so"/>
-	<!-- MidBoss needs libSDL2_image_compact.so -->
 	<dllmap dll="SDL2_image.dll" target="libSDL2_image.so"/>
 	<dllmap dll="SDL2_mixer.dll" target="libSDL2_mixer.so"/>
 	<dllmap dll="SDL2_ttf.dll" target="libSDL2_ttf.so"/>
@@ -1120,11 +1119,42 @@ run()
 	cd "$gamedir"
 
 	selectexe
-
-	# Config
 	check_gameconfig
 	[ -e $gameconfig ] || { echo "ERROR: provided gameconfig file not existent: $gameconfig"; exit 1; }
 	debug_echo "gameconfig: $gameconfig"
+
+	# Quirks
+	my_exe="$(echo "$my_exe" | tr -d '\:')"
+	case "$my_exe" in
+		Blueberry.exe|Shenzhen.exe|ThePit.exe|Terraria.exe )
+			exe_env="${exe_env}MONO_FORCE_COMPAT=1 "
+			;;
+		Hacknet.exe )
+			exe_flags="${exe_flags}-disableweb "
+			;;
+		ScourgeBringer.exe )
+			exe_flags="${exe_flags}-noSound "
+			;;
+		MidBoss.exe )
+			if (	[ -e fnaify.dllmap.MidBoss.config ] &&
+				[ "$(diff -U 0 $gameconfig fnaify.dllmap.MidBoss.config | \
+					wc -l)" -eq 5 ]
+			) ; then
+				debug_echo "fnaify.dllmap.MidBoss.config up to date."
+			else
+				debug_echo "fnaify.dllmap.MidBoss.config is missing or out of date."
+				debug_echo "creating fnaify.dllmap.MidBoss.config from $gameconfig for MidBoss"
+				# copy $gameconfig to fnaify.dllmap.MidBoss.config
+				cp "$gameconfig" fnaify.dllmap.MidBoss.config
+				# edit fnaify.dllmap.MidBoss.config to use libSDL2_image_compact.so
+				sed -Ei 's/libSDL2_image\.so/libSDL2_image_compact.so/g' \
+					fnaify.dllmap.MidBoss.config
+				# redefine gameconfig to fnaify.dllmap.MidBoss.config
+				gameconfig=fnaify.dllmap.MidBoss.config
+			fi
+			;;
+	esac
+
 	for f in $configbasearray; do
 		[ -e "$f" ] && { \
 			debug_echo "existing symlink target: ${f}.config -> $(readlink "${f}.config")"
@@ -1133,15 +1163,6 @@ run()
 				ln -sf "$gameconfig" "${f}.config"
 		}
 	done
-
-	# Quirks
-	my_exe="$(echo "$my_exe" | tr -d '\:')"
-	case "$my_exe" in
-		Blueberry.exe|Shenzhen.exe|ThePit.exe|Terraria.exe)
-			exe_env="${exe_env}MONO_FORCE_COMPAT=1 "					;;
-		Hacknet.exe)				exe_flags="${exe_flags}-disableweb "		;;
-		ScourgeBringer.exe)			exe_flags="${exe_flags}-noSound "		;;
-	esac
 	gameconfigsymlink="${gameconfigsymlink}${my_exe}.config "
 	[ "x$gameconfig" = "x$(readlink "${my_exe}.config")" ] || \
 		ln -sf "$gameconfig" "${my_exe}.config"
@@ -1380,16 +1401,6 @@ setup()
 			mv "$config_file" "$gamedir/fnaify-backup/"
 		fi
 	done
-
-	if [ -n "$(ls "$gamedir" | grep -m 1 "MidBoss.exe")" ] ; then
-		debug_echo 'creating MidBoss.exe.config for MidBoss'
-		cat <<EOF > "$gamedir/MidBoss.exe.config"
-<?xml version="1.0" encoding="utf-8"?>
-<configuration>
-	<dllmap dll="SDL2_image.dll" target="libSDL2_image_compact.so"/>
-</configuration>
-EOF
-	fi
 
 	debug_echo "Moving some bundled dll files into fnaify-backup subfolder... "
 	for file in $monofilearray; do
