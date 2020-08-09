@@ -41,6 +41,7 @@ FNAIFY_VERSION=3.0
 # - add option to add runtime exe_flags to run mode
 # - create list of .dll that need symlink to the config file: Nuclex.Input.dll, OpenAL-CS.dll
 # - AVNT: find a way to have Steam deactivated for this one in libSteamworksNative.so
+# - add flag to create log file (for fnaify, as well as the output from the game)
 
 USAGE="
 Usage:
@@ -172,6 +173,8 @@ mscorlib.dll
 "
 
 configbasearray="
+BlitNet.dll
+CDGEngine.dll
 CommunityExpress.dll
 FMOD.dll
 FNA.dll
@@ -790,7 +793,6 @@ iomap()
 '
 	for f in $(ls "$gamedir" | egrep "\.exe"); do
 		IFS=$SAVEIFS
-		echo "iomap: $f"
 		case $f in
 			"Dead Pixels.exe" )
 				ln -sf Sprites Content/sprites
@@ -869,6 +871,8 @@ iomap()
 				ln -sf frame_ingame_right_mire.xnb Content/Textures/Menu/frame_ingame_right_Mire.xnb
 				ln -sf frame_ingame_left_dune.xnb Content/Textures/Menu/frame_ingame_left_Dune.xnb
 				ln -sf sword1.xnb Content/Sounds/Sword1.xnb
+				ln -sf frame_ingame_right_dune.xnb Content/Textures/Menu/frame_ingame_right_Dune.xnb
+				ln -sf staff1.xnb Content/Sounds/Staff1.xnb
 				;;
 			"LaserCat.exe" )
 				ln -sf audio Content/Audio
@@ -977,6 +981,8 @@ iomap()
 				ln -sf BattlefieldIntro.xnb Content/BATTLEFIELDINTRO.xnb
 				ln -sf Prison2.xnb Content/PRISON2.xnb
 				ln -sf Prison1.xnb Content/PRISON1.xnb
+				ln -sf Items.dat Data/items.dat
+				ln -sf NPCs.dat Data/NPCS.dat
 				;;
 		esac
 	done
@@ -1192,6 +1198,7 @@ setup()
 			-o \( -n "$(ls "$gamedir" | grep -im 1 "lightning.exe")" \) \
 			-o \( -n "$(ls "$gamedir" | grep -im 1 "shenzhen.exe")" \) \
 			-o \( -n "$(ls "$gamedir" | grep -im 1 "spacechem.exe")" \) \
+			-o \( -n "$(ls "$gamedir" | grep -m 1 "Hammerwatch.exe")" \) \
 			] ; then
 			debug_echo "\nCompatible game without XNA/FNA framework file found."
 			debug_echo 'Creating $HOME/Desktop directory which is needed for Zachtronics games'
