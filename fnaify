@@ -32,8 +32,6 @@ FNAIFY_VERSION=3.0
 # - instead of substituting fnaify.dllmap.config for /etc/mono/config
 #   turn the dllmap file into FNA.dll.config, so that it's loaded side-by-side with /etc/mono/config
 # - fix structure of USAGE; follow man page examples
-# - update man page/README for new syntax with modes setup, run
-# - clarify nomenclature in documentation (and code): modes is 'setup', 'run' etc. interactivity flags: '-i', '-y'
 # - mention package fnaify-extralibs in documentation
 # - test MidBoss and check how to implement libSDL_image_compact better ... maybe in MidBoss.exe.config??
 # - add flag to choose framework file: '-f'?
@@ -47,10 +45,7 @@ FNAIFY_VERSION=3.0
 USAGE="
 Usage:
 
-`basename $0` setup [-i|-y] [-hv] [-c <configfile>] [-D <depdir>] [-d <gamedir>] [-f <frameworkfile> | -F <frameworkversion>] [-m <monopath>]
-`basename $0` run [-hv] [-c <configfile>] [-D <depdir>] [-d <gamedir>] [-f <frameworkfile> | -F <frameworkversion>] [-m <monopath>] [<userflags>]
-`basename $0` help
-`basename $0` [-V]
+`basename $0` [-i|-y] [-hv] [-c <configfile>] [-D <depdir>] [-d <gamedir>] [-f <frameworkfile> | -F <frameworkversion>] [-m <monopath>] [<userflags>]
 
 -c: specify config file for dllmap (optional)
 -D: add mono debug flag
@@ -68,7 +63,6 @@ Usage:
 <gamedir> is optional and defaults to the current directory if not specified.
 "
 
-mode=
 depdir="/usr/local/lib:/usr/X11R6/lib"	# /usr/X11R6/lib is location of libfreetype.so on OpenBSD
 gamedir="$PWD"
 interaction=n	# y|n|i: yes to all, no to all, interactive
@@ -768,7 +762,6 @@ process_options()
 			--) break ;;
 		esac
 	done
-	debug_echo "mode:		$mode"
 	debug_echo "options:	$*"
 	debug_echo "OPTIND:	$OPTIND"
 	shift $(($OPTIND-1))
@@ -1133,7 +1126,6 @@ help()
 
 run()
 {
-	process_options $@
 	check_eagle_island
 	[ -e "$gamedir/.fnaify_ready" ] || { echo "Run 'fnaify setup' first."; exit 1; }
 	check_mono_binaries
@@ -1241,7 +1233,6 @@ run()
 
 setup()
 {
-	process_options $@
 	check_mono_binaries
 
 	check_eagle_island
@@ -1478,8 +1469,6 @@ setup()
 	fi
 
 	touch .fnaify_ready
-
-	exit 0
 }
 
 ###	END OF VARIABLES AND FUNCTIONS	###
@@ -1488,10 +1477,5 @@ setup()
 ###	MAIN	###
 ###################
 
-mode="$1"
-case "$mode" in
-	setup)	shift; setup $@	;;
-	run)	shift; run $@ ;;
-	help)	echo "$USAGE"; exit 0;;
-	*)	process_options $@; echo "$USAGE"; exit 0;
-esac
+process_options $@
+[ -e "$gamedir/.fnaify_ready" ] && run || (setup; run)

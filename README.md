@@ -262,7 +262,8 @@ Thomas Frohwein &lt;[thfr@openbsd.org](mailto:thfr@openbsd.org)&gt;.
 
 3\.0
 
-> Enable modes (*setup*, *run*).
+> Stop creating launch script. Instead use fnaify for both
+> setup and launch.
 > Support for several Zachtronics games. Add libstubborn use to dllmap.
 > Symlinking for MonoGame, e.g. NeuroVoider.
 
@@ -306,4 +307,4 @@ Thomas Frohwein &lt;[thfr@openbsd.org](mailto:thfr@openbsd.org)&gt;.
 
 Thomas Frohwein &lt;[thfr@openbsd.org](mailto:thfr@openbsd.org)&gt;
 
-OpenBSD 6.7 - August 9, 2020
+OpenBSD 6.8 - August 9, 2020
