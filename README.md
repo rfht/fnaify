@@ -339,5 +339,6 @@ Thomas Frohwein &lt;[thfr@openbsd.org](mailto:thfr@openbsd.org)&gt;.
 # AUTHORS
 
 Thomas Frohwein &lt;[thfr@openbsd.org](mailto:thfr@openbsd.org)&gt;
+Mariusz Zaborski
 
 OpenBSD 6.8 - September 8, 2020

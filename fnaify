@@ -61,7 +61,7 @@ Usage:
 -V: display version
 -v: verbose output
 
-<gamedir> is optional and defaults to the current directory if not specified.
+<userflag> is optional. These arguments are passed to the game runtime.
 "
 
 depdir="/usr/local/lib:/usr/X11R6/lib"	# /usr/X11R6/lib is location of libfreetype.so on OpenBSD
