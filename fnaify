@@ -56,6 +56,7 @@ Usage:
 -i: interactive mode
 -l: replace library directories
 -m: add directories to MONO_PATH
+-s: force (re-)running setup
 -y: non-interactive mode; automatically replies 'yes' to all recommended choices
 -V: display version
 -v: verbose output
@@ -69,6 +70,7 @@ interaction=n	# y|n|i: yes to all, no to all, interactive
 debug=
 licenses=
 gameconfig=
+force_setup=0
 frameworkfile=
 frameworkversion=
 frameworkmajor=
@@ -745,7 +747,7 @@ check_nlog()
 
 process_options()
 {
-	while getopts c:Dd:F:f:hil:m:Vvy o; do
+	while getopts c:Dd:F:f:hil:m:sVvy o; do
 		case "$o" in
 			c) gameconfig="$OPTARG" ;;
 			D) debug="--debug" ;;
@@ -756,6 +758,7 @@ process_options()
 			i) interaction=i ;;
 			l) depdir="$OPTARG" ;;
 			m) monopath="$OPTARG" ;;
+			s) force_setup=1 ;;
 			V) echo "$FNAIFY_VERSION"; exit 0;;
 			v) FNAIFY_DEBUG=1 ;;
 			y) interaction=y ;;
@@ -1478,4 +1481,5 @@ setup()
 ###################
 
 process_options $@
-[ -e "$gamedir/.fnaify_ready" ] && run || (setup; run)
+[ $force_setup -eq 1 ] && (setup; run) || \
+	( [ -e "$gamedir/.fnaify_ready" ] && run || (setup; run) )
