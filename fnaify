@@ -687,17 +687,17 @@ install_fna()
 		tar zxf $netstub_commit.tar.gz
 		mv FNA.NetStub-$netstub_commit FNA.NetStub
 		echo -n "compiling XNA ABI/bridge files. This may take a moment... "
-		xbuild FNA/abi/Microsoft.Xna.Framework.sln >> /tmp/fnaify-xbuild.log
+		xbuild /p:Configuration=Release FNA/abi/Microsoft.Xna.Framework.sln >> /tmp/fnaify-xbuild.log
 		echo "done."
-		cp /tmp/FNA/abi/bin/Debug/* "$gamedir/"
+		cp /tmp/FNA/abi/bin/Release/* "$gamedir/"
 	else
 		echo -n "compiling FNA ${fna_version} with xbuild... "
-		xbuild FNA/FNA.sln >> /tmp/fnaify-xbuild.log
+		xbuild /p:Configuration=Release FNA/FNA.sln >> /tmp/fnaify-xbuild.log
 		debug_echo "done."
 		echo "Moving FNA.dll to fnaify-backup subdirectory"
 		mkdir -p "$gamedir/fnaify-backup"
 		mv "$gamedir/FNA.dll" "$gamedir/fnaify-backup/"
-		cp /tmp/FNA/bin/Debug/FNA.dll "$gamedir"
+		cp /tmp/FNA/bin/Release/FNA.dll "$gamedir"
 	fi
 	debug_echo "removing the temporary build directory for FNA and returning to previous directory"
 	rm -rf /tmp/FNA /tmp/FNA.NetStub
