@@ -1236,6 +1236,7 @@ run()
 
 setup()
 {
+	echo "Performing setup..."
 	check_mono_binaries
 
 	check_eagle_island
@@ -1413,7 +1414,7 @@ setup()
 "
 	for config_file in ${configfilesarray[@]}; do
 		IFS=$SAVEIFS
-		if $(grep -q "dllmap" "$config_file"); then
+		if [ \( ! -h "$config_file" \) -a -n "$(grep -q "dllmap" "$config_file")" ] ; then
 			mv "$config_file" "$gamedir/fnaify-backup/"
 		fi
 	done
