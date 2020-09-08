@@ -103,6 +103,8 @@ the default locations
 .It Fl d Ar gamedir
 Path to the game's directory
 .Pq defaults to the current working directory .
+.It Fl F Ar frameworkversion
+Choose a specific framework version to use.
 .It Fl f Ar frameworkfile
 Framework file to use. Typically
 .Pa FNA.dll
@@ -110,8 +112,6 @@ or
 .Pa MonoGame.Framework.dll .
 By default will automatically identify the bundled file in the
 game's directory.
-.It Fl F Ar frameworkversion
-Choose a specific framework version to use.
 .It Fl h
 Prints help text.
 .It Fl m Ar monopath
@@ -121,9 +121,7 @@ to the directories the
 .Xr mono 1
 runtime will search for DLLs.
 .It Fl s
-Force
-.Pq re-
-running setup.
+Force (re-)running setup.
 .It Fl V
 Display version of
 .Nm .

@@ -111,6 +111,10 @@ The arguments are as follows:
 > Path to the game's directory
 > (defaults to the current working directory).
 
+**-F** *frameworkversion*
+
+> Choose a specific framework version to use.
+
 **-f** *frameworkfile*
 
 > Framework file to use. Typically
@@ -119,10 +123,6 @@ The arguments are as follows:
 > *MonoGame.Framework.dll*.
 > By default will automatically identify the bundled file in the
 > game's directory.
-
-**-F** *frameworkversion*
-
-> Choose a specific framework version to use.
 
 **-h**
 
@@ -138,9 +138,7 @@ The arguments are as follows:
 
 **-s**
 
-> Force
-> (re-)
-> running setup.
+> Force (re-)running setup.
 
 **-V**
 
@@ -343,4 +341,4 @@ Thomas Frohwein &lt;[thfr@openbsd.org](mailto:thfr@openbsd.org)&gt;.
 
 Thomas Frohwein &lt;[thfr@openbsd.org](mailto:thfr@openbsd.org)&gt;
 
-OpenBSD 6.8 - September 6, 2020
+OpenBSD 6.8 - September 8, 2020
