@@ -328,20 +328,19 @@ Make sure to keep it up-to-date!
 .El
 .Sh EXIT STATUS
 .Nm
-returns 1 if an error occurred with the arguments of files provided,
-otherwise 0.
+returns 1 if an error occurred, otherwise 0.
 .Sh EXAMPLES
 Run in permissive mode, suitable to set up most supported games
 automatically.
 .Pp
-.Dl $ fnaify -y path/to/game/directory
+.Dl $ fnaify -y -d path/to/game/directory
 .Pp
 Run in interactive mode.
 .Nm
 will prompt the user if any additional DLLs are recommended, or if a
 file needs to be selected for the launch script.
 .Pp
-.Dl $ fnaify -i path/to/game/directory
+.Dl $ fnaify -i
 .Sh SEE ALSO
 .Xr mono 1 ,
 .Xr mono-config 5

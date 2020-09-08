@@ -263,22 +263,21 @@ Wyv and Keep
 # EXIT STATUS
 
 **fnaify**
-returns 1 if an error occurred with the arguments of files provided,
-otherwise 0.
+returns 1 if an error occurred, otherwise 0.
 
 # EXAMPLES
 
 Run in permissive mode, suitable to set up most supported games
 automatically.
 
-	$ fnaify -y path/to/game/directory
+	$ fnaify -y -d path/to/game/directory
 
 Run in interactive mode.
 **fnaify**
 will prompt the user if any additional DLLs are recommended, or if a
 file needs to be selected for the launch script.
 
-	$ fnaify -i path/to/game/directory
+	$ fnaify -i
 
 # SEE ALSO
 
