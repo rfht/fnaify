@@ -8,16 +8,18 @@ FNAIFY(1) - General Commands Manual
 
 **fnaify**
 \[**-i**&nbsp;|&nbsp;**-y**]
-\[**-hv**]
+\[**-hsv**]
 \[**-c**&nbsp;*configfile*]
-\[**-d**&nbsp;*depdir*]
+\[**-D**&nbsp;*depdir*]
+\[**-d**&nbsp;*gamedir*]
+\[**-f**&nbsp;*frameworkfile*&nbsp;|&nbsp;**-F**&nbsp;*frameworkversion*]
 \[**-m**&nbsp;*monopath*]
-\[*gamedir*]
+\[*userflags*]
 
 # DESCRIPTION
 
 **fnaify**
-sets up games based on the FNA engine to operate with OpenBSD-native
+runs games based on the FNA engine with OpenBSD-native
 libraries and its
 mono(1)
 runtime.
@@ -27,10 +29,16 @@ As of version 2.0,
 has been extended to attempt configuring XNA games as well.
 **fnaify**
 can be run in 3 basic modes regarding the addition of missing libraries:
-restrictive, interactive, and permissive.
+restrictive
+(default)
+, interactive, and permissive.
+
+As of version 3.0,
+**fnaify**
+unifies both setup and launch of supported games in one command.
 
 All games require additional libraries from ports, like SDL2. Some of
-them can be found in fnaify-extralibs package, like libatomstb or
+them can be found in the fnaify-extralibs package, like libatomstb or
 libfmod\_SDL.
 
 The arguments are as follows:
@@ -88,7 +96,7 @@ The arguments are as follows:
 > *~/.config/fnaify/fnaify.dllmap.config*
 > with default settings.
 
-**-d** *depdir*
+**-D** *depdir*
 
 > Add
 > *depdir*
@@ -98,6 +106,28 @@ The arguments are as follows:
 > the default locations
 > (*/usr/local/lib* etc.).
 
+**-d** *gamedir*
+
+> Path to the game's directory
+> (defaults to the current working directory).
+
+**-f** *frameworkfile*
+
+> Framework file to use. Typically
+> *FNA.dll*
+> or
+> *MonoGame.Framework.dll*.
+> By default will automatically identify the bundled file in the
+> game's directory.
+
+**-F** *frameworkversion*
+
+> Choose a specific framework version to use.
+
+**-h**
+
+> Prints help text.
+
 **-m** *monopath*
 
 > Add
@@ -106,19 +136,25 @@ The arguments are as follows:
 > mono(1)
 > runtime will search for DLLs.
 
-**-h**
+**-s**
 
-> Prints help text.
+> Force
+> (re-)
+> running setup.
+
+**-V**
+
+> Display version of
+> **fnaify**.
 
 **-v**
 
 > Verbose mode.
 
-*gamedir*
+*userflags*
 
 > Optional.
-> Path to the game directory to process.
-> If not specified, the current working directory will be used.
+> Flags that are passed to the game as arguments
 
 # SUPPORTED GAMES
 
@@ -307,4 +343,4 @@ Thomas Frohwein &lt;[thfr@openbsd.org](mailto:thfr@openbsd.org)&gt;.
 
 Thomas Frohwein &lt;[thfr@openbsd.org](mailto:thfr@openbsd.org)&gt;
 
-OpenBSD 6.8 - August 9, 2020
+OpenBSD 6.8 - September 6, 2020

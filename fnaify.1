@@ -1,4 +1,4 @@
-.Dd $Mdocdate: September 6 2020 $
+.Dd $Mdocdate: September 8 2020 $
 .Dt FNAIFY 1
 .Os
 .Sh NAME
@@ -7,14 +7,16 @@
 .Sh SYNOPSIS
 .Nm
 .Op Fl i | y
-.Op Fl hv
+.Op Fl hsv
 .Op Fl c Ar configfile
-.Op Fl d Ar depdir
+.Op Fl D Ar depdir
+.Op Fl d Ar gamedir
+.Op Fl f Ar frameworkfile | Fl F Ar frameworkversion
 .Op Fl m Ar monopath
-.Op Ar gamedir
+.Op Ar userflags
 .Sh DESCRIPTION
 .Nm
-sets up games based on the FNA engine to operate with OpenBSD-native
+runs games based on the FNA engine with OpenBSD-native
 libraries and its
 .Xr mono 1
 runtime.
@@ -24,10 +26,18 @@ As of version 2.0,
 has been extended to attempt configuring XNA games as well.
 .Nm
 can be run in 3 basic modes regarding the addition of missing libraries:
-restrictive, interactive, and permissive.
+restrictive
+.Po
+default
+.Pc
+, interactive, and permissive.
+.Pp
+As of version 3.0,
+.Nm
+unifies both setup and launch of supported games in one command.
 .Pp
 All games require additional libraries from ports, like SDL2. Some of
-them can be found in fnaify-extralibs package, like libatomstb or
+them can be found in the fnaify-extralibs package, like libatomstb or
 libfmod_SDL.
 .Pp
 The arguments are as follows:
@@ -82,7 +92,7 @@ If neither one is found,
 creates
 .Pa ~/.config/fnaify/fnaify.dllmap.config
 with default settings.
-.It Fl d Ar depdir
+.It Fl D Ar depdir
 Add
 .Ar depdir
 to the directories to search for native library dependencies.
@@ -90,20 +100,38 @@ A directory specified this way will be searched
 .Em before
 the default locations
 .Pq Pa /usr/local/lib No etc. .
+.It Fl d Ar gamedir
+Path to the game's directory
+.Pq defaults to the current working directory .
+.It Fl f Ar frameworkfile
+Framework file to use. Typically
+.Pa FNA.dll
+or
+.Pa MonoGame.Framework.dll .
+By default will automatically identify the bundled file in the
+game's directory.
+.It Fl F Ar frameworkversion
+Choose a specific framework version to use.
+.It Fl h
+Prints help text.
 .It Fl m Ar monopath
 Add
 .Ar monopath
 to the directories the
 .Xr mono 1
 runtime will search for DLLs.
-.It Fl h
-Prints help text.
+.It Fl s
+Force
+.Pq re-
+running setup.
+.It Fl V
+Display version of
+.Nm .
 .It Fl v
 Verbose mode.
-.It Ar gamedir
+.It Ar userflags
 Optional.
-Path to the game directory to process.
-If not specified, the current working directory will be used.
+Flags that are passed to the game as arguments
 .El
 .Sh SUPPORTED GAMES
 .Bl -item -compact

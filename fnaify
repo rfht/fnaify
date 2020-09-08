@@ -45,7 +45,7 @@ FNAIFY_VERSION=3.0
 USAGE="
 Usage:
 
-`basename $0` [-i|-y] [-hv] [-c <configfile>] [-D <depdir>] [-d <gamedir>] [-f <frameworkfile> | -F <frameworkversion>] [-m <monopath>] [<userflags>]
+`basename $0` [-i|-y] [-hsv] [-c <configfile>] [-D <depdir>] [-d <gamedir>] [-f <frameworkfile> | -F <frameworkversion>] [-m <monopath>] [<userflags>]
 
 -c: specify config file for dllmap (optional)
 -D: add mono debug flag
@@ -1236,9 +1236,8 @@ run()
 
 setup()
 {
-	echo "Performing setup..."
+	echo "Performing setup (mode: $interaction) ..."
 	check_mono_binaries
-
 	check_eagle_island
 
 	cd "$gamedir"
