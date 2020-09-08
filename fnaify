@@ -1130,7 +1130,7 @@ help()
 run()
 {
 	check_eagle_island
-	[ -e "$gamedir/.fnaify_ready" ] || { echo "Run 'fnaify setup' first."; exit 1; }
+	[ -e "$gamedir/.fnaify_ready" ] || { echo "ERROR: setup not completed."; exit 1; }
 	check_mono_binaries
 	cd "$gamedir"
 
