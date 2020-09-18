@@ -1189,22 +1189,26 @@ run()
 	monopath="$(echo "$monopath" | sed -E 's/:$//' | sed -E 's/^://')"
 	get_frameworkfile
 
-	# check if framework needs to be updated
-	file_fwv="$(get_frameworkversion)"	# the version of the framework in the framework file
-	if [ -z "$frameworkversion" ] ; then
-		frameworkversion="$file_fwv"
-	elif [ "$(get_frameworkmajor "$file_fwv").$(get_frameworkminor "$file_fwv")" != "$(get_frameworkmajor "$frameworkversion").$(get_frameworkminor "$frameworkversion")" ] ; then
-		[ "$(dirname "$frameworkfile")" != "$gamedir" ] && { \
-			echo "Error: can't set framework version AND specify framework file outside game dir."
-			exit 1
-		}
-		install_fna $frameworkversion
-		# assert framework version is now correct; re-read file_fwv
-		file_fwv="$(get_frameworkversion)"
-		[ "$(get_frameworkmajor "$file_fwv").$(get_frameworkminor "$file_fwv")" == "$(get_frameworkmajor "$frameworkversion").$(get_frameworkminor "$frameworkversion")" ] || { \
-			echo "Error installing the requested framework version."
-			exit 1
-		}
+	# check if framework needs to be updated (unless MonoGame.Framework)
+	if [ "$(basename "$frameworkfile")" != "MonoGame.Framework.dll" ] ; then
+		file_fwv="$(get_frameworkversion)"	# the version of the framework in the framework file
+		if [ -z "$frameworkversion" ] ; then
+			frameworkversion="$file_fwv"
+		elif [ "$(get_frameworkmajor "$file_fwv").$(get_frameworkminor "$file_fwv")" != "$(get_frameworkmajor "$frameworkversion").$(get_frameworkminor "$frameworkversion")" ] ; then
+			[ "$(dirname "$frameworkfile")" != "$gamedir" ] && { \
+				echo "Error: can't set framework version AND specify framework file outside game dir."
+				exit 1
+			}
+			install_fna $frameworkversion
+			# assert framework version is now correct; re-read file_fwv
+			file_fwv="$(get_frameworkversion)"
+			[ "$(get_frameworkmajor "$file_fwv").$(get_frameworkminor "$file_fwv")" == "$(get_frameworkmajor "$frameworkversion").$(get_frameworkminor "$frameworkversion")" ] || { \
+				echo "Error installing the requested framework version."
+				exit 1
+			}
+		fi
+	else
+		frameworkversion="$(get_frameworkversion)"
 	fi
 
 	datasize=$(( $(ulimit -d) / 1024 ))
