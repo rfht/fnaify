@@ -836,8 +836,12 @@ check_mono_binaries()
 {
 	debug_echo "Checking mono and monodis"
 	if [ -z "$FNAIFY_MONO" ]; then
-		FNAIFY_MONO="mono"
+		FNAIFY_MONO="$(which mono 2>/dev/null)"
 	fi
+	[ -z "$FNAIFY_MONO" ] && { \
+		echo "error finding mono"
+		exit 1
+	}
 	"$FNAIFY_MONO" --version 2>/dev/null >/dev/null
 	if [ "$?" -gt 0 ]; then
 		echo "error calling mono - aborting... Please make sure that mono is in path or set it in FNAIFY_MONO environment variable!"
