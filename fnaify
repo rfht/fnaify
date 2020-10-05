@@ -733,7 +733,7 @@ install_fna()
 	else
 		fna_version="$1"
 	fi
-	echo "\nInstalling FNA ..."
+	echo "\nInstalling FNA ${fna_version} ..."
 	licenses="${licenses}FNA:\t\tMs-PL (https://github.com/FNA-XNA/FNA/blob/master/licenses/LICENSE)${newline}"
 	lastdir="$PWD"
 	cd /tmp
@@ -751,16 +751,27 @@ install_fna()
 		echo "done."
 		cp /tmp/FNA/abi/bin/Release/* "$gamedir/"
 	else
+		# Download Vorbisfile-CS to be included in the build
+		ftp https://raw.githubusercontent.com/flibitijibibo/Vorbisfile-CS/master/Vorbisfile.cs
+		# add in FNA.Settings.props
+		cat <<EOF > FNA/FNA.Settings.props
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<ItemGroup>
+		<Compile Include="lib/SDL2-CS/src/SDL2_image.cs" />
+		<Compile Include="../Vorbisfile.cs" />
+	</ItemGroup>
+</Project>
+EOF
 		echo -n "compiling FNA ${fna_version} with xbuild... "
 		xbuild /p:Configuration=Release FNA/FNA.sln >> /tmp/fnaify-xbuild.log
-		debug_echo "done."
+		echo "done."
 		echo "Moving FNA.dll to fnaify-backup subdirectory"
 		mkdir -p "$gamedir/fnaify-backup"
 		mv "$gamedir/FNA.dll" "$gamedir/fnaify-backup/"
 		cp /tmp/FNA/bin/Release/FNA.dll "$gamedir"
 	fi
-	debug_echo "removing the temporary build directory for FNA and returning to previous directory"
-	rm -rf /tmp/FNA /tmp/FNA.NetStub
+	debug_echo "removing the temporary build directories and returning to previous directory"
+	rm -rf /tmp/FNA /tmp/FNA.NetStub /tmp/Vorbisfile.cs
 	cd "$lastdir"
 }
 
