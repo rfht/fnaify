@@ -353,7 +353,9 @@ check_gameconfig()
 				echo "WARNING: $gameconfig appears to be out of date. It is strongly recommended to remove it and re-run `basename $0`."
 			fi
 		else
-			if [ -f "/usr/local/share/fnaify/fnaify.dllmap.config" ] ; then
+			if [ -f "/usr/local/share/FNA/FNA.dll.config" ] ; then
+				gameconfig="/usr/local/share/fnaify/FNA.dll.config"
+			elif [ -f "/usr/local/share/fnaify/fnaify.dllmap.config" ] ; then
 				gameconfig="/usr/local/share/fnaify/fnaify.dllmap.config"
 			else	# in this case create ~/.config/fnaify/fnaify.dllmap.config
 				gameconfig="$HOME/.config/fnaify/fnaify.dllmap.config"
@@ -1119,8 +1121,8 @@ iomap()
 
 xnasetup()
 {
-	if [ -d "/usr/local/share/fnaify/XNA-bridge" ];then
-		monopath="${monopath}:/usr/local/share/fnaify/XNA-bridge"
+	if [ -d "/usr/local/share/FNA/Microsoft.Xna.Framework.Game.dll" ];then
+		monopath="${monopath}:/usr/local/share/FNA"
 	else
 		if [ "x$interaction" = "xi" ] ; then
 			echo -n "\nInstall FNA files from GitHub to for this XNA application? [y/n] "
@@ -1168,10 +1170,12 @@ xnasetup()
 get_frameworkfile()
 {
 	if [ -z "$frameworkfile" ] ; then
-		if [ -e "$gamedir/FNA.dll" ]; then
-			frameworkfile="$gamedir/FNA.dll"
-		elif [ -e "$gamedir/MonoGame.Framework.dll" ]; then
+		if [ -e "$gamedir/MonoGame.Framework.dll" ] ; then
 			frameworkfile="$gamedir/MonoGame.Framework.dll"
+		elif [ -e "/usr/local/share/FNA/FNA.dll" ] ; then
+			frameworkfile="/usr/local/share/FNA/FNA.dll"
+		elif [ -e "$gamedir/FNA.dll" ] ; then
+			frameworkfile="$gamedir/FNA.dll"
 		fi
 	fi
 }
