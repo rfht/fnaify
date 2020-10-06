@@ -28,7 +28,6 @@ FNAIFY_VERSION=3.0
 # - pick FNA version with better performance than 17.12
 # - Streets of Fury EX needs the XNA bridge/NetStub files (still not running past initial screen)
 #	-> needs to detect Microsoft.Xna.Framework in the Beat*.dll file rather than .exe
-# - fix 'ls:  /usr/local/lib/steamworks-nosteam : No such file or directory' in check_remove_steam*
 # - instead of substituting fnaify.dllmap.config for /etc/mono/config
 #   turn the dllmap file into FNA.dll.config, so that it's loaded side-by-side with /etc/mono/config
 # - fix structure of USAGE; follow man page examples
@@ -65,6 +64,7 @@ Usage:
 "
 
 depdir="/usr/local/lib:/usr/X11R6/lib"	# /usr/X11R6/lib is location of libfreetype.so on OpenBSD
+fnadir="/usr/local/share/FNA"
 gamedir="$PWD"
 interaction=n	# y|n|i: yes to all, no to all, interactive
 debug=
@@ -93,6 +93,9 @@ needlibarray="" # array that will hold the names of needed libraries
 if [ -d "/usr/local/lib/steamworks-nosteam" ] ; then
 	monopath="${monopath}:/usr/local/lib/steamworks-nosteam"
 	depdir="/usr/local/lib/steamworks-nosteam:$depdir"
+fi
+if [ -d "$fnadir" ] ; then
+	monopath="${monopath}:${fnadir}"
 fi
 if [ -d "/usr/local/share/steamstubs" ]; then
 	monopath="${monopath}:/usr/local/share/steamstubs"
@@ -353,8 +356,8 @@ check_gameconfig()
 				echo "WARNING: $gameconfig appears to be out of date. It is strongly recommended to remove it and re-run `basename $0`."
 			fi
 		else
-			if [ -f "/usr/local/share/FNA/FNA.dll.config" ] ; then
-				gameconfig="/usr/local/share/fnaify/FNA.dll.config"
+			if [ -f "$fnadir/FNA.dll.config" ] ; then
+				gameconfig="$fnadir/FNA.dll.config"
 			elif [ -f "/usr/local/share/fnaify/fnaify.dllmap.config" ] ; then
 				gameconfig="/usr/local/share/fnaify/fnaify.dllmap.config"
 			else	# in this case create ~/.config/fnaify/fnaify.dllmap.config
@@ -707,6 +710,7 @@ check_remove_steamworks()	# check if Steamworks.NET.dll is present, move it away
 	# remove leading and trailing ':'
 	monopath="$(echo "$monopath" | sed -E 's/^://' | sed -E 's/:$//')"
 	# FIXME: likely not whitespace-safe
+	IFS=$SAVEIFS
 	if [ -e "$gamedir/Steamworks.NET.dll" \
 		-a -n "$monopath" -a -n "$(ls $(echo "$monopath" | tr -s ':' ' ') | grep -m 1 "Steamworks\.NET\.dll")" ]
 	then
@@ -1121,30 +1125,26 @@ iomap()
 
 xnasetup()
 {
-	if [ -d "/usr/local/share/FNA/Microsoft.Xna.Framework.Game.dll" ];then
-		monopath="${monopath}:/usr/local/share/FNA"
+	if [ "x$interaction" = "xi" ] ; then
+		echo -n "\nInstall FNA files from GitHub to for this XNA application? [y/n] "
+		response=
+		until [ \( "x$response" = "xy" \) -o \( "x$response" = "xn" \) ]
+		do
+			read response
+		done
+	elif [ "x$interaction" = "xy" ] ; then
+		response="y"
 	else
-		if [ "x$interaction" = "xi" ] ; then
-			echo -n "\nInstall FNA files from GitHub to for this XNA application? [y/n] "
-			response=
-			until [ \( "x$response" = "xy" \) -o \( "x$response" = "xn" \) ]
-			do
-				read response
-			done
-		elif [ "x$interaction" = "xy" ] ; then
-			response="y"
-		else
-			response="n"
-		fi
-
-		if [ "$response" = "y" ]; then
-			install_fna latest xna_bridge
-		else
-			echo "Failed to install FNA/XNA files. Try running with -i or -y flag\n"
-			exit 1
-		fi
+		response="n"
 	fi
-	
+
+	if [ "$response" = "y" ]; then
+		install_fna latest xna_bridge
+	else
+		echo "Failed to install FNA/XNA files. Try running with -i or -y flag\n"
+		exit 1
+	fi
+
 	# convert .wma to .ogg and .wmv to .ogv
 	# https://gist.github.com/flibitijibibo/c97bc14aab04b1277d8ef5e97fc9aeff
 	IFS="
@@ -1172,8 +1172,8 @@ get_frameworkfile()
 	if [ -z "$frameworkfile" ] ; then
 		if [ -e "$gamedir/MonoGame.Framework.dll" ] ; then
 			frameworkfile="$gamedir/MonoGame.Framework.dll"
-		elif [ -e "/usr/local/share/FNA/FNA.dll" ] ; then
-			frameworkfile="/usr/local/share/FNA/FNA.dll"
+		elif [ -e "$fnadir/FNA.dll" ] ; then
+			frameworkfile="$fnadir/FNA.dll"
 		elif [ -e "$gamedir/FNA.dll" ] ; then
 			frameworkfile="$gamedir/FNA.dll"
 		fi
@@ -1289,6 +1289,11 @@ run()
 	else
 		frameworkversion="$(get_frameworkversion)"
 	fi
+
+	# move FNA.dll out of the way if using the one in $fnadir
+	[ \( "$frameworkfile" = "$fnadir/FNA.dll" \) -a \
+		\( -f "$gamedir/FNA.dll" \) ] && \
+		mv "$gamedir/FNA.dll" "$gamedir/fnaify-backup/"
 
 	datasize=$(( $(ulimit -d) / 1024 ))
 
