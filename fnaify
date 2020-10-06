@@ -22,24 +22,13 @@ FNAIFY_VERSION=3.0
 
 # TODO:
 # - fix FIXMEs/TODOs
-# - figure out how to do selection between AJ1.exe and AJ2.exe for Apple Jack
 # - fails to detect XNA in Streets of Fury EX because of whitespace; resolved after renaming .exe
 # - update the creator for dllmap file; based on fnaify.dllmap.config
-# - pick FNA version with better performance than 17.12
-# - Streets of Fury EX needs the XNA bridge/NetStub files (still not running past initial screen)
-#	-> needs to detect Microsoft.Xna.Framework in the Beat*.dll file rather than .exe
-# - instead of substituting fnaify.dllmap.config for /etc/mono/config
-#   turn the dllmap file into FNA.dll.config, so that it's loaded side-by-side with /etc/mono/config
 # - fix structure of USAGE; follow man page examples
 # - mention package fnaify-extralibs in documentation
-# - test MidBoss and check how to implement libSDL_image_compact better ... maybe in MidBoss.exe.config??
-# - add flag to choose framework file: '-f'?
-# - add flag to choose FNA version
 # - add option to add runtime exe_flags to run mode
-# - create list of .dll that need symlink to the config file: Nuclex.Input.dll, OpenAL-CS.dll
 # - AVNT: find a way to have Steam deactivated for this one in libSteamworksNative.so
 # - add flag to create log file (for fnaify, as well as the output from the game)
-# - Serious Sam DD: mkdir -p ~/.local/share/SSDD --> where? run()? setup()?
 
 USAGE="
 Usage:
@@ -1125,24 +1114,26 @@ iomap()
 
 xnasetup()
 {
-	if [ "x$interaction" = "xi" ] ; then
-		echo -n "\nInstall FNA files from GitHub to for this XNA application? [y/n] "
-		response=
-		until [ \( "x$response" = "xy" \) -o \( "x$response" = "xn" \) ]
-		do
-			read response
-		done
-	elif [ "x$interaction" = "xy" ] ; then
-		response="y"
-	else
-		response="n"
-	fi
+	if [ ! -d "$fnadir" ] ; then
+		if [ "x$interaction" = "xi" ] ; then
+			echo -n "\nInstall FNA files from GitHub to for this XNA application? [y/n] "
+			response=
+			until [ \( "x$response" = "xy" \) -o \( "x$response" = "xn" \) ]
+			do
+				read response
+			done
+		elif [ "x$interaction" = "xy" ] ; then
+			response="y"
+		else
+			response="n"
+		fi
 
-	if [ "$response" = "y" ]; then
-		install_fna latest xna_bridge
-	else
-		echo "Failed to install FNA/XNA files. Try running with -i or -y flag\n"
-		exit 1
+		if [ "$response" = "y" ]; then
+			install_fna latest xna_bridge
+		else
+			echo "Failed to install FNA/XNA files. Try running with -i or -y flag\n"
+			exit 1
+		fi
 	fi
 
 	# convert .wma to .ogg and .wmv to .ogv
@@ -1172,8 +1163,6 @@ get_frameworkfile()
 	if [ -z "$frameworkfile" ] ; then
 		if [ -e "$gamedir/MonoGame.Framework.dll" ] ; then
 			frameworkfile="$gamedir/MonoGame.Framework.dll"
-		elif [ -e "$fnadir/FNA.dll" ] ; then
-			frameworkfile="$fnadir/FNA.dll"
 		elif [ -e "$gamedir/FNA.dll" ] ; then
 			frameworkfile="$gamedir/FNA.dll"
 		fi
@@ -1249,6 +1238,9 @@ run()
 				gameconfig=fnaify.dllmap.MidBoss.config
 			fi
 			;;
+		SSGame.exe )
+			mkdir -p ~/.local/share/SSDD
+			;;
 	esac
 
 	for f in $configbasearray; do
@@ -1267,6 +1259,11 @@ run()
 	depdir="$(echo "$depdir" | sed -E 's/:$//')"
 	monopath="$(echo "$monopath" | sed -E 's/:$//' | sed -E 's/^://')"
 	get_frameworkfile
+	if [ -z "$frameworkfile" ] ; then
+		if [ -e "$fnadir/FNA.dll" ] ; then
+			frameworkfile="$fnadir/FNA.dll"
+		fi
+	fi
 
 	# check if framework needs to be updated (unless MonoGame.Framework)
 	if [ "$(basename "$frameworkfile")" != "MonoGame.Framework.dll" ] ; then
