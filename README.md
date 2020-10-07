@@ -299,6 +299,7 @@ Thomas Frohwein &lt;[thfr@openbsd.org](mailto:thfr@openbsd.org)&gt;.
 > setup and launch.
 > Support for several Zachtronics games. Add libstubborn use to dllmap.
 > Symlinking for MonoGame, e.g. NeuroVoider.
+> Preferential use of installed FNA.dll over bundled one.
 
 2\.2
 
