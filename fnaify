@@ -21,7 +21,7 @@ FNAIFY_VERSION=3.0
 #########################################################################
 
 # TODO:
-# - fix FIXMEs/TODOs
+# - fix TODOs
 # - fails to detect XNA in Streets of Fury EX because of whitespace; resolved after renaming .exe
 # - update the creator for dllmap file; based on fnaify.dllmap.config
 # - fix structure of USAGE; follow man page examples
@@ -61,9 +61,13 @@ licenses=
 gameconfig=
 force_setup=0
 frameworkfile=
+setup_frameworkfile=
 frameworkversion=
+setup_frameworkversion=
 frameworkmajor=
+setup_frameworkmajor=
 frameworkminor=
+setup_frameworkminor=
 userflags=
 monopath="${MONO_PATH}"
 netstub_commit=e7d890e0ede0caa9e76ef37af6070344e3ab0abf
@@ -308,7 +312,7 @@ selectexe()
 	IFS=$SAVEIFS
 	if [ $nexefile -gt 1 ]; then
 		if [ "x$interaction" = "xy" ] ; then
-			# FIXME: for now just pick the first .exe. Come up with
+			# TODO: for now just pick the first .exe. Come up with
 			#        better heuristic
 			my_exe="$(echo $exefile | cut -f 1 -d ':')"
 		else
@@ -698,7 +702,6 @@ check_remove_steamworks()	# check if Steamworks.NET.dll is present, move it away
 {
 	# remove leading and trailing ':'
 	monopath="$(echo "$monopath" | sed -E 's/^://' | sed -E 's/:$//')"
-	# FIXME: likely not whitespace-safe
 	IFS=$SAVEIFS
 	if [ -e "$gamedir/Steamworks.NET.dll" \
 		-a -n "$monopath" -a -n "$(ls $(echo "$monopath" | tr -s ':' ' ') | grep -m 1 "Steamworks\.NET\.dll")" ]
@@ -1056,8 +1059,8 @@ iomap()
 				ln -sf BattlefieldIntro.xnb Content/BATTLEFIELDINTRO.xnb
 				ln -sf Prison2.xnb Content/PRISON2.xnb
 				ln -sf Prison1.xnb Content/PRISON1.xnb
-				ln -sf Items.dat Data/items.dat
-				ln -sf NPCs.dat Data/NPCS.dat
+				ln -sf Items.xml Data/items.dat
+				ln -sf NPCs.xml Data/NPCS.dat
 				;;
 			"HELLYEAH.exe" )
 				ln -sf QuadNoir.xnb Content/QUADNOIR.xnb
@@ -1094,7 +1097,7 @@ iomap()
 				ln -sf QuadBlanc.xnb Content/QUADBLANC.xnb
 				ln -sf TRANS_Mask.xnb Content/TRANS_MASK.xnb
 				;;
-			# TODO: beware, SSDD and SSDDXXL have the same named SSGame.exe
+			# beware, SSDD and SSDDXXL have the same named SSGame.exe
 			"SSGame.exe" )
 				# SSDDXXL
 				ln -s HUD_ShopBackground.xnb Content/textures/menus/HUD_Shopbackground.xnb
@@ -1140,7 +1143,7 @@ xnasetup()
 	# https://gist.github.com/flibitijibibo/c97bc14aab04b1277d8ef5e97fc9aeff
 	IFS="
 "
-	# FIXME: check for errors on return of these commands
+	# TODO: check for errors on return of these commands
 	echo "checking for WMA/WMV files and converting. This may take several minutes..."
 	for afile in $(find "$gamedir" -name "*.wma"); do
 		echo "converting $afile to OGG"
@@ -1158,21 +1161,20 @@ xnasetup()
 	echo " done."
 }
 
-get_frameworkfile()
+get_setup_frameworkfile()
 {
-	if [ -z "$frameworkfile" ] ; then
-		if [ -e "$gamedir/MonoGame.Framework.dll" ] ; then
-			frameworkfile="$gamedir/MonoGame.Framework.dll"
-		elif [ -e "$gamedir/FNA.dll" ] ; then
-			frameworkfile="$gamedir/FNA.dll"
-		fi
+	if [ -e "$gamedir/FNA.dll" ] ; then
+		setup_frameworkfile="$gamedir/FNA.dll"
+	elif [ -e "$gamedir/MonoGame.Framework.dll" ] ; then
+		setup_frameworkfile="$gamedir/MonoGame.Framework.dll"
 	fi
 }
 
 get_frameworkversion()
 {
-	[ -z "$frameworkfile" ] && return	# either no framework file, or need to run get_frameworkfile() first
-	echo "$(monodis --assembly "$frameworkfile" | fgrep Version | sed -E 's/Version:[[:blank:]]*//')"
+	if [ -f "$1" ] ; then
+		echo "$(monodis --assembly "$1" | fgrep Version | sed -E 's/Version:[[:blank:]]*//')"
+	fi
 }
 
 get_frameworkmajor()
@@ -1258,39 +1260,72 @@ run()
 	# format all relevant command variables
 	depdir="$(echo "$depdir" | sed -E 's/:$//')"
 	monopath="$(echo "$monopath" | sed -E 's/:$//' | sed -E 's/^://')"
-	get_frameworkfile
-	if [ -z "$frameworkfile" ] ; then
-		if [ -e "$fnadir/FNA.dll" ] ; then
-			frameworkfile="$fnadir/FNA.dll"
-		fi
-	fi
 
-	# check if framework needs to be updated (unless MonoGame.Framework)
-	if [ "$(basename "$frameworkfile")" != "MonoGame.Framework.dll" ] ; then
-		file_fwv="$(get_frameworkversion)"	# the version of the framework in the framework file
-		if [ -z "$frameworkversion" ] ; then
-			frameworkversion="$file_fwv"
-		elif [ "$(get_frameworkmajor "$file_fwv").$(get_frameworkminor "$file_fwv")" != "$(get_frameworkmajor "$frameworkversion").$(get_frameworkminor "$frameworkversion")" ] ; then
-			[ "$(dirname "$frameworkfile")" != "$gamedir" ] && { \
-				echo "Error: can't set framework version AND specify framework file outside game dir."
-				exit 1
-			}
+	#########################################
+	# Heuristic for frameworkfile selection #
+	#########################################
+
+	# Scenario: user-specified framework file (-f)
+	if [ -n "$frameworkfile" ] ; then
+		debug_echo "using user-supplied frameworkfile: $frameworkfile"
+
+	# Scenario: MonoGame.Framework.dll
+	elif [ -f "$gamedir/MonoGame.Framework.dll" ] ; then
+		frameworkfile="$gamedir/MonoGame.Framework.dll"
+
+	# Scenario: user-specified framework version (-F)
+	elif [ -n "$frameworkversion" ] ; then
+		# check fnadir and gamedir for fitting version
+		if [ -f "$fnadir/FNA.dll" ] ; then
+			file_fwv="$(get_frameworkversion "$fnadir/FNA.dll")"
+			if [ "$(get_frameworkmajor "$file_fwv").$(get_frameworkminor "$file_fwv")" = "$(get_frameworkmajor "$frameworkversion").$(get_frameworkminor "$frameworkversion")" ] ; then
+				frameworkfile="$fnadir/FNA.dll"
+			fi
+		fi
+		if [ \( -z "$frameworkfile" \) -a \( -f "$gamedir/FNA.dll" \) ] ; then
+			file_fwv="$(get_frameworkversion "$gamedir/FNA.dll")"
+			if [ "$(get_frameworkmajor "$file_fwv").$(get_frameworkminor "$file_fwv")" = "$(get_frameworkmajor "$frameworkversion").$(get_frameworkminor "$frameworkversion")" ] ; then
+				frameworkfile="$gamedir/FNA.dll"
+			fi
+		fi
+		if [ -z "$frameworkfile" ] ; then
 			install_fna $frameworkversion
-			# assert framework version is now correct; re-read file_fwv
-			file_fwv="$(get_frameworkversion)"
-			[ "$(get_frameworkmajor "$file_fwv").$(get_frameworkminor "$file_fwv")" == "$(get_frameworkmajor "$frameworkversion").$(get_frameworkminor "$frameworkversion")" ] || { \
-				echo "Error installing the requested framework version."
-				exit 1
-			}
+			frameworkfile="$gamedir/FNA.dll"
 		fi
+
+	# Scenario: no frameworkfile in gamedir
+	elif [ ! -f "$gamedir/FNA.dll" ] ; then
+		if [ -e "$gamedir/.fnaify_needfna" ] ; then
+			# this occurs if fnaify uses system framework file
+			if [ -f "$fnadir/FNA.dll" ] ; then
+				frameworkfile="$fnadir/FNA.dll"
+			else
+				echo "ERROR: frameworkfile needed, but not found. Try re-installing?"
+				exit
+			fi
+		else
+			debug_echo "game without framework file"
+		fi
+
+	# Scenario: FNA.dll in fnadir
+	elif [ -f "$fnadir/FNA.dll" ] ; then
+		# existence of $gamedir/FNA.dll is implied by above elif [ ! -f $gamedir/FNA.dll ]
+		debug_echo "by default, move FNA.dll out of gamedir if present in fnadir"
+		mkdir -p "$gamedir/fnaify-backup"
+		mv "$gamedir/FNA.dll" "$gamedir/fnaify-backup/"
+		debug_echo "touch .fnaify_needfna to make it clear framework file is needed"
+		touch "$gamedir/.fnaify_needfna"
+		frameworkfile="$fnadir/FNA.dll"
+
+	# Scenario: FNA.dll in gamedir - suboptimal for compatibility since mojoshader updates
 	else
-		frameworkversion="$(get_frameworkversion)"
+		# existence of $gamedir/FNA.dll implied by above
+		frameworkfile="$gamedir/FNA.dll"
 	fi
 
-	# move FNA.dll out of the way if using the one in $fnadir
-	[ \( "$frameworkfile" = "$fnadir/FNA.dll" \) -a \
-		\( -f "$gamedir/FNA.dll" \) ] && \
-		mv "$gamedir/FNA.dll" "$gamedir/fnaify-backup/"
+	if [ -z "$frameworkversion" ] ; then
+		frameworkversion="$(get_frameworkversion "$frameworkfile")"
+	fi
 
 	datasize=$(( $(ulimit -d) / 1024 ))
 
@@ -1348,17 +1383,15 @@ setup()
 	debug_echo "gamedir: $PWD"	# cd'd into direct above
 
 	debug_echo "Setting up the framework files"
-	get_frameworkfile
-	debug_echo "	framework file:			$frameworkfile"
-	if [ -z "$frameworkversion" ] ; then
-		frameworkversion="$(get_frameworkversion)"
-	fi
-	frameworkmajor="$(get_frameworkmajor $frameworkversion)"
-	frameworkminor="$(get_frameworkminor $frameworkversion)"
+	get_setup_frameworkfile
+	debug_echo "	framework file:			$setup_frameworkfile"
+	setup_frameworkversion="$(get_frameworkversion "$setup_frameworkfile")"
+	setup_frameworkmajor="$(get_frameworkmajor $frameworkversion)"
+	setup_frameworkminor="$(get_frameworkminor $frameworkversion)"
 
-	debug_echo "	framework version:	$frameworkversion"
+	debug_echo "	framework version:	$setup_frameworkversion"
 
-	if [ -z "$frameworkfile" ] ; then
+	if [ -z "$setup_frameworkfile" ] ; then
 		# games without framework files:
 		# Atom Zombie Smasher, Eliza, Molek-Syntez, Exapunks, Opus Magnum (Lightning.exe),
 		# Shenzhen I/O, SpaceChem (64bit and fullscreen update from 2020-07-15), Streets of Fury EX
@@ -1404,7 +1437,7 @@ setup()
 		fi
 	fi
 
-	if [ "x$frameworkfile" = "xFNA.dll" ] && ( [ $frameworkmajor -lt 16 ] || ( [ $frameworkmajor -eq 16 ] && [ $frameworkminor -lt 5 ] ) )
+	if [ "x$setup_frameworkfile" = "xFNA.dll" ] && ( [ $frameworkmajor -lt 16 ] || ( [ $frameworkmajor -eq 16 ] && [ $frameworkminor -lt 5 ] ) )
 	then
 		fna_warning=1
 	fi
@@ -1425,7 +1458,7 @@ setup()
 	debug_echo "Done identifying config files.\n"
 
 	# identify required libraries in .config files and lib{,64} directories
-	# FIXME: filenames not whitespace-safe (but should not be used in such files anyway)
+	# TODO: filenames not whitespace-safe (but should not be used in such files anyway)
 	printdash $(debug_echo "Identifying libraries required by the game...")
 
 	#for MidBoss, add SDL2_image_compact to needlib
@@ -1515,7 +1548,7 @@ setup()
 
 	# identify all .config files that do dllmap and move out of the way
 	debug_echo 'moving .config files with dllmap out of the way'
-	if [ ! -d "$gamedir/fnaify-backup" ] ; then	# FIXME: is this check needed?
+	if [ ! -d "$gamedir/fnaify-backup" ] ; then
 		mkdir -p "$gamedir/fnaify-backup"
 	fi
 	IFS="
