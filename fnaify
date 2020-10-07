@@ -8,7 +8,7 @@ FNAIFY_VERSION=3.0
 #									#
 # Run FNA/XNA games on OpenBSD						#
 #									#
-# created 2017-12-27 by Thomas Frohwein (thfr)				#
+# Copyright (c) 2017-2020 Thomas Frohwein				#
 # portability fixes by Mariusz Zaborski (oshogbo)			#
 #									#
 # FNA is a reimplementation of the Microsoft XNA Game Studio 4.0	#
@@ -24,7 +24,6 @@ FNAIFY_VERSION=3.0
 # - fix TODOs
 # - fails to detect XNA in Streets of Fury EX because of whitespace; resolved after renaming .exe
 # - update the creator for dllmap file; based on fnaify.dllmap.config
-# - fix structure of USAGE; follow man page examples
 # - mention package fnaify-extralibs in documentation
 # - add option to add runtime exe_flags to run mode
 # - AVNT: find a way to have Steam deactivated for this one in libSteamworksNative.so
@@ -33,23 +32,22 @@ FNAIFY_VERSION=3.0
 USAGE="
 Usage:
 
-`basename $0` [-i|-y] [-hsv] [-c <configfile>] [-D <depdir>] [-d <gamedir>] [-f <frameworkfile> | -F <frameworkversion>] [-m <monopath>] [<userflags>]
+`basename $0` [-i|-y] [-hsv] [-c configfile] [-D depdir] [-d gamedir] [-f frameworkfile | -F frameworkversion] [-m monopath] [userflags]
 
--c: specify config file for dllmap (optional)
--D: add mono debug flag
+-c: specify config file for dllmap
+-D: add directory to native library loader
 -d: game directory
--f: framework file
 -F: framework version
+-f: framework file
 -h: print usage information
 -i: interactive mode
--l: replace library directories
 -m: add directories to MONO_PATH
 -s: force (re-)running setup
 -y: non-interactive mode; automatically replies 'yes' to all recommended choices
 -V: display version
 -v: verbose output
 
-<userflag> is optional. These arguments are passed to the game runtime.
+<userflags> are optional. These arguments are passed to the game runtime.
 "
 
 depdir="/usr/local/lib:/usr/X11R6/lib"	# /usr/X11R6/lib is location of libfreetype.so on OpenBSD
