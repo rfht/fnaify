@@ -195,6 +195,7 @@ Fist Puncher
 Flinthook  
 Flotilla  
 Gateways  
+Glitchangels  
 Grand Class Melee 2 \[!]  
 Growing Pains  
 HackNet  
@@ -342,4 +343,4 @@ Thomas Frohwein &lt;[thfr@openbsd.org](mailto:thfr@openbsd.org)&gt;.
 Thomas Frohwein &lt;[thfr@openbsd.org](mailto:thfr@openbsd.org)&gt;
 Mariusz Zaborski
 
-OpenBSD 6.8 - September 8, 2020
+OpenBSD 6.8 - October 7, 2020
