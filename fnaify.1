@@ -1,4 +1,4 @@
-.Dd $Mdocdate: December 11 2020 $
+.Dd $Mdocdate: December 14 2020 $
 .Dt FNAIFY 1
 .Os
 .Sh NAME
@@ -7,7 +7,7 @@
 .Sh SYNOPSIS
 .Nm
 .Op Fl i | y
-.Op Fl hsv
+.Op Fl hnsv
 .Op Fl c Ar configfile
 .Op Fl D Ar depdir
 .Op Fl d Ar gamedir
@@ -120,6 +120,8 @@ Add
 to the directories the
 .Xr mono 1
 runtime will search for DLLs.
+.It Fl n
+Skip checks for library dependencies.
 .It Fl s
 Force (re-)running setup.
 .It Fl V

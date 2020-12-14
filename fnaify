@@ -42,6 +42,7 @@ Usage:
 -h: print usage information
 -i: interactive mode
 -m: add directories to MONO_PATH
+-n: skip the library check
 -s: force (re-)running setup
 -y: non-interactive mode; automatically replies 'yes' to all recommended choices
 -V: display version
@@ -58,6 +59,7 @@ debug=
 licenses=
 gameconfig=
 force_setup=0
+nolibcheck=0
 frameworkfile=
 setup_frameworkfile=
 frameworkversion=
@@ -814,7 +816,7 @@ check_nlog()
 
 process_options()
 {
-	while getopts c:Dd:F:f:hil:m:sVvy o; do
+	while getopts c:Dd:F:f:hil:m:nsVvy o; do
 		case "$o" in
 			c) gameconfig="$OPTARG" ;;
 			D) debug="--debug" ;;
@@ -825,6 +827,7 @@ process_options()
 			i) interaction=i ;;
 			l) depdir="$OPTARG" ;;
 			m) monopath="$OPTARG" ;;
+			n) nolibcheck=1 ;;
 			s) force_setup=1 ;;
 			V) echo "$FNAIFY_VERSION"; exit 0;;
 			v) FNAIFY_DEBUG=1 ;;
@@ -1455,64 +1458,68 @@ setup()
 	IFS=$SAVEIFS
 	debug_echo "Done identifying config files.\n"
 
-	# identify required libraries in .config files and lib{,64} directories
-	# TODO: filenames not whitespace-safe (but should not be used in such files anyway)
-	printdash $(debug_echo "Identifying libraries required by the game...")
-
-	#for MidBoss, add SDL2_image_compact to needlib
-	MidBoss=0
-	ls "$gamedir" | grep -iqm 1 "midboss"
-	if [ $? -eq 0 ]; then
-		MidBoss=1
-		needlibarray="${needlibarray}libSDL2_image_compact.so "
-	fi
-
-	libraryname "lib64"
-	libraryname "lib"
-	libraryname "x64"
-	libraryname "x86"
-
-	debug_echo "Obtaining library names from the following config files"
-	if [ $nconfigfilesarray -lt 1 ]; then
-		debug_echo "No config files found."
+	if [ $nolibcheck -eq 1 ] ; then
+		debug_echo "skipping library checks"
 	else
-		cfile=""
-		IFS="
+		# identify required libraries in .config files and lib{,64} directories
+		# TODO: filenames not whitespace-safe (but should not be used in such files anyway)
+		printdash $(debug_echo "Identifying libraries required by the game...")
+
+		#for MidBoss, add SDL2_image_compact to needlib
+		MidBoss=0
+		ls "$gamedir" | grep -iqm 1 "midboss"
+		if [ $? -eq 0 ]; then
+			MidBoss=1
+			needlibarray="${needlibarray}libSDL2_image_compact.so "
+		fi
+
+		libraryname "lib64"
+		libraryname "lib"
+		libraryname "x64"
+		libraryname "x86"
+
+		debug_echo "Obtaining library names from the following config files"
+		if [ $nconfigfilesarray -lt 1 ]; then
+			debug_echo "No config files found."
+		else
+			cfile=""
+			IFS="
 "
-		for cfile in ${configfilesarray[@]}; do
-			IFS=$SAVEIFS
-			debug_echo "\t$cfile"
-			linuxlines=$(grep "os\=\"linux" "$gamedir/$cfile")
-			for libstring in $(echo "$linuxlines" | sed -n -E "s/.*target=\"([^\"]+).*/\1/p"); do
-				# Fix where library name includes directory information
-				libstring=$(echo "$libstring" | sed -E 's/^.\///')
-				# remove directories at the start of lib name
-				libstring=$(echo "$libstring" | sed -E 's/^.*\///')
-				debug_echo -n "\t\tFound library string: $libstring"
-				# sort out libs that need to be ignored
-				validlib $libstring
-				if [ $? -eq 1 ]; then
-					debug_echo " - ignored"
-					continue
-				fi
-				libstring=$(trunklibnam "$libstring")
-				debug_echo -n " -> $libstring"
-				# add to libstring to needlibarray if not in there yet
-				inarray $libstring $needlibarray
-				if [ $? -eq 0 ]; then
-					debug_echo " - already in array"
-				elif [ $? -eq 1 ]; then
-					needlibarray="$needlibarray$libstring "
-					debug_echo " - added to array"
-				else
-					echo "\n\t - ERROR: inarray returned with unexpected error\n"
-					exit 1
-				fi
+			for cfile in ${configfilesarray[@]}; do
+				IFS=$SAVEIFS
+				debug_echo "\t$cfile"
+				linuxlines=$(grep "os\=\"linux" "$gamedir/$cfile")
+				for libstring in $(echo "$linuxlines" | sed -n -E "s/.*target=\"([^\"]+).*/\1/p"); do
+					# Fix where library name includes directory information
+					libstring=$(echo "$libstring" | sed -E 's/^.\///')
+					# remove directories at the start of lib name
+					libstring=$(echo "$libstring" | sed -E 's/^.*\///')
+					debug_echo -n "\t\tFound library string: $libstring"
+					# sort out libs that need to be ignored
+					validlib $libstring
+					if [ $? -eq 1 ]; then
+						debug_echo " - ignored"
+						continue
+					fi
+					libstring=$(trunklibnam "$libstring")
+					debug_echo -n " -> $libstring"
+					# add to libstring to needlibarray if not in there yet
+					inarray $libstring $needlibarray
+					if [ $? -eq 0 ]; then
+						debug_echo " - already in array"
+					elif [ $? -eq 1 ]; then
+						needlibarray="$needlibarray$libstring "
+						debug_echo " - added to array"
+					else
+						echo "\n\t - ERROR: inarray returned with unexpected error\n"
+						exit 1
+					fi
+				done
 			done
-		done
-		debug_echo "Done with identifying libraries in config files"
+			debug_echo "Done with identifying libraries in config files"
+		fi
+		debug_echo "Done with identification of needed libraries."
 	fi
-	debug_echo "Done with identification of needed libraries."
 
 	debug_echo -n "Fixing libpng filenames if present..."
 	needlibarray=$(echo "${needlibarray}" | sed -E "s/(libpng)..(\.so.*)/\1\2/")

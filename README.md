@@ -8,7 +8,7 @@ FNAIFY(1) - General Commands Manual
 
 **fnaify**
 \[**-i**&nbsp;|&nbsp;**-y**]
-\[**-hsv**]
+\[**-hnsv**]
 \[**-c**&nbsp;*configfile*]
 \[**-D**&nbsp;*depdir*]
 \[**-d**&nbsp;*gamedir*]
@@ -135,6 +135,10 @@ The arguments are as follows:
 > to the directories the
 > mono(1)
 > runtime will search for DLLs.
+
+**-n**
+
+> Skip checks for library dependencies.
 
 **-s**
 
@@ -343,4 +347,4 @@ Thomas Frohwein &lt;[thfr@openbsd.org](mailto:thfr@openbsd.org)&gt;.
 Thomas Frohwein &lt;[thfr@openbsd.org](mailto:thfr@openbsd.org)&gt;
 Mariusz Zaborski
 
-OpenBSD 6.8 - October 7, 2020
+OpenBSD 6.8 - December 11, 2020
