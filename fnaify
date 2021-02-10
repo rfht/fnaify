@@ -159,8 +159,10 @@ System.Xml.Linq.dll
 System.Xml.dll
 System.dll
 WindowsBase.dll
+libMonoPosixHelper.so
 libMonoPosixHelper.so.x86
 libMonoPosixHelper.so.x86_64
+libSteamworksNative.so
 monoconfig
 monomachineconfig
 mscorlib.dll
@@ -984,6 +986,7 @@ iomap()
 				;;
 			"Aces Wild.exe" )
 				ln -sf HitSparks Content/Sprites/Hitsparks
+				ln -sf preFabs.awx Content/Data/prefabs.awx
 				;;
 			"CameraObscura.exe" )
 				ln -sf enemies Content/Enemies
@@ -1092,6 +1095,61 @@ iomap()
 				ln -sf Distortion.xnb Content/Shaders/DISTORTION.xnb
 				ln -sf Lightning.xnb Content/Shaders/LIGHTNING.xnb
 				ln -sf LoadingWheel.xnb Content/GAME/LOADING/LOADINGWHEEL.xnb
+				ln -sf LOGO_Sega.xnb Content/LOGO/LOGO_SEGA.xnb
+				ln -sf LOGO_Arkedo.xnb Content/LOGO/LOGO_ARKEDO.xnb
+				ln -sf Sounds Content/GAME/WORLD/SOUNDS
+				ln -sf HY_Sounds.xnb Content/GAME/WORLD/Sounds/HY_SOUNDS.xnb
+				ln -sf picto_A.xnb Content/GAME/FONTS/PICTO/PICTO_A.xnb
+				ln -sf picto_B.xnb Content/GAME/FONTS/PICTO/PICTO_B.xnb
+				ln -sf picto_BK.xnb Content/GAME/FONTS/PICTO/PICTO_BK.xnb
+				ln -sf picto_LB.xnb Content/GAME/FONTS/PICTO/PICTO_LB.xnb
+				ln -sf picto_LS.xnb Content/GAME/FONTS/PICTO/PICTO_LS.xnb
+				ln -sf picto_LT.xnb Content/GAME/FONTS/PICTO/PICTO_LT.xnb
+				ln -sf picto_PAD.xnb Content/GAME/FONTS/PICTO/PICTO_PAD.xnb
+				ln -sf picto_RB.xnb Content/GAME/FONTS/PICTO/PICTO_RB.xnb
+				ln -sf picto_RS.xnb Content/GAME/FONTS/PICTO/PICTO_RS.xnb
+				ln -sf picto_RT.xnb Content/GAME/FONTS/PICTO/PICTO_RT.xnb
+				ln -sf picto_ST.xnb Content/GAME/FONTS/PICTO/PICTO_ST.xnb
+				ln -sf picto_X.xnb Content/GAME/FONTS/PICTO/PICTO_X.xnb
+				ln -sf picto_Y.xnb Content/GAME/FONTS/PICTO/PICTO_Y.xnb
+				ln -sf picto_RS1.xnb Content/GAME/FONTS/PICTO/PICTO_RS1.xnb
+				ln -sf picto_RS2.xnb Content/GAME/FONTS/PICTO/PICTO_RS2.xnb
+				ln -sf picto_RS3.xnb Content/GAME/FONTS/PICTO/PICTO_RS3.xnb
+				ln -sf picto_RS4.xnb Content/GAME/FONTS/PICTO/PICTO_RS4.xnb
+				ln -sf picto_360.xnb Content/GAME/FONTS/PICTO/PICTO_360.xnb
+				ln -sf saving.xnb Content/LOGO/SAVING.xnb
+				ln -sf branchetonpad.xnb Content/PCONLY/MENUS/BRANCHETONPAD.xnb
+				ln -sf pckey.xnb Content/PCONLY/MENUS/PCKEY.xnb
+				ln -sf mousecenter.xnb Content/PCONLY/MENUS/MOUSECENTER.xnb
+				ln -sf mousedefault.xnb Content/PCONLY/MENUS/MOUSEDEFAULT.xnb
+				ln -sf mousedirections.xnb Content/PCONLY/MENUS/MOUSEDIRECTIONS.xnb
+				ln -sf mouseleftbt.xnb Content/PCONLY/MENUS/MOUSELEFTBT.xnb
+				ln -sf mouserightbt.xnb Content/PCONLY/MENUS/MOUSERIGHTBT.xnb
+				ln -sf mousewheelup.xnb Content/PCONLY/MENUS/MOUSEWHEELUP.xnb
+				ln -sf mousewheeldown.xnb Content/PCONLY/MENUS/MOUSEWHEELDOWN.xnb
+				ln -sf ls.xnb Content/PCONLY/MENUS/LS.xnb
+				ln -sf ls1.xnb Content/PCONLY/MENUS/LS1.xnb
+				ln -sf ls2.xnb Content/PCONLY/MENUS/LS2.xnb
+				ln -sf ls360.xnb Content/PCONLY/MENUS/LS360.xnb
+				ln -sf rs1.xnb Content/PCONLY/MENUS/RS1.xnb
+				ln -sf rs2.xnb Content/PCONLY/MENUS/RS2.xnb
+				ln -sf rs3.xnb Content/PCONLY/MENUS/RS3.xnb
+				ln -sf rs4.xnb Content/PCONLY/MENUS/RS4.xnb
+				ln -sf "INT_Radar_(good_girl).xnb" "Content/GAME/FONTS/INT_RADAR_(GOOD_GIRL).xnb"
+				ln -sf "DLG_Name_(trashand).xnb" "Content/GAME/FONTS/DLG_NAME_(TRASHAND).xnb"
+				ln -sf Particules Content/TITLE/PARTICULES
+				ln -sf boum.xnb Content/TITLE/Particules/BOUM.xnb
+				ln -sf flameches.xnb Content/TITLE/Particules/FLAMECHES.xnb
+				ln -sf fumee_background_flou.xnb Content/TITLE/Particules/FUMEE_BACKGROUND_FLOU.xnb
+				ln -sf fumee_noire.xnb Content/TITLE/Particules/FUMEE_NOIRE.xnb
+				ln -sf gaz_multicolor.xnb Content/TITLE/Particules/GAZ_MULTICOLOR.xnb
+				ln -sf TITLE_Cartouche.xnb Content/TITLE/TITLE_CARTOUCHE.xnb
+				ln -sf TITLE_Subtitle-EN.xnb Content/TITLE/TITLE_SUBTITLE-EN.xnb
+				ln -sf TITLE_Logo.xnb Content/TITLE/TITLE_LOGO.xnb
+				ln -sf TITLE_FlameScroll.xnb Content/TITLE/TITLE_FLAMESCROLL.xnb
+				ln -sf TITLE_LogoMask.xnb Content/TITLE/TITLE_LOGOMASK.xnb
+				ln -sf TITLE_Background.xnb Content/TITLE/TITLE_BACKGROUND.xnb
+				ln -sf TITLE_Select.xnb Content/TITLE/TITLE_SELECT.xnb
 				;;
 			"POOF.exe" )
 				ln -sf QuadNoir.xnb Content/QUADNOIR.xnb
@@ -1416,6 +1474,7 @@ setup()
 			-o \( -n "$(ls "$gamedir" | grep -im 1 "spacechem.exe")" \) \
 			-o \( -n "$(ls "$gamedir" | grep -m 1 "Hammerwatch.exe")" \) \
 			-o \( -n "$(ls "$gamedir" | grep -m 1 "SOR4.exe")" \) \
+			-o \( -n "$(ls "$gamedir" | grep -m 1 "MobiusFront83.exe")" \) \
 			] ; then
 			debug_echo "\nCompatible game without XNA/FNA framework file found."
 			debug_echo 'Creating $HOME/Desktop directory which is needed for Zachtronics games'
