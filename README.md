@@ -186,6 +186,7 @@ Curse of the Crescent Isle DX
 Dad Quest  
 Dead Pixels \[!]  
 Dead Pixels II \[!]  
+Diehard Dungeon  
 The Dishwasher: Vampire Smile  
 Draw a Stickman: EPIC  
 Dust: An Elysian Tail  
@@ -211,6 +212,7 @@ LaserCat
 Little Racers STREET  
 Mercenary Kings  
 MidBoss  
+Mobius Front '83  
 Molek-Syntez  
 Mount Your Friends \[!]  
 NeuroVoider  
@@ -347,4 +349,4 @@ Thomas Frohwein &lt;[thfr@openbsd.org](mailto:thfr@openbsd.org)&gt;.
 Thomas Frohwein &lt;[thfr@openbsd.org](mailto:thfr@openbsd.org)&gt;
 Mariusz Zaborski
 
-OpenBSD 6.8 - December 11, 2020
+OpenBSD 6.9 - February 10, 2021
