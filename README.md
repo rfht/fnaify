@@ -211,6 +211,7 @@ Jon Shafer's At the Gates
 LaserCat  
 Little Racers STREET  
 Mercenary Kings  
+Miasma: Citizens of Free Thought  
 MidBoss  
 Mobius Front '83  
 Molek-Syntez  
@@ -240,6 +241,7 @@ Soulcaster 1 & 2
 SpaceChem \[!]  
 SpeedRunners  
 Stardew Valley  
+Steel Assault  
 Sumico  
 Super Amazing Wagon Adventure \[!]  
 Super Blood Hockey  
@@ -250,7 +252,7 @@ Timespinner
 TowerFall: Ascension  
 Ultra Hat Dimension  
 Unexplored  
-Unholy Heights (no audio)  
+Unholy Heights  
 The Useful Dead  
 Weapon of Choice \[!]  
 Wizorb  
@@ -349,4 +351,4 @@ Thomas Frohwein &lt;[thfr@openbsd.org](mailto:thfr@openbsd.org)&gt;.
 Thomas Frohwein &lt;[thfr@openbsd.org](mailto:thfr@openbsd.org)&gt;
 Mariusz Zaborski
 
-OpenBSD 6.9 - February 10, 2021
+OpenBSD 7.0 - November 11, 2021

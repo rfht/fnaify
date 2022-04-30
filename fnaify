@@ -1,5 +1,8 @@
 #!/usr/bin/env ksh
 
+set -o errexit
+set -o pipefail
+
 FNAIFY_VERSION=3.0
 
 #########################################################################
@@ -28,11 +31,13 @@ FNAIFY_VERSION=3.0
 # - add option to add runtime exe_flags to run mode
 # - AVNT: find a way to have Steam deactivated for this one in libSteamworksNative.so
 # - add flag to create log file (for fnaify, as well as the output from the game)
+# - document '--' to end getopts parsing; can make it clear when to pass remaining args to game
+# - add check for ffmpeg if needed
 
 USAGE="
 Usage:
 
-`basename $0` [-i|-y] [-hsv] [-c configfile] [-D depdir] [-d gamedir] [-f frameworkfile | -F frameworkversion] [-m monopath] [userflags]
+$(basename "$0") [-i|-y] [-hsv] [-c configfile] [-D depdir] [-d gamedir] [-f frameworkfile | -F frameworkversion] [-m monopath] [userflags]
 
 -c: specify config file for dllmap
 -D: add directory to native library loader
@@ -65,9 +70,7 @@ setup_frameworkfile=
 frameworkversion=
 setup_frameworkversion=
 frameworkmajor=
-setup_frameworkmajor=
 frameworkminor=
-setup_frameworkminor=
 userflags=
 monopath="${MONO_PATH}"
 netstub_commit=e7d890e0ede0caa9e76ef37af6070344e3ab0abf
@@ -81,7 +84,8 @@ exe_flags=""
 exe_env=""
 fna_warning=0
 nlog_warning=0
-needlibarray="" # array that will hold the names of needed libraries
+set -A needlibarray	# array that will hold the names of needed libraries
+FNAIFY_DEBUG=false
 
 if [ -d "/usr/local/lib/steamworks-nosteam" ] ; then
 	monopath="${monopath}:/usr/local/lib/steamworks-nosteam"
@@ -184,25 +188,25 @@ SDL2-CS.dll
 
 debug_echo()
 {
-	if [ -z "$FNAIFY_DEBUG" ]; then
-		return
-	fi
+	[ "$FNAIFY_DEBUG" = "false" ] && return
 	if [ "${1}" = '-n' ]; then
-		printf "$2"
+		printf '%b' "$2"
 	else
-		printf "$1\n"
+		printf '%b\n' "$1"
 	fi
 }
 
 printdash()
 {
-	if [ -z "$*" ]; then
+	string=
+	string="$*"
+	if [ -z "$string" ]; then
 		return
 	fi
-	printf "$*\n"
+	printf '%b\n' "$string"
 	c=1
 	dashes=
-	while [ $c -lt $(echo "$*" | wc -c) ]
+	while [ $c -lt ${#string} ]
 	do
 		dashes="${dashes}-"
 		# $((...)) for arithmetic substitution
@@ -215,7 +219,12 @@ inarray() # check if $1 is in array $2
 {
 	firstarg="$1"
 	shift 1
-	echo "$*" | grep -q "$firstarg"
+	if echo "$*" | grep -q "$firstarg"
+	then
+		echo "true"
+	else
+		echo "false"
+	fi
 }
 
 # function to find the latest present library. Return -1 if none found.
@@ -226,7 +235,7 @@ latest_syslib()
 	if [ -z "$1" ] ; then
 		return 1
 	fi
-	find "$(dirname $1)" -maxdepth 1 -name "$(basename $1)*" | tail -1
+	find "$(dirname "$1")" -maxdepth 1 -name "$(basename "$1")*" | tail -1
 }
 
 trunklibnam() # truncate library name
@@ -236,34 +245,32 @@ trunklibnam() # truncate library name
 	echo "$libnam" | sed -E "s/(libSDL2[^-]*)-2\.0(\.so.*)/\1\2/"
 }
 
-validlib() # returns 1 if $1 is in ignoredarray, otherwise 0
+validlib() # returns "false" if $1 is in ignoredarray, otherwise "true"
 {
-	libnam="$(trunklibnam $1)"
-	if [ -n "$(echo \"$ignoredarray\" | grep $libnam)" ]; then
-		return 1
-	elif [ -n "$(echo \"$libnam\" | grep '\.dll[ \t]*')" ]; then
-		return 1
+	libnam="$(trunklibnam "$1")"
+	if echo \""$ignoredarray"\" | grep -q "$libnam"; then
+		echo "false"
+	elif echo \""$libnam"\" | grep -q '\.dll[ \t]*'; then
+		echo "false"
 	else
-		return 0
+		echo "true"
 	fi
 }
 
 symlink_mg_libs()
 {
-	mg_subdirs="x64
-x86"
+	set -A mg_subdirs x64 x86
 	debug_echo "\nChecking for MonoGame x64/x86 dir to create symlinks"
-
 	
-	if [ \( ! -e "$gamedir/x64" \) -a \( ! -e "$gamedir/x86" \) ]; then
-		debug_echo "\nCouldn't find directories x64 or x86 in $gamedir"
+	if [ ! -e "$gamedir/x64" ] && [ ! -e "$gamedir/x86" ] ; then
+		debug_echo "...Couldn't find directories x64 or x86 in $gamedir\n"
 	else
-		for d in ${mg_subdirs[@]} ; do
+		for d in "${mg_subdirs[@]}" ; do
 			debug_echo "\nProcessing library directory $gamedir/$d"
-			for file in $(ls "$gamedir/$d"); do
+			for file in $gamedir/$d; do
 				# sort out libs that need to be ignored
-				validlib $file
-				if [ $? -eq 1 ]; then
+				if [ "$(validlib "$file")" = "true" ]
+				then
 					debug_echo "\tignored file: $file"
 					continue
 				fi
@@ -271,19 +278,19 @@ x86"
 				trunk=$(trunklibnam "$file")
 				rm "$gamedir/$d/$file"
 				debug_echo -n "\t\tchecking for location of $trunk... "
-				if [ -n "$(latest_syslib /usr/local/lib/$trunk)" ] ; then
+				if [ -n "$(latest_syslib "/usr/local/lib/$trunk")" ] ; then
 					debug_echo "found in /usr/local/lib!"
 					trunkpath="/usr/local/lib/$trunk"
-				elif [ -n "$(latest_syslib /usr/X11R6/lib/$trunk)" ] ; then
+				elif [ -n "$(latest_syslib "/usr/X11R6/lib/$trunk")" ] ; then
 					debug_echo "found in /usr/X11R6/lib!"
 					trunkpath="/usr/X11R6/lib/$trunk"
-				elif [ -n "$(latest_syslib /usr/lib/$trunk)" ] ; then
+				elif [ -n "$(latest_syslib "/usr/lib/$trunk")" ] ; then
 					debug_echo "found in /usr/lib!"
 					trunkpath="/usr/lib/$trunk"
 				else
 					debug_echo "NOT FOUND!!"
 					trunkpath=
-					echo "\n\t - ERROR: couldn't find system lib for $file"
+					printf "\n\t - ERROR: couldn't find system lib for %s\n" "$file"
 				fi
 				ln -s "$(latest_syslib "$trunkpath")" "$gamedir/$d/$file"
 			done
@@ -297,45 +304,48 @@ x86"
 
 selectexe()
 {
-	debug_echo "executable assembly selection routine"
+	debug_echo "\nexecutable assembly selection routine"
 	IFS="
 "
-	for xfile in $(cd "$gamedir" && find . -maxdepth 1 -type f -iname "*.exe" | cut -f 2 -d "/" | sort)
+	for xfile in $(cd "$gamedir" && find . -maxdepth 1 -type f -iname "*.exe" -exec basename {} \; | sort)
 	do
-		if (	[ -z "$(echo "$xfile" | grep vshost)" ] && \
-			[ -z "$(echo "$xfile" | grep -i config)" ] && \
-			[ -z "$(echo "$xfile" | grep dotNetFx4)" ] && \
-			[ -z "$(echo "$xfile" | grep Updater)" ]
-		) ; then
+		if 	echo "$xfile" | ! grep -q vshost && \
+			echo "$xfile" | ! grep -iq config && \
+			echo "$xfile" | ! grep -q dotNetFx4 && \
+			echo "$xfile" | ! grep -q Updater
+		then
 			exefile="$exefile$xfile:"
 			nexefile=$((nexefile + 1))
 		fi
 	done
 	IFS=$SAVEIFS
 	if [ $nexefile -gt 1 ]; then
-		if [ "x$interaction" = "xy" ] ; then
+		if [ "$interaction" = "y" ] ; then
 			# TODO: for now just pick the first .exe. Come up with
 			#        better heuristic
-			my_exe="$(echo $exefile | cut -f 1 -d ':')"
+			my_exe="$(echo "$exefile" | cut -f 1 -d ':')"
 		else
 			i=1
 			while [ $i -le $nexefile ]; do
-				echo "$i: $(echo $exefile | cut -f $i -d ':')"
+				echo "$i: $(echo "$exefile" | cut -f $i -d ':')"
 				i=$((i + 1))
 			done
 			input_exe=0
-			while [ \( $(echo "$input_exe" | wc -c) -gt 2 \) -o \( -z "$(echo "$input_exe" | grep [1-9])" \) -o \( $input_exe -gt $((i - 1)) \) ]; do
+			while	[ ${#input_exe} -gt 2 ] \
+				|| ! echo "$input_exe" | grep -q '[1-9]' \
+				|| [ $input_exe -gt $((i - 1)) ]
+			do
 				echo -n "Enter number of .exe file to run: "
-				read input_exe
+				read -r input_exe
 			done
 			# NOTE: this only works for up to 9 candidate files
-			my_exe="$(echo $exefile | cut -f $input_exe -d ':')"
+			my_exe="$(echo "$exefile" | cut -f "$input_exe" -d ':')"
 		fi
 	elif [ $nexefile -eq 1 ]; then
 		my_exe="$exefile"
 	else
 		# TODO: there appear to be games without .exe, like Streets of Rage 4
-		echo "ERROR: no .exe file found\n"
+		printf "ERROR: no .exe file found\n\n"
 		exit 1
 	fi
 	my_exe="$(echo "$my_exe" | sed -E "s/[ \t]$//")" # trim trailing whitespace
@@ -347,8 +357,8 @@ check_gameconfig()
 		if [ -f "$HOME/.config/fnaify/fnaify.dllmap.config" ] ; then
 			gameconfig="$HOME/.config/fnaify/fnaify.dllmap.config"
 			# check for outdated config file
-			if [ "x$(cat "$gameconfig" | grep -m 1 "fnaify version $FNAIFY_VERSION")" = "x" ] ; then
-				echo "WARNING: $gameconfig appears to be out of date. It is strongly recommended to remove it and re-run `basename $0`."
+			if [ "$(grep -m 1 "fnaify version $FNAIFY_VERSION" "$gameconfig")" = "" ] ; then
+				echo "WARNING: $gameconfig appears to be out of date. It is strongly recommended to remove it and re-run $(basename "$0")."
 			fi
 		else
 			if [ -f "$fnadir/FNA.dll.config" ] ; then
@@ -669,50 +679,37 @@ EOF
 
 libraryname()
 {
-	debug_echo ""
         version="$1"
 	if [ ! -e "$gamedir/$version" ]; then
-		debug_echo "Couldn't find library directory $gamedir/$version\n"
+		debug_echo "Couldn't find library directory $gamedir/$version"
 	else
 		debug_echo "\nEntering library directory $gamedir/$version"
-		for file in $(ls "$gamedir/$version"); do
+		for file in "$gamedir"/"$version"/*; do
+			file="$(basename "$file")"
 			# sort out libs that need to be ignored
-			validlib $file
-			if [ $? -eq 1 ]; then
+			if [ "$(validlib "$file")" = "true" ]
+			then
 				debug_echo "\tignored file: $file"
 				continue
 			fi
-			debug_echo -n "\tfound library file: $file"
+			debug_echo -n "	found library file: $file"
 			file=$(trunklibnam "$file")
 			debug_echo -n " -> $file"
-			inarray $file ${needlibarray}
-			if [ $? -eq 0 ]; then
-				debug_echo " - already in array"
-			elif [ $? -eq 1 ]; then
-				needlibarray="$needlibarray$file "
-				debug_echo ""
-			else
-				echo "\n\t - ERROR: inarray returned with unexpected error\n"
-				exit 1
-			fi
+			case "$(inarray "$file" "${needlibarray}")" in
+				"true")
+					debug_echo " - already in array"
+					;;
+				"false")
+					needlibarray[$((${#needlibarray[*]} + 1))]="$file"
+					debug_echo ""
+					;;
+				*)
+					printf "\n\tERROR: inarray returned with unexpected error\n\n"
+					exit 1
+					;;
+			esac
 		done
 		debug_echo "Done with library directory $gamedir/$version"
-	fi
-}
-
-check_remove_steamworks()	# check if Steamworks.NET.dll is present, move it away if stub is in $monopath
-{
-	# remove leading and trailing ':'
-	monopath="$(echo "$monopath" | sed -E 's/^://' | sed -E 's/:$//')"
-	IFS=$SAVEIFS
-	if [ -e "$gamedir/Steamworks.NET.dll" \
-		-a -n "$monopath" -a -n "$(ls $(echo "$monopath" | tr -s ':' ' ') | grep -m 1 "Steamworks\.NET\.dll")" ]
-	then
-		if $(ls $(echo "$monopath" | tr -s ':' ' ') | grep -q "Steamworks\.NET\.dll"); then
-			debug_echo "\nFound Steamworks.NET.dll in gamedir and in monopath, moving it out of gamedir"
-			mkdir -p "$gamedir/fnaify-backup"
-			mv "$gamedir/Steamworks.NET.dll" "$gamedir/fnaify-backup/"
-		fi
 	fi
 }
 
@@ -733,15 +730,17 @@ install_fna()
 	else
 		fna_version="$1"
 	fi
-	echo "\nInstalling FNA ${fna_version} ..."
+	printf '\nInstalling FNA %s ...' "${fna_version}\n"
 	licenses="${licenses}FNA:\t\tMs-PL (https://github.com/FNA-XNA/FNA/blob/master/licenses/LICENSE)${newline}"
 	lastdir="$PWD"
-	cd /tmp
-	ftp -V https://github.com/FNA-XNA/FNA/releases/download/${fna_version}/FNA-$(echo $fna_version | tr -d '.').zip
+	cd /tmp || exit 1
+	ftp -V "https://github.com/FNA-XNA/FNA/releases/download/${fna_version}/FNA-$(echo "$fna_version" | tr -d '.').zip"
 	debug_echo "extracting FNA ${fna_version}"
-	unzip FNA-$(echo $fna_version | tr -d '.').zip > /dev/null
-	if [ \( $# -gt 1 \) -a \( x$2 = 'xxna_bridge' \) ]; then
-		echo "\nInstalling FNA.NetStub for XNA ..."
+	unzip "FNA-$(echo "$fna_version" | tr -d '.').zip" > /dev/null
+	if	[ $# -gt 1 ] \
+		&& [ "$2" = "xna_bridge" ]
+	then
+		printf '\nInstalling FNA.NetStub for XNA ...\n'
 		licenses="${licenses}FNA.NetStub:\tMs-PL (https://github.com/FNA-XNA/FNA.NetStub/blob/master/LICENSE)${newline}"
 		ftp -V https://github.com/FNA-XNA/FNA.NetStub/archive/$netstub_commit.tar.gz
 		tar zxf $netstub_commit.tar.gz
@@ -772,45 +771,47 @@ EOF
 	fi
 	debug_echo "removing the temporary build directories and returning to previous directory"
 	rm -rf /tmp/FNA /tmp/FNA.NetStub /tmp/Vorbisfile.cs
-	cd "$lastdir"
+	cd "$lastdir" || exit 1
 }
 
 check_nlog()
 {
 	if [ -f "$gamedir/NLog.dll" ] ; then
-		nlogversion=`monodis --assembly "$gamedir/NLog.dll" | grep "Version" | tr -d [:alpha:] | tr -d " " | tr -d \:`
-		nlogmajor=`echo "$nlogversion" | sed -n -E "s/\..*//p"`
-		nlogminor=`echo "$nlogversion" | sed -n -E "s/[0-9]+\.([0-9]+)\.[0-9]+\.[0-9]+/\1/p"`
+		nlogversion=$(monodis --assembly "$gamedir/NLog.dll" | grep "Version" | tr -d '[:alpha:]' | tr -d " " | tr -d :)
+		nlogmajor=$(echo "$nlogversion" | sed -n -E "s/\..*//p")
+		nlogminor=$(echo "$nlogversion" | sed -n -E "s/[0-9]+\.([0-9]+)\.[0-9]+\.[0-9]+/\1/p")
 		debug_echo -n "\tNLog.dll version $nlogversion, "
 		debug_echo -n "major: $nlogmajor, "
 		debug_echo "minor: $nlogminor"
-		if [ \( $nlogmajor -lt 4 \) -a \( "x$interaction" = "xi" \) ] ; then
-			echo -n "\nInstall NLog 4.6.5 from www.nuget.org? [y/n] "
+		if	[ "$nlogmajor" -lt 4 ] \
+			&& [ "$interaction" = "i" ]
+		then
+			printf '\nInstall NLog 4.6.5 from www.nuget.org? [y/n] '
 			response=
-			until [ \( "x$response" = "xy" \) -o \( "x$response" = "xn" \) ]
+			until [ "$response" = "y" ] || [ "$response" = "n" ]
 			do
-				read response
+				read -r response
 			done
-		elif [ \( $nlogmajor -lt 4 \) -a \( "x$interaction" = "xy" \) ] ; then
+		elif [ "$nlogmajor" -lt 4 ] && [ "$interaction" = "y" ] ; then
 			response="y"
 		else
 			response="n"
 		fi
-		if [ "x$response" = "xy" ] ; then
+		if [ "$response" = "y" ] ; then
 			debug_echo "Moving old NLog.dll out of the way"
 			mkdir -p "$gamedir/fnaify-backup"
 			mv "$gamedir/NLog.dll" "$gamedir/fnaify-backup/"
 			lastdir="$PWD"
 			mkdir /tmp/nlog
-			cd /tmp/nlog
-			echo "\nInstalling NLog 4.6.5 ..."
+			cd /tmp/nlog || exit 1
+			printf '\nInstalling NLog 4.6.5 ...\n'
 			licenses="${licenses}NLog:\tBSD 3-clause (https://github.com/NLog/NLog/blob/master/LICENSE.txt)${newline}"
 			ftp -Vo nlog.4.6.5.nupkg https://www.nuget.org/api/v2/package/NLog/4.6.5
 			unzip nlog.4.6.5.nupkg > /dev/null
 			cp lib/net45/NLog.dll "$gamedir/"
-			cd "$lastdir"
+			cd "$lastdir" || exit 1
 			rm -rf /tmp/nlog
-		elif [ $nlogmajor -lt 4 ] ; then
+		elif [ "$nlogmajor" -lt 4 ] ; then
 			nlog_warning=1
 		fi
 	fi
@@ -832,16 +833,17 @@ process_options()
 			n) nolibcheck=1 ;;
 			s) force_setup=1 ;;
 			V) echo "$FNAIFY_VERSION"; exit 0;;
-			v) FNAIFY_DEBUG=1 ;;
+			v) FNAIFY_DEBUG=true ;;
 			y) interaction=y ;;
 			--) break ;;
+			*) ;;
 		esac
 	done
 	debug_echo "options:	$*"
 	debug_echo "OPTIND:	$OPTIND"
-	shift $(($OPTIND-1))
+	shift $((OPTIND-1))
 	debug_echo "options after shift:	$*\n"
-	userflags=$@
+	userflags=$*
 }
 
 check_mono_binaries()
@@ -854,14 +856,14 @@ check_mono_binaries()
 		echo "error finding mono"
 		exit 1
 	}
-	"$FNAIFY_MONO" --version 2>/dev/null >/dev/null
-	if [ "$?" -gt 0 ]; then
+	if ! "$FNAIFY_MONO" --version 2>/dev/null >/dev/null
+	then
 		echo "error calling mono - aborting... Please make sure that mono is in path or set it in FNAIFY_MONO environment variable!"
 		exit 1
 	fi
 	# check if monodis can be called
-	monodis 2>/dev/null
-	if [ "$?" -eq 127 ]; then
+	if monodis 2>/dev/null
+	then
 		echo "error calling monodis - aborting... Please make sure that monodis is in the PATH!"
 		exit 1
 	fi
@@ -870,10 +872,7 @@ check_mono_binaries()
 iomap()
 {
 	debug_echo "iomap: checking if symlinks for filename cases need to be created"
-	IFS='
-'
-	for f in $(ls "$gamedir" | egrep "\.exe"); do
-		IFS=$SAVEIFS
+	for f in $(find "$gamedir" -maxdepth 1 -name "*.exe" -exec basename {} \;); do
 		case $f in
 			"Dead Pixels.exe" )
 				ln -sf Sprites Content/sprites
@@ -1151,6 +1150,11 @@ iomap()
 				ln -sf TITLE_Background.xnb Content/TITLE/TITLE_BACKGROUND.xnb
 				ln -sf TITLE_Select.xnb Content/TITLE/TITLE_SELECT.xnb
 				;;
+			"HonourRuns.exe" )
+				ln -sf Sprites Content/sprites
+				ln -sf Textures Content/textures
+				ln -sf Levels Content/levels
+				;;
 			"POOF.exe" )
 				ln -sf QuadNoir.xnb Content/QUADNOIR.xnb
 				ln -sf QuadBlanc.xnb Content/QUADBLANC.xnb
@@ -1169,6 +1173,12 @@ iomap()
 			"TheFallOfGods2.exe" )
 				ln -sf Data Content/data
 				;;
+			"Snails.exe" )
+				ln -s ScreensData.xnb Content/screens/screensdata.xnb
+				ln -s footerMessage.xnb Content/fonts/footermessage.xnb
+				ln -s MainMenu.xnb Content/screens/mainmenu.xnb
+				ln -s UISnailsMenu.xnb Content/screens/controls/uisnailsmenu.xnb
+				ln -s UIMainMenuBodyPanel.xnb Content/screens/controls/uimainmenubodypanel.xnb
 		esac
 	done
 	IFS=$SAVEIFS
@@ -1177,14 +1187,14 @@ iomap()
 xnasetup()
 {
 	if [ ! -d "$fnadir" ] ; then
-		if [ "x$interaction" = "xi" ] ; then
-			echo -n "\nInstall FNA files from GitHub to for this XNA application? [y/n] "
+		if [ "$interaction" = "i" ] ; then
+			printf '\nInstall FNA files from GitHub to for this XNA application? [y/n] '
 			response=
-			until [ \( "x$response" = "xy" \) -o \( "x$response" = "xn" \) ]
+			until [ "$response" = "y" ] || [ "$response" = "n" ]
 			do
-				read response
+				read -r response
 			done
-		elif [ "x$interaction" = "xy" ] ; then
+		elif [ "$interaction" = "y" ] ; then
 			response="y"
 		else
 			response="n"
@@ -1193,7 +1203,7 @@ xnasetup()
 		if [ "$response" = "y" ]; then
 			install_fna latest xna_bridge
 		else
-			echo "Failed to install FNA/XNA files. Try running with -i or -y flag\n"
+			printf 'Failed to install FNA/XNA files. Try running with -i or -y flag\n'
 			exit 1
 		fi
 	fi
@@ -1208,13 +1218,15 @@ xnasetup()
 		echo "converting $afile to OGG"
 		ffmpeg -loglevel fatal -i "$afile" -c:a libvorbis -q:a 10 \
 			"$(echo "$afile" | rev | cut -d. -f2-$(($(echo "$afile" \
-			| tr -dc '.' | wc -c) + 1)) | rev).ogg"
+			| tr -dc '.' | wc -c) + 1)) | rev).ogg" \
+			|| echo "...skipping..."
 	done
 	for vfile in $(find . -name "*.wmv"); do
 		echo "converting $vfile to OGV"
 		ffmpeg -loglevel fatal -i "$vfile" -c:v libtheora -q:v 10 -c:a libvorbis \
 			-q:a 10 "$(echo "$vfile" | rev | cut -d. -f2-$(($(echo "$vfile" \
-			| tr -dc '.' | wc -c) + 1)) | rev).ogv"
+			| tr -dc '.' | wc -c) + 1)) | rev).ogv" \
+			|| echo "...skipping..."
 	done
 	IFS=$SAVEIFS
 	echo " done."
@@ -1232,7 +1244,7 @@ get_setup_frameworkfile()
 get_frameworkversion()
 {
 	if [ -f "$1" ] ; then
-		echo "$(monodis --assembly "$1" | fgrep Version | sed -E 's/Version:[[:blank:]]*//')"
+		monodis --assembly "$1" | grep -F Version | sed -E 's/Version:[[:blank:]]*//'
 	fi
 }
 
@@ -1249,8 +1261,8 @@ get_frameworkminor()
 
 check_eagle_island()
 {
-	( [ -n "$(ls "$gamedir" | grep -m 1 "EagleIsland.exe")" ] && \
-	[ "$(basename "$gamedir")" != "Linux" ] ) && \
+	{ [ -f "$gamedir/EagleIsland.exe" ] && \
+	[ "$(basename "$gamedir")" != "Linux" ]; } && \
 	{ \
 		debug_echo "correct gamedir for Eagle Island"
 		gamedir="${gamedir}/Linux"
@@ -1262,11 +1274,11 @@ run()
 	check_eagle_island
 	[ -e "$gamedir/.fnaify_ready" ] || { echo "ERROR: setup not completed."; exit 1; }
 	check_mono_binaries
-	cd "$gamedir"
+	cd "$gamedir" || exit 1
 
 	selectexe
 	check_gameconfig
-	[ -e $gameconfig ] || { echo "ERROR: provided gameconfig file not existent: $gameconfig"; exit 1; }
+	[ -e "$gameconfig" ] || { echo "ERROR: provided gameconfig file not existent: $gameconfig"; exit 1; }
 	debug_echo "gameconfig: $gameconfig"
 
 	# Quirks
@@ -1282,10 +1294,10 @@ run()
 			exe_flags="${exe_flags}-noSound "
 			;;
 		MidBoss.exe )
-			if (	[ -e fnaify.dllmap.MidBoss.config ] &&
-				[ "$(diff -U 0 $gameconfig fnaify.dllmap.MidBoss.config | \
+			if 	[ -e fnaify.dllmap.MidBoss.config ] &&
+				[ "$(diff -U 0 "$gameconfig" fnaify.dllmap.MidBoss.config | \
 					wc -l)" -eq 5 ]
-			) ; then
+			then
 				debug_echo "fnaify.dllmap.MidBoss.config up to date."
 			else
 				debug_echo "fnaify.dllmap.MidBoss.config is missing or out of date."
@@ -1308,12 +1320,12 @@ run()
 		[ -e "$f" ] && { \
 			debug_echo "existing symlink target: ${f}.config -> $(readlink "${f}.config")"
 			gameconfigsymlink="${gameconfigsymlink}${f}.config "
-			[ "x$gameconfig" = "x$(readlink "${f}.config")" ] \
+			[ "$gameconfig" = "$(readlink "${f}.config")" ] \
 				|| ln -sf "$gameconfig" "${f}.config"
 		}
 	done
 	gameconfigsymlink="${gameconfigsymlink}${my_exe}.config "
-	[ "x$gameconfig" = "x$(readlink "${my_exe}.config")" ] || \
+	[ "$gameconfig" = "$(readlink "${my_exe}.config")" ] || \
 		ln -sf "$gameconfig" "${my_exe}.config"
 
 	# format all relevant command variables
@@ -1341,14 +1353,14 @@ run()
 				frameworkfile="$fnadir/FNA.dll"
 			fi
 		fi
-		if [ \( -z "$frameworkfile" \) -a \( -f "$gamedir/FNA.dll" \) ] ; then
+		if [ -z "$frameworkfile" ] && [ -f "$gamedir/FNA.dll" ] ; then
 			file_fwv="$(get_frameworkversion "$gamedir/FNA.dll")"
 			if [ "$(get_frameworkmajor "$file_fwv").$(get_frameworkminor "$file_fwv")" = "$(get_frameworkmajor "$frameworkversion").$(get_frameworkminor "$frameworkversion")" ] ; then
 				frameworkfile="$gamedir/FNA.dll"
 			fi
 		fi
 		if [ -z "$frameworkfile" ] ; then
-			install_fna $frameworkversion
+			install_fna "$frameworkversion"
 			frameworkfile="$gamedir/FNA.dll"
 		fi
 
@@ -1416,7 +1428,7 @@ run()
 	for l in $(find . -type l); do
 		IFS=$SAVEIFS
 		if [ ! -e "$l" ] ; then
-			newl="$(latest_syslib "$(trunklibnam "$(readlink $l)")")"
+			newl="$(latest_syslib "$(trunklibnam "$(readlink "$l")")")"
 			if [ -z "$newl" ] ; then
 				echo "ERROR - broken symlink: $l. Expect trouble."
 			else
@@ -1425,7 +1437,7 @@ run()
 		fi
 	done
 
-	debug_echo "env LD_LIBRARY_PATH="$depdir" MONO_PATH="$monopath" $exe_env "$FNAIFY_MONO" $debug "$my_exe" $exe_flags $userflags"
+	debug_echo "env LD_LIBRARY_PATH=\"$depdir\" MONO_PATH=\"$monopath\" $exe_env \"$FNAIFY_MONO\" $debug \"$my_exe\" $exe_flags $userflags"
 	debug_echo ""
 	env LD_LIBRARY_PATH="$depdir" MONO_PATH="$monopath" $exe_env "$FNAIFY_MONO" $debug "$my_exe" $exe_flags $userflags
 
@@ -1438,66 +1450,75 @@ setup()
 	check_mono_binaries
 	check_eagle_island
 
-	cd "$gamedir"
+	cd "$gamedir" || exit 1
 	debug_echo "gamedir: $PWD"	# cd'd into direct above
 
 	debug_echo "Setting up the framework files"
 	get_setup_frameworkfile
-	debug_echo "	framework file:			$setup_frameworkfile"
-	setup_frameworkversion="$(get_frameworkversion "$setup_frameworkfile")"
-	setup_frameworkmajor="$(get_frameworkmajor $frameworkversion)"
-	setup_frameworkminor="$(get_frameworkminor $frameworkversion)"
-
-	debug_echo "	framework version:	$setup_frameworkversion"
+	if [ -z "$setup_frameworkfile" ]; then
+		debug_echo "... no framework file found. Checking other options..."
+	else
+		debug_echo "	framework file:			$setup_frameworkfile"
+		setup_frameworkversion="$(get_frameworkversion "$setup_frameworkfile")"
+		debug_echo "	framework version:	$setup_frameworkversion"
+	fi
 
 	if [ -z "$setup_frameworkfile" ] ; then
 		# games without framework files:
 		# Atom Zombie Smasher, Eliza, Molek-Syntez, Exapunks, Opus Magnum (Lightning.exe),
 		# Shenzhen I/O, SpaceChem (64bit and fullscreen update from 2020-07-15), Streets of Fury EX
-		if [ -n "$(ls "$gamedir" | grep -m 1 "AtomZombieSmasher\.exe")" ] ; then
-			if $(ls $(echo "$depdir" | tr -s ':' ' ') | grep -q "libatomstb\.so")
+		if [ -f "$gamedir/AtomZombieSmasher.exe" ] ; then
+			if ls $(echo "$depdir" | tr -s ':' ' ') | grep -q "libatomstb\.so"
 			then
 				debug_echo "\tfound libatomstb library in a library directory"
 			else
 				# add libatomstb to needlibarray
-				inarray libatomstb.so $needlibarray
-				if [ $? -eq 1 ]; then
-					needlibarray="${needlibarray}libatomstb.so "
+				if [ "$(inarray libatomstb.so "$needlibarray")" = "false" ]
+				then
+					needlibarray[$((${#needlibarray[*]} + 1))]="$libatomstb.so"
 					debug_echo "\tlibatomstb.so added to array"
 				fi
 			fi
-		elif [ \( -n "$(ls "$gamedir" | grep -im 1 "eliza.exe")" \) \
-			-o \( -n "$(ls "$gamedir" | grep -im 1 "molek-syntez.exe")" \) \
-			-o \( -n "$(ls "$gamedir" | grep -im 1 "exapunks.exe")" \) \
-			-o \( -n "$(ls "$gamedir" | grep -im 1 "lightning.exe")" \) \
-			-o \( -n "$(ls "$gamedir" | grep -im 1 "shenzhen.exe")" \) \
-			-o \( -n "$(ls "$gamedir" | grep -im 1 "spacechem.exe")" \) \
-			-o \( -n "$(ls "$gamedir" | grep -m 1 "Hammerwatch.exe")" \) \
-			-o \( -n "$(ls "$gamedir" | grep -m 1 "SOR4.exe")" \) \
-			-o \( -n "$(ls "$gamedir" | grep -m 1 "MobiusFront83.exe")" \) \
-			] ; then
+		elif	[ -f "$gamedir/Eliza.exe" ] \
+			|| [ -f "$gamedir/MOLEK-SYNTEZ.exe" ] \
+			|| [ -f "$gamedir/EXAPUNKS.exe" ] \
+			|| [ -f "$gamedir/Lightning.exe" ] \
+			|| [ -f "$gamedir/Shenzhen.exe" ] \
+			|| [ -f "$gamedir/SpaceChem.exe" ] \
+			|| [ -f "$gamedir/Hammerwatch.exe" ] \
+			|| [ -f "$gamedir/SOR4.exe" ] \
+			|| [ -f "$gamedir/MobiusFront83.exe" ] \
+			|| [ -f "$gamedir/Proteus.exe" ]
+		then
 			debug_echo "\nCompatible game without XNA/FNA framework file found."
-			debug_echo 'Creating $HOME/Desktop directory which is needed for Zachtronics games'
+			debug_echo "Creating \$HOME/Desktop directory which is needed for Zachtronics games"
 			mkdir -p "$HOME/Desktop"
 		else
 			found_xna=0
 			IFS='
 		'
 			for f in $(find . -maxdepth 1 \( -iname "*.exe" -o -iname "*.dll" \) -exec file {} \; \
-				| fgrep "Mono/.Net assembly"); do
-				f="$(echo $f | cut -d : -f 1)"
+				| grep -F "Mono/.Net assembly"); do
+				f="$(echo "$f" | cut -d : -f 1)"
 				debug_echo "Checking $f for XNA"
-				[ -n "$(monodis --assemblyref "$f" 2>&1 | grep -im 1 "Microsoft.Xna.Framework")" ] \
-					&& { found_xna=1; break; }
+				if ! $(monodis --assemblyref "$f" 2>&1 | grep -Fqim1 "Microsoft.Xna.Framework")
+				then
+					found_xna=1
+					break
+				fi
 			done
 			IFS=$SAVEIFS
-			[ $found_xna -eq 1 ] \
-				&& { debug_echo "Found XNA reference"; xnasetup; } \
-				|| { echo "No FNA, MonoGame or XNA reference found"; exit 1; }
+			if [ $found_xna -gt 0 ]; then
+				debug_echo "Found XNA reference"
+				xnasetup
+			else
+				echo "No FNA, MonoGame or XNA reference found"
+				exit 1
+			fi
 		fi
 	fi
 
-	if [ "x$setup_frameworkfile" = "xFNA.dll" ] && ( [ $frameworkmajor -lt 16 ] || ( [ $frameworkmajor -eq 16 ] && [ $frameworkminor -lt 5 ] ) )
+	if [ "$setup_frameworkfile" = "FNA.dll" ] && { [ "$frameworkmajor" -lt 16 ] || { [ "$frameworkmajor" -eq 16 ] && [ "$frameworkminor" -lt 5 ];};}
 	then
 		fna_warning=1
 	fi
@@ -1509,11 +1530,14 @@ setup()
 	debug_echo "Identifying config files..."
 	IFS="
 "
-	for cfile in $(ls "$gamedir" | grep "\.config$"); do
-		debug_echo "\tfound config file: $cfile"
-		configfilesarray[$((${#configfilesarray[*]} + 1))]="$cfile"
-		nconfigfilesarray=$((nconfigfilesarray + 1))
-	done
+	if [ -f "$gamedir"/*.config ]; then
+		for cfile in "$gamedir"/*.config; do
+			cfile="$(basename "$cfile")"
+			debug_echo "	found config file: $cfile"
+			configfilesarray[$((${#configfilesarray[*]} + 1))]="$cfile"
+			nconfigfilesarray=$((nconfigfilesarray + 1))
+		done
+	fi
 	IFS=$SAVEIFS
 	debug_echo "Done identifying config files.\n"
 
@@ -1522,32 +1546,29 @@ setup()
 	else
 		# identify required libraries in .config files and lib{,64} directories
 		# TODO: filenames not whitespace-safe (but should not be used in such files anyway)
-		printdash $(debug_echo "Identifying libraries required by the game...")
+		printdash "$(debug_echo "Identifying libraries required by the game...")"
 
 		#for MidBoss, add SDL2_image_compact to needlib
-		MidBoss=0
-		ls "$gamedir" | grep -iqm 1 "midboss"
-		if [ $? -eq 0 ]; then
-			MidBoss=1
-			needlibarray="${needlibarray}libSDL2_image_compact.so "
-		fi
+		[ -f "$gamedir/MidBoss*" ] && \
+			needlibarray[$((${#needlibarray[*]} + 1))]="libSDL2_image_compact.so"
 
 		libraryname "lib64"
 		libraryname "lib"
 		libraryname "x64"
 		libraryname "x86"
 
-		debug_echo "Obtaining library names from the following config files"
+		debug_echo "\nChecking for library references in config files..."
 		if [ $nconfigfilesarray -lt 1 ]; then
-			debug_echo "No config files found."
+			debug_echo "...No config files found."
 		else
 			cfile=""
 			IFS="
 "
-			for cfile in ${configfilesarray[@]}; do
+			for cfile in "${configfilesarray[@]}"; do
 				IFS=$SAVEIFS
 				debug_echo "\t$cfile"
-				linuxlines=$(grep "os\=\"linux" "$gamedir/$cfile")
+				linuxlines=$(grep "os\=\"linux" "$gamedir/$cfile") \
+					|| debug_echo "no os=linux entries in $cfile"
 				for libstring in $(echo "$linuxlines" | sed -n -E "s/.*target=\"([^\"]+).*/\1/p"); do
 					# Fix where library name includes directory information
 					libstring=$(echo "$libstring" | sed -E 's/^.\///')
@@ -1555,24 +1576,27 @@ setup()
 					libstring=$(echo "$libstring" | sed -E 's/^.*\///')
 					debug_echo -n "\t\tFound library string: $libstring"
 					# sort out libs that need to be ignored
-					validlib $libstring
-					if [ $? -eq 1 ]; then
+					if [ "$(validlib "$libstring")" = "false" ]
+					then
 						debug_echo " - ignored"
 						continue
 					fi
 					libstring=$(trunklibnam "$libstring")
 					debug_echo -n " -> $libstring"
 					# add to libstring to needlibarray if not in there yet
-					inarray $libstring $needlibarray
-					if [ $? -eq 0 ]; then
-						debug_echo " - already in array"
-					elif [ $? -eq 1 ]; then
-						needlibarray="$needlibarray$libstring "
-						debug_echo " - added to array"
-					else
-						echo "\n\t - ERROR: inarray returned with unexpected error\n"
-						exit 1
-					fi
+					case "$(inarray "$libstring" "$needlibarray")" in
+						"true")
+							debug_echo " - already in array"
+							;;
+						"false")
+							needlibarray[$((${#needlibarray[*]} + 1))]="$libstring"
+							debug_echo " - added to array"
+							;;
+						*)
+							printf '\n\t - ERROR: inarray returned with unexpected error\n\n'
+							exit 1
+						;;
+					esac
 				done
 			done
 			debug_echo "Done with identifying libraries in config files"
@@ -1580,19 +1604,22 @@ setup()
 		debug_echo "Done with identification of needed libraries."
 	fi
 
-	debug_echo -n "Fixing libpng filenames if present..."
-	needlibarray=$(echo "${needlibarray}" | sed -E "s/(libpng)..(\.so.*)/\1\2/")
+	debug_echo -n "\nChecking if libpng filename needs fixing..."
+	i=1
+	while [ "$i" -le "${#needlibarray[@]}" ]; do
+		needlibarray[i]="$(echo "${needlibarray[i]}" | sed -E "s/(libpng)..(\.so.*)/\1\2/")"
+		i=$((i + 1))
+	done
 	debug_echo " done.\n"
 
 	# Check if the libraries are available on the system (/usr/local/lib).
 	# If not, break and inform user which libraries need to be installed.
-	debug_echo -n "Checking installed libraries... "
-	debug_echo ""
 
+	debug_echo "Checking installed libraries... "
 	# missinglibs[*] accumulates missing library names to inform user
 	missinglibs=""
 	for needlib in ${needlibarray}; do
-		if $(ls $(echo "$depdir" | tr -s ':' ' ') | grep -q "$needlib")
+		if ls $(echo "$depdir" | tr -s ':' ' ') | grep -q "$needlib"
 		then
 			IFS=$SAVEIFS
 			debug_echo "\tfound library for: $needlib"
@@ -1605,8 +1632,7 @@ setup()
 	debug_echo "done.\n"
 
 	if [ -n "${missinglibs}" ]; then
-		echo "\nCould not find the following libraries:\n
-		${missinglibs}\n"
+		printf '\nCould not find the following libraries:\n\n%b\n' "${missinglibs}"
 		exit 1
 	fi
 
@@ -1617,9 +1643,9 @@ setup()
 	fi
 	IFS="
 "
-	for config_file in ${configfilesarray[@]}; do
+	for config_file in "${configfilesarray[@]}"; do
 		IFS=$SAVEIFS
-		if [ \( ! -h "$config_file" \) -a -n "$(grep -q "dllmap" "$config_file")" ] ; then
+		if [ ! -h "$config_file" ] && grep -q "dllmap" "$config_file"; then
 			mv "$config_file" "$gamedir/fnaify-backup/"
 		fi
 	done
@@ -1638,17 +1664,17 @@ setup()
 	fna_replace=""
 	lastdir=""
 	if [ $fna_warning -eq 1 ]; then
-		if [ "x$interaction" = "xi" ] ; then
-			echo "\nWARNING: version of FNA.dll potentially incompatble!"
+		if [ "$interaction" = "i" ] ; then
+			printf '\nWARNING: version of FNA.dll potentially incompatble!\n'
 			echo "Fetch FNA 17.12 from GitHub, compile, and replace bundled FNA.dll?"
 			echo "FNA is distributed under Microsoft Public License. The license"
 			echo "can be viewed here:"
 			echo "https://github.com/FNA-XNA/FNA/blob/master/licenses/LICENSE"
 			echo -n "Proceed with replacing FNA with version 17.12 (recommended)? [y/n] "
-			until [ "$fna_replace" = "y" -o "$fna_replace" = "n" ]; do
-				read fna_replace
+			until [ "$fna_replace" = "y" ] || [ "$fna_replace" = "n" ]; do
+				read -r fna_replace
 			done
-		elif [ "x$interaction" = "xy" ] ; then
+		elif [ "$interaction" = "y" ] ; then
 			fna_replace="y"
 		else
 			fna_replace="n"
@@ -1660,21 +1686,20 @@ setup()
 		fi
 	fi
 
-	check_remove_steamworks
 	symlink_mg_libs
 	iomap
 
 	if [ -n "${licenses}" ]; then
-		echo "Installed modules are under the following license(s):\n"
+		printf 'Installed modules are under the following license(s):\n\n'
 		echo "${licenses}"
 	fi
 	if [ $fna_warning -eq 1 ]; then
-		echo "\nWARNING: version of FNA.dll potentially incompatible!"
-		echo "If the game doesn't run, try running 'fnaify -i' (or 'fnaify -y').\n"
+		printf '\nWARNING: version of FNA.dll potentially incompatible!\n'
+		printf "If the game doesn't run, try running 'fnaify -i' (or 'fnaify -y').\n\n"
 	fi
 	if [ $nlog_warning -eq 1 ]; then
-		echo "\nWARNING: version of NLog.dll potentially incompatible!"
-		echo "If the game doesn't run, try running 'fnaify -i' (or 'fnaify -y').\n"
+		printf '\nWARNING: version of NLog.dll potentially incompatible!\n'
+		printf "If the game doesn't run, try running 'fnaify -i' (or 'fnaify -y').\n\n"
 	fi
 
 	touch .fnaify_ready
@@ -1686,6 +1711,12 @@ setup()
 ###	MAIN	###
 ###################
 
-process_options $@
-[ $force_setup -eq 1 ] && (setup; run) || \
-	( [ -e "$gamedir/.fnaify_ready" ] && run || (setup; run) )
+process_options "$@"
+if [ $force_setup -gt 0 ]
+then
+	setup
+	run
+else
+	[ ! -e "$gamedir/.fnaify_ready" ] && setup
+	run
+fi
