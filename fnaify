@@ -1284,7 +1284,7 @@ run()
 	# Quirks
 	my_exe="$(echo "$my_exe" | tr -d '\:')"
 	case "$my_exe" in
-		Blueberry.exe|Shenzhen.exe|ThePit.exe|Terraria.exe )
+		Blueberry.exe|Shenzhen.exe|ThePit.exe )
 			exe_env="${exe_env}MONO_FORCE_COMPAT=1 "
 			;;
 		Hacknet.exe )
