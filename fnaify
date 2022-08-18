@@ -1467,6 +1467,7 @@ setup()
 		# games without framework files:
 		# Atom Zombie Smasher, Eliza, Molek-Syntez, Exapunks, Opus Magnum (Lightning.exe),
 		# Shenzhen I/O, SpaceChem (64bit and fullscreen update from 2020-07-15), Streets of Fury EX
+		* Last Call BBS
 		if [ -f "$gamedir/AtomZombieSmasher.exe" ] ; then
 			if ls $(echo "$depdir" | tr -s ':' ' ') | grep -q "libatomstb\.so"
 			then
@@ -1488,7 +1489,8 @@ setup()
 			|| [ -f "$gamedir/Hammerwatch.exe" ] \
 			|| [ -f "$gamedir/SOR4.exe" ] \
 			|| [ -f "$gamedir/MobiusFront83.exe" ] \
-			|| [ -f "$gamedir/Proteus.exe" ]
+			|| [ -f "$gamedir/Proteus.exe" ] \
+			|| [ -f "$gamedir/LastCallBBS.exe" ]
 		then
 			debug_echo "\nCompatible game without XNA/FNA framework file found."
 			debug_echo "Creating \$HOME/Desktop directory which is needed for Zachtronics games"
