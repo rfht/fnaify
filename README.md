@@ -171,6 +171,7 @@ Before the Echo \[!]
 Bird Assassin  
 Bleed  
 Bleed 2  
+Blossom Tales II: The Minotaur Prince  
 Breath of Death VII  
 Brushwood Buddies  
 Camera Obscura  
@@ -181,6 +182,7 @@ Charlie Murder
 Chasm  
 CometStriker  
 Cryptark  
+Crystal Project  
 Cthulhu Saves the World  
 Curse of the Crescent Isle DX  
 Dad Quest  
@@ -351,4 +353,4 @@ Thomas Frohwein &lt;[thfr@openbsd.org](mailto:thfr@openbsd.org)&gt;.
 Thomas Frohwein &lt;[thfr@openbsd.org](mailto:thfr@openbsd.org)&gt;
 Mariusz Zaborski
 
-OpenBSD 7.0 - November 11, 2021
+OpenBSD 7.2 - April 30, 2022
