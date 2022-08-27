@@ -120,6 +120,7 @@ libfmod.so
 libfmodex.so
 libfmodstudio.so
 liblua53.so
+libmojoshader.so
 libtiny_jpeg.so
 steamwrapper.so
 steam_appid.txt
