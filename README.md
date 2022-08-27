@@ -176,6 +176,7 @@ Breath of Death VII
 Brushwood Buddies  
 Camera Obscura  
 Capsized  
+Capsule Force  
 Celeste (no audio)  
 Chaos Heart  
 Charlie Murder  
@@ -353,4 +354,4 @@ Thomas Frohwein &lt;[thfr@openbsd.org](mailto:thfr@openbsd.org)&gt;.
 Thomas Frohwein &lt;[thfr@openbsd.org](mailto:thfr@openbsd.org)&gt;
 Mariusz Zaborski
 
-OpenBSD 7.2 - April 30, 2022
+OpenBSD 7.2 - August 19, 2022
