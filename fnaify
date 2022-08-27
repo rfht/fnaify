@@ -1468,7 +1468,7 @@ setup()
 		# games without framework files:
 		# Atom Zombie Smasher, Eliza, Molek-Syntez, Exapunks, Opus Magnum (Lightning.exe),
 		# Shenzhen I/O, SpaceChem (64bit and fullscreen update from 2020-07-15), Streets of Fury EX
-		* Last Call BBS
+		# Last Call BBS
 		if [ -f "$gamedir/AtomZombieSmasher.exe" ] ; then
 			if ls $(echo "$depdir" | tr -s ':' ' ') | grep -q "libatomstb\.so"
 			then
