@@ -875,6 +875,9 @@ iomap()
 	debug_echo "iomap: checking if symlinks for filename cases need to be created"
 	for f in $(find "$gamedir" -maxdepth 1 -name "*.exe" -exec basename {} \;); do
 		case $f in
+			WagonAdventure.exe )
+				ln -sf CRT.xnb Content/FX/Crt.xnb
+				;;
 			"Dead Pixels.exe" )
 				ln -sf Sprites Content/sprites
 				ln -sf Effects Content/Sprites/effects
@@ -919,6 +922,7 @@ iomap()
 				;;
 			ThePit.exe )
 				ln -sf UI Content/ui
+				ln -sf m_security_bot_C_sprites.xnb Content/characters/enemies/security_bot/m_security_bot_c_sprites.xnb
 				;;
 			"Grand Class Melee.exe" )
 				ln -sf water.xnb Content/Sounds/Water.xnb

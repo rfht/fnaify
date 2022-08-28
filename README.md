@@ -162,7 +162,7 @@ The arguments are as follows:
 
 The Adventures of Shuggy  
 Akane the Kunoichi  
-Amazing Princess Sarah  
+Amazing Princess Sarah \[!]  
 Apotheon  
 Apple Jack 1&2  
 Atom Zombie Smasher  
@@ -170,7 +170,7 @@ A Virus Named TOM \[!]
 Before the Echo \[!]  
 Bird Assassin  
 Bleed  
-Bleed 2  
+Bleed 2 \[!]  
 Blossom Tales II: The Minotaur Prince  
 Breath of Death VII  
 Brushwood Buddies  
@@ -178,8 +178,8 @@ Camera Obscura
 Capsized  
 Capsule Force  
 Celeste (no audio)  
-Chaos Heart  
-Charlie Murder  
+Chaos Heart \[!]  
+Charlie Murder \[!]  
 Chasm  
 CometStriker  
 Cryptark  
@@ -188,7 +188,7 @@ Cthulhu Saves the World
 Curse of the Crescent Isle DX  
 Dad Quest  
 Dead Pixels \[!]  
-Dead Pixels II \[!]  
+Dead Pixels II (Early Access)  
 Diehard Dungeon  
 The Dishwasher: Vampire Smile  
 Draw a Stickman: EPIC  
@@ -199,7 +199,7 @@ Eliza
 Escape Goat  
 Escape Goat 2  
 EXAPUNKS  
-FEZ  
+FEZ \[!]  
 Fist Puncher  
 Flinthook  
 Flotilla  
@@ -216,10 +216,11 @@ LaserCat
 Little Racers STREET  
 Mercenary Kings  
 Miasma: Citizens of Free Thought  
+Miasma 2: Freedom Uprising \[!]  
 MidBoss  
-Mobius Front '83  
+Mobius Front '83 \[!]  
 Molek-Syntez  
-Mount Your Friends \[!]  
+Mount Your Friends  
 NeuroVoider  
 Ninja Warrior  
 One Finger Death Punch  
@@ -242,12 +243,13 @@ Shipwreck
 Signs of Life  
 Skulls of the Shogun  
 Soulcaster 1 & 2  
-SpaceChem \[!]  
+SpaceChem  
 SpeedRunners  
-Stardew Valley  
+Stardew Valley \[!]  
 Steel Assault  
 Sumico  
-Super Amazing Wagon Adventure \[!]  
+Super Amazing Wagon Adventure  
+Super Bernie World  
 Super Blood Hockey  
 Super Rad Raygun  
 Sword of the Stars: The Pit \[!]  
@@ -259,7 +261,7 @@ Unexplored
 Unholy Heights  
 The Useful Dead  
 Weapon of Choice \[!]  
-Wizorb  
+Wizorb \[!]  
 Wyv and Keep
 
 # FILES
@@ -355,4 +357,4 @@ Thomas Frohwein &lt;[thfr@openbsd.org](mailto:thfr@openbsd.org)&gt;.
 Thomas Frohwein &lt;[thfr@openbsd.org](mailto:thfr@openbsd.org)&gt;
 Mariusz Zaborski
 
-OpenBSD 7.2 - August 27, 2022
+OpenBSD 7.2 - August 28, 2022
