@@ -196,7 +196,7 @@ The Dishwasher: Vampire Smile
 Draw a Stickman: EPIC  
 Dust: An Elysian Tail  
 DwarfCorp  
-Eagle Island  
+Eagle Island \[!]  
 Eliza  
 Escape Goat  
 Escape Goat 2  
