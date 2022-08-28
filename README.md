@@ -160,6 +160,8 @@ The arguments are as follows:
 
 # SUPPORTED GAMES
 
+Games marked with \[!] may have errors or other significant limitations.
+
 The Adventures of Shuggy  
 Akane the Kunoichi  
 Amazing Princess Sarah \[!]  
