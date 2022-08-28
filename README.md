@@ -193,6 +193,7 @@ Diehard Dungeon
 The Dishwasher: Vampire Smile  
 Draw a Stickman: EPIC  
 Dust: An Elysian Tail  
+DwarfCorp  
 Eagle Island  
 Eliza  
 Escape Goat  
@@ -354,4 +355,4 @@ Thomas Frohwein &lt;[thfr@openbsd.org](mailto:thfr@openbsd.org)&gt;.
 Thomas Frohwein &lt;[thfr@openbsd.org](mailto:thfr@openbsd.org)&gt;
 Mariusz Zaborski
 
-OpenBSD 7.2 - August 19, 2022
+OpenBSD 7.2 - August 27, 2022
