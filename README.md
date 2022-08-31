@@ -206,7 +206,7 @@ Fist Puncher
 Flinthook  
 Flotilla  
 Gateways  
-Glitchangels  
+Glitchangels \[!]  
 Grand Class Melee 2 \[!]  
 Growing Pains  
 HackNet  
@@ -232,7 +232,7 @@ Owlboy
 Paladin  
 Penny Arcade's On the Rain-Slick Precipice of Darkness 3  
 Penny Arcade's On the Rain-Slick Precipice of Darkness 4  
-Phoenix Force  
+Phoenix Force \[!]  
 PlanetFriend  
 Press X to Not Die  
 Rex Rocket  
@@ -241,7 +241,7 @@ Ruggnar
 Salt and Sanctuary  
 Session Seven  
 Shenzhen I/O  
-Shipwreck  
+Shipwreck \[!]  
 Signs of Life  
 Skulls of the Shogun  
 Soulcaster 1 & 2  
