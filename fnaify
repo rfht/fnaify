@@ -1184,6 +1184,10 @@ iomap()
 				ln -s MainMenu.xnb Content/screens/mainmenu.xnb
 				ln -s UISnailsMenu.xnb Content/screens/controls/uisnailsmenu.xnb
 				ln -s UIMainMenuBodyPanel.xnb Content/screens/controls/uimainmenubodypanel.xnb
+				;;
+			"WoCGame.exe" )
+				ln -s Arial14.xnb Content/fonts/arial14.xnb
+				;;
 		esac
 	done
 	IFS=$SAVEIFS
