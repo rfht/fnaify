@@ -172,7 +172,7 @@ A Virus Named TOM \[!]
 Before the Echo \[!]  
 Bird Assassin  
 Bleed  
-Bleed 2 \[!]  
+Bleed 2  
 Blossom Tales II: The Minotaur Prince  
 Breath of Death VII  
 Brushwood Buddies  
@@ -181,7 +181,7 @@ Capsized
 Capsule Force  
 Celeste (no audio)  
 Chaos Heart \[!]  
-Charlie Murder \[!]  
+Charlie Murder  
 Chasm  
 CometStriker  
 Cryptark  
@@ -206,7 +206,7 @@ Fist Puncher
 Flinthook  
 Flotilla  
 Gateways  
-Glitchangels \[!]  
+Glitchangels  
 Grand Class Melee 2 \[!]  
 Growing Pains  
 HackNet  
@@ -215,6 +215,7 @@ Hive
 Hyphen  
 Jon Shafer's At the Gates  
 LaserCat  
+Last Call BBS  
 Little Racers STREET  
 Mercenary Kings  
 Miasma: Citizens of Free Thought  
@@ -223,7 +224,7 @@ MidBoss
 Mobius Front '83 \[!]  
 Molek-Syntez  
 Mount Your Friends  
-NeuroVoider  
+NeuroVoider \[!]  
 Ninja Warrior  
 One Finger Death Punch  
 Opus Magnum  
@@ -359,4 +360,4 @@ Thomas Frohwein &lt;[thfr@openbsd.org](mailto:thfr@openbsd.org)&gt;.
 Thomas Frohwein &lt;[thfr@openbsd.org](mailto:thfr@openbsd.org)&gt;
 Mariusz Zaborski
 
-OpenBSD 7.2 - August 28, 2022
+OpenBSD 7.2 - August 31, 2022
