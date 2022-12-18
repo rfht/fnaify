@@ -311,6 +311,13 @@ Thomas Frohwein &lt;[thfr@openbsd.org](mailto:thfr@openbsd.org)&gt;.
 
 # RELEASE HISTORY
 
+3\.1
+
+> Stop removing Steamworks.NET.dll. Instead, rely on other lower level
+> native libraries (CSteamworks, libsteam\_api). Add flag
+> **-n**
+> to skip library checks.
+
 3\.0
 
 > Stop creating launch script. Instead use fnaify for both
@@ -360,4 +367,4 @@ Thomas Frohwein &lt;[thfr@openbsd.org](mailto:thfr@openbsd.org)&gt;.
 Thomas Frohwein &lt;[thfr@openbsd.org](mailto:thfr@openbsd.org)&gt;
 Mariusz Zaborski
 
-OpenBSD 7.2 - August 31, 2022
+OpenBSD 7.2 - September 4, 2022

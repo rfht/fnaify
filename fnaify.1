@@ -1,4 +1,4 @@
-.Dd $Mdocdate: September 4 2022 $
+.Dd $Mdocdate: December 18 2022 $
 .Dt FNAIFY 1
 .Os
 .Sh NAME
@@ -379,6 +379,11 @@ utility was originally created in December 2017 by
 .An Thomas Frohwein Aq Mt thfr@openbsd.org .
 .Sh RELEASE HISTORY
 .Bl -tag -width Ds
+.It 3.1
+Stop removing Steamworks.NET.dll. Instead, rely on other lower level
+native libraries (CSteamworks, libsteam_api). Add flag
+.Fl n
+to skip library checks.
 .It 3.0
 Stop creating launch script. Instead use fnaify for both
 setup and launch.

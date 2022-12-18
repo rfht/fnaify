@@ -3,7 +3,7 @@
 set -o errexit
 set -o pipefail
 
-FNAIFY_VERSION=3.0
+FNAIFY_VERSION=3.1
 
 #########################################################################
 # fnaify 								#
@@ -372,9 +372,10 @@ check_gameconfig()
 				mkdir -p ~/.config/fnaify
 				cat <<EOF > "$gameconfig"
 <!-- mono config file for fnaify -->
-<!-- fnaify version 3.0 -->
+<!-- fnaify version 3.1 -->
 <configuration>
 	<dllmap dll="FAudio" target="libFAudio.so"/>
+	<dllmap dll="FNA3D" target="libFNA3D.so"/>
 	<dllmap dll="MojoShader.dll" target="libmojoshader.so"/>
 	<dllmap dll="SDL2.dll" target="libSDL2.so"/>
 	<dllmap dll="SDL2_image.dll" target="libSDL2_image.so"/>
@@ -397,6 +398,10 @@ check_gameconfig()
 	<dllmap dll="i:CommunityExpressSW" target="libcestub.so"/>
 	<dllmap dll="i:CommunityExpressSW.dll" target="libcestub.so"/>
 
+	<dllmap dll="steam_api" target="libsteam_api.so"/>
+	<dllmap dll="CSteamworks.dll" target="libCSteamworks.so"/>
+
+
 	<dllmap dll="user32.dll">
 		<dllentry dll="libc.so" name="GetWindowThreadProcessId" target="getthrid"/>
 		<dllentry dll="libstubborn.so" name="SetWindowsHookEx" target="int_0"/>
@@ -413,10 +418,11 @@ check_gameconfig()
 		<dllentry dll="libstubborn.so" name="ArkGetPlayerId" target="int_0"/>
 	</dllmap>
 
-	<dllmap dll="CSteamworks">
+<!--	<dllmap dll="CSteamworks">
 		<dllentry dll="libstubborn.so" name="InitSafe" target="int_0"/>
 		<dllentry dll="libstubborn.so" name="RestartAppIfNecessary" target="int_0"/>
 	</dllmap>
+-->
 
 	<dllmap dll="discord-rpc">
 		<dllentry dll="libstubborn.so" name="Initialize" target="int_0"/>
@@ -453,8 +459,6 @@ check_gameconfig()
 	<dllmap dll="kernel32">
 		<dllentry dll="ld.so" name="LoadLibrary" target="dlopen"/>
 	</dllmap>
-
-	<!--<dllmap dll="SteamworksNative.dll" target="libSteamworksNative.so"/>-->
 
 	<dllmap dll="SteamWrapper.dll">
 		<dllentry dll="libstubborn.so" name="SteamWrapper_GetCurrentGameLanguage" target="int_0"/>
@@ -559,6 +563,18 @@ check_gameconfig()
 		<dllentry dll="libstubborn.so" name="FMOD_Studio_System_FlushCommands" target="int_0"/>
 		<dllentry dll="libstubborn.so" name="FMOD_Studio_Bus_GetChannelGroup" target="int_0"/>
 		<dllentry dll="libstubborn.so" name="FMOD_Studio_EventInstance_SetCallback" target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_System_UnloadAll" target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_System_GetCoreSystem" target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_Bus_SetVolume" target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD_Studio_EventInstance_SetPitch" target="int_0"/>
+	</dllmap>
+
+	<!-- Epic -->
+	<dllmap dll="EOSSDK-Win64-Shipping.dll">
+		<dllentry dll="libstubborn.so" name="EOS_Initialize" target="int_0"/>
+		<dllentry dll="libstubborn.so" name="EOS_Logging_SetLogLevel" target="int_0"/>
+		<dllentry dll="libstubborn.so" name="EOS_Logging_SetCallback" target="int_0"/>
+		<dllentry dll="libstubborn.so" name="EOS_Platform_Create" target="ptr_null"/>
 	</dllmap>
 
 	<dllmap dll="fmodstudio.dll">
@@ -631,6 +647,9 @@ check_gameconfig()
 		<dllentry dll="libstubborn.so" name="FMOD_System_SetDSPBufferSize" target="int_0"/>
 		<dllentry dll="libstubborn.so" name="FMOD_System_SetAdvancedSettings" target="int_0"/>
 		<dllentry dll="libstubborn.so" name="FMOD_System_SetSoftwareChannels" target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD5_System_SetSoftwareChannels" target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD5_System_SetSoftwareFormat" target="int_0"/>
+		<dllentry dll="libstubborn.so" name="FMOD5_System_Release" target="int_0"/>
 		<dllentry dll="libstubborn.so" name="FMOD_ChannelGroup_SetVolume" target="int_0"/>
 		<dllentry dll="libstubborn.so" name="FMOD_ChannelGroup_SetPitch" target="int_0"/>
 	</dllmap>
